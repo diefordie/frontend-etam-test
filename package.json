@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",  // Menambahkan properti ini untuk mendukung ESM di seluruh proyek
   "scripts": {
     "dev": "next dev",
     "build": "next build",
