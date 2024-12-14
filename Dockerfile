@@ -1,29 +1,39 @@
-# Gunakan Node.js versi LTS
-FROM node:18-alpine
-
-# Set working directory
+# Stage 1: Install dependencies
+FROM node:18-alpine as dependencies
 WORKDIR /app
-
-# Copy package.json dan package-lock.json
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm ci && npm i sharp
-
-# Install dependensi build tambahan
-RUN apk add --no-cache libc6-compat
-
-# Copy seluruh kode sumber
+# Stage 2: Build the application
+FROM node:18-alpine as builder
+WORKDIR /app
+COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
-
-# Build aplikasi Next.js
 RUN npm run build
 
-# Expose port yang digunakan (biasanya 3000 untuk Next.js)
+# Stage 3: Run the application
+FROM node:18-alpine as runner
+WORKDIR /app
+
+# Install production dependencies only
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy built assets from builder stage
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+
+# Install sharp for image optimization
+RUN npm i sharp
+
+# Install additional build dependencies
+RUN apk add --no-cache libc6-compat
+
+# Expose port 3000
 EXPOSE 3000
 
-# Tambahkan variabel lingkungan jika diperlukan
-# ENV NODE_ENV=production
+# Set environment variables
+ENV NODE_ENV production
 
-# Command untuk menjalankan aplikasi
-CMD ["npm", "run", "start"]
+# Run the application
+CMD ["npm", "start"]
