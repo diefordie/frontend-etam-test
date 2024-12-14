@@ -1,30 +1,23 @@
-FROM node:18-alpine AS builder
+# Gunakan Node.js versi LTS
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
+# Copy package.json dan package-lock.json
 COPY package*.json ./
 
-# Install dependencies termasuk sharp
-RUN npm install && npm install sharp
+# Install dependencies
+RUN npm install
 
+# Copy seluruh kode sumber
 COPY . .
-
-ENV NODE_ENV=production
 
 # Build aplikasi Next.js
 RUN npm run build
 
-# Stage 2: Run
-FROM node:18-alpine AS runner
-
-WORKDIR /app
-
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
+# Expose port yang digunakan (biasanya 3000 untuk Next.js)
 EXPOSE 3000
 
+# Command untuk menjalankan aplikasi
 CMD ["npm", "start"]
