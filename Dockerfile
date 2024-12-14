@@ -8,7 +8,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install && npm i sharp
+RUN npm ci && npm i sharp
+
+# Install dependensi build tambahan
+RUN apk add --no-cache libc6-compat
 
 # Copy seluruh kode sumber
 COPY . .
@@ -19,5 +22,8 @@ RUN npm run build
 # Expose port yang digunakan (biasanya 3000 untuk Next.js)
 EXPOSE 3000
 
+# Tambahkan variabel lingkungan jika diperlukan
+# ENV NODE_ENV=production
+
 # Command untuk menjalankan aplikasi
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]
