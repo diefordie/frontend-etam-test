@@ -7,6 +7,7 @@ import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import dotenv from 'dotenv';
 
 dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Registrasi = () => {
     const [name, setName] = useState('');
@@ -25,7 +26,7 @@ const Registrasi = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://backend-etam-test-production.up.railway.app/auth/registrasi`, {
+            const response = await fetch(`http://${URL}/auth/registrasi`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

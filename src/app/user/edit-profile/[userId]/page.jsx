@@ -7,6 +7,10 @@ import { AiTwotoneCamera } from 'react-icons/ai';
 import { BsTrash3 } from "react-icons/bs";
 import { BsDoorOpen } from 'react-icons/bs';
 import { AiOutlineForm } from 'react-icons/ai';
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function EditProfile({ params }) {
   const { userId } = params;
@@ -16,7 +20,7 @@ export default function EditProfile({ params }) {
     email: '',
     currentPassword: '',
     newPassword: '',
-    profileImage: '', // Menyimpan URL gambar profil
+    profileImage: '', 
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +35,7 @@ export default function EditProfile({ params }) {
         return;
       }
 
-      const response = await fetch(`http://localhost:2000/user/profile`, {
+      const response = await fetch(`http://${URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +95,7 @@ export default function EditProfile({ params }) {
 
     try {
       // Perbarui Nama
-      await fetch("http://localhost:2000/user/profile/name", {
+      await fetch(`http://${URL}/user/profile/name`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -101,7 +105,7 @@ export default function EditProfile({ params }) {
       });
 
       // Perbarui Email
-      await fetch("http://localhost:2000/user/profile/email", {
+      await fetch(`http://${URL}/user/profile/email`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -115,7 +119,7 @@ export default function EditProfile({ params }) {
         const profileImageData = new FormData();
         profileImageData.append("profileImage", formData.profileImage);
 
-        await fetch("http://localhost:2000/user/profile/photo", {
+        await fetch(`http://${URL}/user/profile/photo`, {
           method: formData.profileImage ? "PATCH" : "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -126,7 +130,7 @@ export default function EditProfile({ params }) {
 
       // Perbarui Password jika `currentPassword` dan `newPassword` diisi
       if (formData.currentPassword && formData.newPassword) {
-        const passwordResponse = await fetch("http://localhost:2000/user/profile/password", {
+        const passwordResponse = await fetch(`http://${URL}/user/profile/password`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",

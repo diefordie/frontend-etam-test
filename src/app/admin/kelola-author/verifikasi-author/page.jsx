@@ -6,6 +6,10 @@ import Link from 'next/link';
 import { FaSearch } from "react-icons/fa";
 import { IoPersonCircle } from "react-icons/io5";
 
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 const VerifikasiAuthor2 = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [authors, setAuthors] = useState([]);
@@ -70,7 +74,7 @@ const VerifikasiAuthor2 = () => {
   
         try {
           setLoadingUser(true);
-          const response = await fetch('http://localhost:2000/user/profile', {
+          const response = await fetch(`http://${URL}/user/profile`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -117,7 +121,7 @@ const VerifikasiAuthor2 = () => {
   useEffect(() => {
     const fetchAuthors = async () => {
       try {
-        const response = await axios.get("http://localhost:2000/author/get-author");
+        const response = await axios.get(`http://${URL}/author/get-author`);
         if (Array.isArray(response.data.data)) {
           const fetchedAuthors = response.data.data.map((author) => ({
             ...author,
@@ -204,7 +208,7 @@ const VerifikasiAuthor2 = () => {
 
     try {
       // Panggil service untuk update verifikasi author di backend
-      const response = await axios.patch(`http://localhost:2000/author/edit-author/${updatedData[index].id}/status`, {
+      const response = await axios.patch(`http://${URL}/author/edit-author/${updatedData[index].id}/status`, {
         id: updatedData[index].id, // Kirim ID author yang akan di-update
         isApproved: updatedData[index].isApproved, // Kirim status verifikasi
       });
@@ -222,7 +226,7 @@ const VerifikasiAuthor2 = () => {
   // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch('http://localhost:2000/auth/logout', {
+      const response = await fetch(`http://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

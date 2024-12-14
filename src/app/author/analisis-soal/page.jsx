@@ -11,6 +11,9 @@ import {CiLock} from "react-icons/ci";
 import { FaSearch } from "react-icons/fa";
 import jwtDecode from 'jwt-decode';
 
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Home() {
   const [popularTests, setPopularTests] = useState([]);
@@ -90,7 +93,7 @@ const draftTests = authorTests.filter(test => test.status === 'draft');
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

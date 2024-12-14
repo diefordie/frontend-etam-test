@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import  Swal from 'sweetalert2';
 import { useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const MengerjakanTes = () => {
     const { testId } = useParams(); // Ambil testId dari URL path
@@ -89,7 +93,7 @@ const MengerjakanTes = () => {
                     await fetchAnswersByResultId(savedResultId);
                 }
 
-                const response = await fetch(`http://localhost:2000/api/tests/get-test/${testId}`, {
+                const response = await fetch(`http://${URL}/api/tests/get-test/${testId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -131,7 +135,7 @@ const MengerjakanTes = () => {
                 if (savedResultId) {
                     setResultId(savedResultId);
                 }
-            const response = await fetch(`http://localhost:2000/answer/tests/${resultId}`, {
+            const response = await fetch(`http://${URL}/answer/tests/${resultId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -229,7 +233,7 @@ useEffect(() => {
         } else {
             // Fetch dari backend jika tidak ditemukan di localStorage
             try {
-                const response = await fetch(`http://localhost:2000/timer/${testId}/worktime`, {
+                const response = await fetch(`http://${URL}/timer/${testId}/worktime`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) throw new Error('Failed to fetch worktime');
@@ -312,7 +316,7 @@ useEffect(() => {
 
     const saveDraftAnswer = async (testId, optionId, selectedOption) => {
         try {
-            const response = await fetch(`http://localhost:2000/answer/tests/${testId}/temp`, {
+            const response = await fetch(`http://${URL}/answer/tests/${testId}/temp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -335,7 +339,7 @@ useEffect(() => {
         try {
             console.log('Updating draft answer:', { resultId, oldOptionId, newOptionId, newAnswer });
 
-            const response = await fetch(`http://localhost:2000/answer/tests/${testId}/update`, {
+            const response = await fetch(`http://${URL}/answer/tests/${testId}/update`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -379,7 +383,7 @@ useEffect(() => {
             }
     
             // Kirim request ke backend dengan resultId di body
-            const response = await fetch(`http://localhost:2000/answer/tests/submit`, {
+            const response = await fetch(`http://${URL}/answer/tests/submit`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

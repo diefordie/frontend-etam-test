@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { FaUserTie } from "react-icons/fa";
 import { IoPersonCircle } from "react-icons/io5";
 
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const VerifikasiAuthor1 = () => {
   const [userData, setUserData] = useState(null);
@@ -60,7 +63,7 @@ const VerifikasiAuthor1 = () => {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -148,7 +151,7 @@ const VerifikasiAuthor1 = () => {
 
     try {
       setLoadingUser(true);
-      const response = await fetch('http://localhost:2000/user/profile', {
+      const response = await fetch(`http://${URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -194,7 +197,7 @@ const VerifikasiAuthor1 = () => {
   // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch('http://localhost:2000/auth/logout', {
+      const response = await fetch(`http://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

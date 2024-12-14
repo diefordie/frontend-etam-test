@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -19,7 +22,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:2000/api/admin/login', {
+            const response = await fetch(`http://${URL}/admin/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

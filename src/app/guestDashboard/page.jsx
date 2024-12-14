@@ -9,6 +9,10 @@ import { IoPersonCircle } from "react-icons/io5";
 import { IoMenu } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
 
+import dotenv from "dotenv";
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function GuestDashboard() {
   const [popularTests, setPopularTests] = useState([]);
   const [freeTests, setFreeTests] = useState([]);
@@ -21,7 +25,7 @@ export default function GuestDashboard() {
     const fetchPopularTests = async () => {
       try {
         const response = await fetch(
-          "http://localhost:2000/dashboard/popular-tests"
+          `http://${URL}/dashboard/popular-tests`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch popular tests");
@@ -43,7 +47,7 @@ export default function GuestDashboard() {
     const fetchFreeTests = async () => {
       try {
         const response = await fetch(
-          "http://localhost:2000/dashboard/free-tests"
+          `http://${URL}/dashboard/free-tests`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch free tests");
@@ -67,7 +71,7 @@ export default function GuestDashboard() {
 
     try {
       const response = await fetch(
-        `http://localhost:2000/dashboard/search-tests?title=${encodeURIComponent(
+        `http://${URL}/dashboard/search-tests?title=${encodeURIComponent(
           searchQuery
         )}`
       );

@@ -5,6 +5,10 @@ import Link from 'next/link';
 import Swal from 'sweetalert2'; 
 import { FaRegEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -24,7 +28,7 @@ const Login = () => {
         setError(''); // Reset error sebelum mencoba login
     
         try {
-            const response = await fetch(`http://${process.env.PUBLIC_API_URL}/auth/login`, {
+            const response = await fetch(`http://${URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

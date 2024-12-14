@@ -6,6 +6,10 @@ import axios from 'axios';
 import Link from 'next/link';
 import { AiOutlineUser } from "react-icons/ai";
 import { IoPersonCircle } from "react-icons/io5";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const TopScore = () => {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -25,7 +29,7 @@ const TopScore = () => {
 
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:2000/api/leaderboard/${params.testId}`);
+                const response = await axios.get(`http://${URL}/api/leaderboard/${params.testId}`);
                 if (response.data && response.data.data) {
                     setScores(response.data.data);
                 } else {
@@ -57,7 +61,7 @@ const TopScore = () => {
     
           try {
             setLoadingUser(true);
-            const response = await fetch('http://localhost:2000/user/profile', {
+            const response = await fetch(`http://${URL}/user/profile`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -99,7 +103,7 @@ const TopScore = () => {
     
             setLoadingTitle(true);
             try {
-                const response = await axios.get(`http://localhost:2000/test/get-test/${params.testId}`);
+                const response = await axios.get(`http://${URL}/test/get-test/${params.testId}`);
                 if (response.status === 200 && response.data && response.data.data && response.data.data.title) {
                     setTestTitle(response.data.data.title);
                 } else {

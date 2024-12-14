@@ -4,6 +4,10 @@ import { useState } from "react";
 import { IoWalletOutline } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import { IoPersonCircle } from "react-icons/io5";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function DashboardAuthor() {
   const [asideHeight, setAsideHeight] = useState('1000px'); 

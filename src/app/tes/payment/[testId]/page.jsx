@@ -7,6 +7,10 @@ import { jwtDecode } from "jwt-decode";
 import { IoPersonCircle } from "react-icons/io5";
 import { SlBookOpen } from "react-icons/sl";
 
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 function App() {
   const { testId } = useParams();
   const [userId, setUserId] = useState(null);
@@ -40,7 +44,7 @@ function App() {
   useEffect(() => {
     const fetchTestDetail = async () => {
       try {
-        const response = await fetch(`http://localhost:2000/api/tests/get-tests/${testId}`);
+        const response = await fetch(`http://${URL}/api/tests/get-tests/${testId}`);
         if (!response.ok) {
           const errorMessage = await response.text();
           throw new Error(`Error: ${response.status} - ${errorMessage}`)
@@ -65,7 +69,7 @@ function App() {
         const token = localStorage.getItem('token'); // Ambil token dari localStorage
         
         // Ambil token dari backend
-        const response = await fetch('http://localhost:2000/api/payment/payment-process', {
+        const response = await fetch(`http://${URL}/api/payment/payment-process`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

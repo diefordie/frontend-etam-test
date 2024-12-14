@@ -10,6 +10,10 @@ import { IoIosLock } from "react-icons/io";
 import { IoPersonCircle } from "react-icons/io5";
 import { IoMenu } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 
 export default function UserDashboard() {
@@ -71,7 +75,7 @@ export default function UserDashboard() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -117,7 +121,7 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchPopularTests = async () => {
       try {
-        const response = await fetch('http://localhost:2000/dashboard/popular-tests');
+        const response = await fetch(`http://${URL}/dashboard/popular-tests`);
         if (!response.ok) {
           throw new Error('Failed to fetch popular tests');
         }
@@ -137,7 +141,7 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchFreeTests = async () => {
       try {
-        const response = await fetch('http://localhost:2000/dashboard/free-tests');
+        const response = await fetch(`http://${URL}/dashboard/free-tests`);
         if (!response.ok) {
           throw new Error('Failed to fetch free tests');
         }
@@ -159,7 +163,7 @@ export default function UserDashboard() {
     if (!searchQuery) return;
 
     try {
-      const response = await fetch(`http://localhost:2000/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`http://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) {
         throw new Error('Failed to search tests');
       }
@@ -181,19 +185,16 @@ export default function UserDashboard() {
   useEffect(() => {
     const updateItemsToShow = () => {
       if (window.innerWidth >= 1024) {
-        setSearchItemsToShow(4); // Tampilkan 4 item di desktop
+        setSearchItemsToShow(4);
       } else {
-        setSearchItemsToShow(2); // Tampilkan 2 item di mobile
+        setSearchItemsToShow(2); 
       }
     };
 
-    // Jalankan saat component dimuat
     updateItemsToShow();
 
-    // Tambahkan event listener untuk mendeteksi perubahan ukuran layar
     window.addEventListener('resize', updateItemsToShow);
 
-    // Bersihkan event listener saat component dilepas
     return () => window.removeEventListener('resize', updateItemsToShow);
   }, []);
 
@@ -344,7 +345,7 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const response = await fetch('http://localhost:2000/api/favorites', {
+        const response = await fetch(`http://${URL}/api/favorites`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -367,11 +368,9 @@ export default function UserDashboard() {
       }
     };
 
-    // Memanggil fetchFavorites untuk mendapatkan favorit dari server
     fetchFavorites();
   }, [token]);
 
-  // Mengambil status like dari local storage saat pertama kali komponen dimuat
   useEffect(() => {
     const storedLikedItems = localStorage.getItem('likedItems');
     if (storedLikedItems) {
@@ -379,19 +378,16 @@ export default function UserDashboard() {
     }
   }, []);
 
-  // Mengupdate local storage setiap kali likedItems diupdate
   useEffect(() => {
     localStorage.setItem('likedItems', JSON.stringify(likedItems));
   }, [likedItems]);
 
-  // Fungsi toggle like untuk semua bagian
   const toggleLike = async (id) => {
     const isLiked = likedItems[id];
 
     try {
       if (isLiked) {
-        // Jika sudah di-like, lakukan DELETE request
-        await fetch(`http://localhost:2000/api/favorites`, {
+        await fetch(`http://${URL}/api/favorites`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -400,8 +396,7 @@ export default function UserDashboard() {
           body: JSON.stringify({ testId: id }),
         });
       } else {
-        // Jika belum di-like, lakukan POST request
-        await fetch(`http://localhost:2000/api/favorites`, {
+        await fetch(`http://${URL}/api/favorites`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -411,10 +406,9 @@ export default function UserDashboard() {
         });
       }
 
-      // Update state setelah permintaan berhasil
       setLikedItems((prevLikedItems) => ({
         ...prevLikedItems,
-        [id]: !prevLikedItems[id], // Toggle status like
+        [id]: !prevLikedItems[id],
       }));
     } catch (error) {
       console.error("Error handling favorite:", error);
@@ -424,7 +418,7 @@ export default function UserDashboard() {
   // Logout function
   const handleLogout = async () => {
     try {
-        const response = await fetch('http://localhost:2000/auth/logout', {
+        const response = await fetch(`http://${URL}/auth/logout`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

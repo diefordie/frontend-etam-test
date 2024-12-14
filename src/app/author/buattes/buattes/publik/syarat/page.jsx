@@ -2,6 +2,9 @@
 import { useRouter } from 'next/navigation'; 
 import { useState, useEffect } from 'react';
 import Link from 'next/link'; // Import Link from next/link
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState('publikasi'); // Set initial active tab to 'publikasi'

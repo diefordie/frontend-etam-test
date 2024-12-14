@@ -2,6 +2,10 @@
 import React from 'react';
 import { IoPersonCircle } from "react-icons/io5";
 import { SlBookOpen } from "react-icons/sl";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Navbar Component
 const Navbar = () => {

@@ -7,6 +7,9 @@ import Link from 'next/link';
 import gambar1 from '@/app/assets/elips.png';
 import gambar2 from '@/app/assets/register.png';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Registrasi = () => {
     const [nama, setNama] = useState('');

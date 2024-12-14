@@ -5,6 +5,10 @@ import { IoPersonCircle } from "react-icons/io5";
 import { IoMenu } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { SlBookOpen } from "react-icons/sl";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function RiwayatTransaksiHeader() {
   const [activeTab, setActiveTab] = useState('Belum Bayar');
@@ -46,7 +50,7 @@ export default function RiwayatTransaksiHeader() {
     }
 
     try {
-      const response = await fetch('http://localhost:2000/api/riwayat-transaksi', {
+      const response = await fetch(`http://${URL}/api/riwayat-transaksi`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +155,7 @@ useEffect(() => {
 
     try {
       setLoadingUser(true);
-      const response = await fetch('http://localhost:2000/user/profile', {
+      const response = await fetch(`http://${URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -10,6 +10,10 @@ import {IoPersonCircle} from "react-icons/io5";
 import {LuFileSpreadsheet} from "react-icons/lu";
 import {LuTimer} from "react-icons/lu";
 
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 const DetailSoal = () => {
   const [loading, setLoading] = useState([true]);
   const [error, setError] = useState([null]);
@@ -44,7 +48,7 @@ const DetailSoal = () => {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -126,7 +130,7 @@ const DetailSoal = () => {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -180,7 +184,7 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch(`http://localhost:2000/tes/${testId}/detail`, { // Ganti URL dengan endpoint yang benar
+      const response = await fetch(`http://${URL}/tes/${testId}/detail`, { // Ganti URL dengan endpoint yang benar
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -225,7 +229,7 @@ const handleStartTryOut = async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:2000/api/transaction/check-status?testId=${testId}`, {
+    const response = await fetch(`http://${URL}/api/transaction/check-status?testId=${testId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

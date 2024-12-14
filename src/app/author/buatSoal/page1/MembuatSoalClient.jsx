@@ -10,9 +10,13 @@ import { v4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import dynamic from 'next/dynamic';
 import { AiOutlineCloseSquare } from 'react-icons/ai';
+import dotenv from 'dotenv';
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false 
 });
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const MembuatSoal = () => {
   const router = useRouter();
@@ -61,7 +65,7 @@ const MembuatSoal = () => {
     if (!multiplechoiceId) return;
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:2000/api/multiplechoice/question/${multiplechoiceId}`);
+        const response = await fetch(`http://${URL}/api/multiplechoice/question/${multiplechoiceId}`);
         if (!response.ok) {
           const errorMessage = await response.text(); 
           throw new Error(`Error: ${response.status} - ${errorMessage}`);
@@ -156,7 +160,7 @@ const MembuatSoal = () => {
         // Cek apakah multiplechoiceId ada
         if (multiplechoiceId) {
           // 1. Hapus data dari database
-          const response = await fetch(`http://localhost:2000/api/multiplechoice/question/${multiplechoiceId}`, {
+          const response = await fetch(`http://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
             method: 'DELETE',
           });
   
@@ -232,7 +236,7 @@ const MembuatSoal = () => {
 
     try {
       if (optionId) {
-        const response = await fetch(`http://localhost:2000/api/multiplechoice/option/${optionId}`, {
+        const response = await fetch(`http://${URL}/api/multiplechoice/option/${optionId}`, {
             method: 'DELETE',
         });
         
@@ -293,7 +297,7 @@ const MembuatSoal = () => {
 
       if (multiplechoiceId !== "null") {
         // UPDATE existing question
-        response = await fetch(`http://localhost:2000/api/multiplechoice/update-question/${multiplechoiceId}`, {
+        response = await fetch(`http://${URL}/api/multiplechoice/update-question/${multiplechoiceId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -316,7 +320,7 @@ const MembuatSoal = () => {
         }
       } else {
         // CREATE new question
-        response = await fetch('http://localhost:2000/api/multiplechoice/add-questions', {
+        response = await fetch(`http://${URL}/api/multiplechoice/add-questions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

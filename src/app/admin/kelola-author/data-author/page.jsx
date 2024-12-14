@@ -5,6 +5,9 @@ import axios from 'axios';
 import { IoPersonCircle } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
 
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const VerifikasiAuthor2 = () => {
   const [data, setData] = useState([]); // State for backend data
@@ -94,7 +97,7 @@ const VerifikasiAuthor2 = () => {
   
         try {
           setLoadingUser(true);
-          const response = await fetch('http://localhost:2000/user/profile', {
+          const response = await fetch(`http://${URL}/user/profile`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -141,7 +144,7 @@ const VerifikasiAuthor2 = () => {
     const fetchAuthors = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:2000/author/get-author');
+        const response = await axios.get(`http://${URL}/author/get-author`);
         if (response.data && response.data.data) {
           setAuthors(response.data.data);
         } else {
@@ -175,7 +178,7 @@ const { aktif, nonaktif, total } = getStatusCount();
 // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch('http://localhost:2000/auth/logout', {
+      const response = await fetch(`http://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -199,7 +202,7 @@ const handleStatusChange = async (id, newStatus) => {
   try {
     // Implementasikan logika untuk mengubah status author
     // Misalnya, panggil API untuk mengupdate status
-    await axios.patch(`http://localhost:2000/author/edit-author/${id}/status`, { isApproved: newStatus === 'Aktif' });
+    await axios.patch(`http://${URL}/author/edit-author/${id}/status`, { isApproved: newStatus === 'Aktif' });
     
     // Update state lokal
     setAuthors(authors.map(author => 

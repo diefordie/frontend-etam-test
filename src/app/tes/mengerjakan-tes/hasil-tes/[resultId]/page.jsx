@@ -8,6 +8,10 @@ import jwtDecode from 'jwt-decode';
 import { useRouter } from 'next/navigation';
 import { IoPersonCircle } from "react-icons/io5";
 
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function Pemrograman() {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const sessionId = localStorage.getItem('sessionId');
@@ -63,7 +67,7 @@ export default function Pemrograman() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -134,7 +138,7 @@ const saveWorkTime = (time) => {
 
       try {
         // Fetch test result data
-        const resultResponse = await fetch(`http://localhost:2000/api/tests/test-result/${resultId}`);
+        const resultResponse = await fetch(`http://${URL}/tests/test-result/${resultId}`);
         if (!resultResponse.ok) {
           throw new Error('Failed to fetch test result details');
         }
@@ -150,7 +154,7 @@ const saveWorkTime = (time) => {
         }
 
         // Now fetch leaderboard data using the fetched test identifier
-        const leaderboardResponse = await fetch(`http://localhost:2000/api/leaderboard/${fetchedTestId}`);
+        const leaderboardResponse = await fetch(`http://${URL}/api/leaderboard/${fetchedTestId}`);
         if (!leaderboardResponse.ok) {
           throw new Error('Failed to fetch leaderboard data');
         }
@@ -208,7 +212,7 @@ const saveWorkTime = (time) => {
     const fetchTestData = async () => {
       try {
         // Fetch data from your API endpoint
-        const response = await fetch(`http://localhost:2000/api/tests/test-result/${resultId}`); 
+        const response = await fetch(`http://${URL}/api/tests/test-result/${resultId}`); 
         const data = await response.json();
 
         setUserData({
@@ -253,7 +257,7 @@ const saveWorkTime = (time) => {
     }
   
     try {
-      const response = await fetch('http://localhost:2000/api/testimonies', {
+      const response = await fetch(`http://${URL}/api/testimonies`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

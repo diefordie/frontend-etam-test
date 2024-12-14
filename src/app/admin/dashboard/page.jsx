@@ -7,7 +7,10 @@ import { FaBookReader } from "react-icons/fa";
 import { FaUserTie } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import jwtDecode from 'jwt-decode';
+import dotenv from 'dotenv';
 
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 
 const VerifikasiAuthor1 = () => {
@@ -72,7 +75,7 @@ const VerifikasiAuthor1 = () => {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -118,7 +121,7 @@ const VerifikasiAuthor1 = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const response = await fetch('http://localhost:2000/api/admin/dashboard-stats', {
+        const response = await fetch(`http://${URL}/admin/dashboard-stats`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -147,7 +150,7 @@ const VerifikasiAuthor1 = () => {
   // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch('http://localhost:2000/auth/logout', {
+      const response = await fetch(`http://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

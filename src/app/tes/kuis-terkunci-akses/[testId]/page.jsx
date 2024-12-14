@@ -6,6 +6,10 @@ import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import { FaLock } from "react-icons/fa";
 
+import dotenv from "dotenv";
+dotenv.config();  
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 const MengerjakanTes = () => {
   const totalQuestions = 40; // Pindahkan deklarasi totalQuestions ke atas
   const [selectedoption, setSelectedoption] = useState(null);

@@ -2,6 +2,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function PublikasiPage() {
   const [namaTes, setNamaTes] = useState('');
@@ -42,7 +45,7 @@ export default function PublikasiPage() {
     }
 
     try {
-        const response = await fetch(`http://localhost:2000/test/tests/${testId}/publish`, {
+        const response = await fetch(`http://${URL}/test/tests/${testId}/publish`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

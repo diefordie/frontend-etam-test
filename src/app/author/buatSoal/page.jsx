@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AiOutlineMore } from 'react-icons/ai';
+import dotenv from 'dotenv';
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const KotakNomor = () => {
   const router = useRouter();
@@ -96,7 +99,7 @@ const KotakNomor = () => {
   const updateQuestionNumbersInDB = async (testId, maxQuestionNumber) => {
     try {
       // Dapatkan semua nomor soal yang ada di database untuk tes ini
-      const response = await fetch(`http://localhost:2000/api/multiplechoice/getQuestionNumbers?testId=${testId}`);
+      const response = await fetch(`http://${URL}/api/multiplechoice/getQuestionNumbers?testId=${testId}`);
       if (!response.ok) {
         throw new Error(`HTTP error ${response.status}`);
       }
@@ -113,7 +116,7 @@ const KotakNomor = () => {
   
       // Update nomor soal di database
       for (const number of numbersToUpdate) {
-        const updateResponse = await fetch(`http://localhost:2000/api/multiplechoice/update-questionNumber?testId=${testId}`, {
+        const updateResponse = await fetch(`http://${URL}/api/multiplechoice/update-questionNumber?testId=${testId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -218,7 +221,7 @@ const KotakNomor = () => {
 
   const saveRename = async (pageIndex) => {
     try {
-      await fetch(`http://localhost:2000/api/multiplechoice/update-pageName`, {
+      await fetch(`http://${URL}/api/multiplechoice/update-pageName`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -277,7 +280,7 @@ const KotakNomor = () => {
 
   const fetchPagesFromDB = async (testId) => {
     try {
-      const response = await fetch(`http://localhost:2000/api/multiplechoice/getPages?testId=${testId}`);
+      const response = await fetch(`http://${URL}/api/multiplechoice/getPages?testId=${testId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -292,7 +295,7 @@ const KotakNomor = () => {
 
   const fetchMultipleChoiceId = async (testId, number) => {
     try {
-      const response = await fetch(`http://localhost:2000/api/multiplechoice/${testId}/${number}`);
+      const response = await fetch(`http://${URL}/api/multiplechoice/${testId}/${number}`);
   
       if (response.status === 404) {
         console.warn(`Nomor soal ${number} belum dibuat.`);

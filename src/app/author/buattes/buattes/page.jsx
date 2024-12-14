@@ -2,6 +2,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const BuatTes = () => {
   const router = useRouter();
@@ -27,7 +31,7 @@ const BuatTes = () => {
           throw new Error('No token found');
         }
 
-        const response = await fetch('http://localhost:2000/author/author-data', {
+        const response = await fetch(`http://${URL}/author/author-data`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -76,7 +80,7 @@ const BuatTes = () => {
     };
   
     try {
-      const response = await fetch('http://localhost:2000/test/tests', {
+      const response = await fetch(`http://${URL}/test/tests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -10,6 +10,10 @@ import { IoSearch } from "react-icons/io5";
 import { FaLock } from "react-icons/fa";
 import { SlBookOpen } from "react-icons/sl";
 import { FaEye } from "react-icons/fa";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Psikotes() {
   const [popularTestsByCategory, setPopularTestsByCategory] = useState([]);
@@ -70,7 +74,7 @@ export default function Psikotes() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -116,7 +120,7 @@ export default function Psikotes() {
   useEffect(() => {
     const fetchPopularTestsByCategory = async () => {
       try {
-        const response = await fetch('http://localhost:2000/dashboard/popular-tests-by-category?category=Psikotes');
+        const response = await fetch(`http://${URL}/dashboard/popular-tests-by-category?category=Psikotes`);
         if (!response.ok) {
           throw new Error('Failed to fetch popular tests by category');
         }
@@ -136,7 +140,7 @@ export default function Psikotes() {
   useEffect(() => {
     const fetchFreeTestsByCategory = async () => {
       try {
-        const response = await fetch('http://localhost:2000/dashboard/free-tests-by-category?category=Psikotes');
+        const response = await fetch(`http://${URL}/dashboard/free-tests-by-category?category=Psikotes`);
         if (!response.ok) {
           throw new Error('Failed to fetch free tests by category');
         }
@@ -158,7 +162,7 @@ export default function Psikotes() {
     if (!searchQuery) return;
 
     try {
-      const response = await fetch(`http://localhost:2000/dashboard/search-tests-by-category?title=${encodeURIComponent(searchQuery)}&category=Psikotes`);
+      const response = await fetch(`http://${URL}/dashboard/search-tests-by-category?title=${encodeURIComponent(searchQuery)}&category=Psikotes`);
       if (!response.ok) {
         throw new Error('Failed to search tests');
       }
@@ -303,7 +307,7 @@ export default function Psikotes() {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const response = await fetch('http://localhost:2000/api/favorites', {
+        const response = await fetch(`http://${URL}/api/favorites`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -350,7 +354,7 @@ export default function Psikotes() {
     try {
       if (isLiked) {
         // Jika sudah di-like, lakukan DELETE request
-        await fetch(`http://localhost:2000/api/favorites`, {
+        await fetch(`http://${URL}/api/favorites`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -360,7 +364,7 @@ export default function Psikotes() {
         });
       } else {
         // Jika belum di-like, lakukan POST request
-        await fetch(`http://localhost:2000/api/favorites`, {
+        await fetch(`http://${URL}/api/favorites`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

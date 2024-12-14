@@ -9,6 +9,11 @@ import { SlBookOpen } from "react-icons/sl";
 import { FaEye } from "react-icons/fa";
 import { IoIosLock } from "react-icons/io";
 import jwtDecode from 'jwt-decode';
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function Home() {
   const [popularTests, setPopularTests] = useState([]);
@@ -70,7 +75,7 @@ export default function Home() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch('http://localhost:2000/user/profile', {
+        const response = await fetch(`http://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -121,7 +126,7 @@ export default function Home() {
         // Ambil token dari localStorage atau dari state management Anda
         const token = localStorage.getItem('token');
         
-        const response = await axios.get('http://localhost:2000/api/tests/author-tests', {
+        const response = await axios.get(`http://${URL}/api/tests/author-tests`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -145,7 +150,7 @@ export default function Home() {
         setLoading(true);
         const token = localStorage.getItem('token');
         
-        const response = await axios.get('http://localhost:2000/author/author-data', {
+        const response = await axios.get(`http://${URL}/author/author-data`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -170,7 +175,7 @@ export default function Home() {
     if (!searchQuery) return;
   
     try {
-      const response = await fetch(`http://localhost:2000/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`http://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) {
         throw new Error('Failed to search tests');
       }
@@ -251,7 +256,7 @@ export default function Home() {
   // Logout function
   const handleLogout = async () => {
     try {
-        const response = await fetch('http://localhost:2000/auth/logout', {
+        const response = await fetch(`http://${URL}/auth/logout`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
