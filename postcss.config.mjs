@@ -1,7 +1,11 @@
-/** @type {import('postcss-load-config').Config} */
+// Mengimpor plugin TailwindCSS
+import tailwindcss from 'tailwindcss';
+
+// Konfigurasi PostCSS
 const config = {
   plugins: {
     tailwindcss: {},
+    autoprefixer: {},
   },
 };
 
