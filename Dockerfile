@@ -1,8 +1,9 @@
 # Stage 1: Install dependencies
 FROM node:18-alpine as dependencies
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package.json ./
+# Gunakan npm install alih-alih npm ci
+RUN npm install
 
 # Stage 2: Build the application
 FROM node:18-alpine as builder
@@ -15,16 +16,18 @@ RUN npm run build
 FROM node:18-alpine as runner
 WORKDIR /app
 
+# Copy package.json
+COPY package.json ./
+
 # Install production dependencies only
-COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy built assets from builder stage
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
 # Install sharp for image optimization
-RUN npm i sharp
+RUN npm install sharp
 
 # Install additional build dependencies
 RUN apk add --no-cache libc6-compat
