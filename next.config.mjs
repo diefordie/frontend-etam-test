@@ -1,11 +1,9 @@
-/** @type {import('next').NextConfig} */
+// next.config.js
 const SomeWebpackPlugin = require('some-webpack-plugin');
 
-const nextConfig = {
+module.exports = {
   webpack(config) {
     config.plugins.push(new SomeWebpackPlugin());
     return config;
   }
 };
-
-module.exports = nextConfig;
