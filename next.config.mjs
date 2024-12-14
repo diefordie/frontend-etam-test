@@ -1,10 +1,9 @@
-// next.config.js
-module.exports = {
-  webpack(config, { isProduction }) {
-    if (isProduction) {
-      // Disable CSS minimization to debug
-      config.optimization.minimize = false;
-    }
+// next.config.mjs
+import SomeWebpackPlugin from 'some-webpack-plugin';
+
+export default {
+  webpack(config) {
+    config.plugins.push(new SomeWebpackPlugin());
     return config;
   },
 };
