@@ -1,9 +1,11 @@
-// next.config.mjs
-import SomeWebpackPlugin from 'some-webpack-plugin';
+/** @type {import('next').NextConfig} */
+const SomeWebpackPlugin = require('some-webpack-plugin');
 
-export default {
+const nextConfig = {
   webpack(config) {
     config.plugins.push(new SomeWebpackPlugin());
     return config;
-  },
+  }
 };
+
+module.exports = nextConfig;
