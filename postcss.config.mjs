@@ -1,12 +1,12 @@
-// Mengimpor plugin TailwindCSS
+// postcss.config.mjs
 import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
-// Konfigurasi PostCSS
 const config = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
+  plugins: [
+    tailwindcss(),
+    autoprefixer(),
+  ],
 };
 
 export default config;
