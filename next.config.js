@@ -1,14 +1,13 @@
-import path from 'path';
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  webpack(config, { isServer }) {
+  webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
+        ...config.resolve.fallback,
         fs: false,
-        path: false,
+        net: false,
+        tls: false,
       };
     }
     return config;
