@@ -63,7 +63,7 @@ const VerifikasiAuthor1 = () => {
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -151,7 +151,7 @@ const VerifikasiAuthor1 = () => {
 
     try {
       setLoadingUser(true);
-      const response = await fetch(`http://${URL}/user/profile`, {
+      const response = await fetch(`https://${URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -197,7 +197,7 @@ const VerifikasiAuthor1 = () => {
   // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch(`http://${URL}/auth/logout`, {
+      const response = await fetch(`https://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

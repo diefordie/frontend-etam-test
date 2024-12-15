@@ -50,7 +50,7 @@ export default function RiwayatTransaksiHeader() {
     }
 
     try {
-      const response = await fetch(`http://${URL}/api/riwayat-transaksi`, {
+      const response = await fetch(`https://${URL}/api/riwayat-transaksi`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ useEffect(() => {
 
     try {
       setLoadingUser(true);
-      const response = await fetch(`http://${URL}/user/profile`, {
+      const response = await fetch(`https://${URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -97,7 +97,7 @@ const VerifikasiAuthor2 = () => {
   
         try {
           setLoadingUser(true);
-          const response = await fetch(`http://${URL}/user/profile`, {
+          const response = await fetch(`https://${URL}/user/profile`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -144,7 +144,7 @@ const VerifikasiAuthor2 = () => {
     const fetchAuthors = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://${URL}/author/get-author`);
+        const response = await axios.get(`https://${URL}/author/get-author`);
         if (response.data && response.data.data) {
           setAuthors(response.data.data);
         } else {
@@ -178,7 +178,7 @@ const { aktif, nonaktif, total } = getStatusCount();
 // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch(`http://${URL}/auth/logout`, {
+      const response = await fetch(`https://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ const handleStatusChange = async (id, newStatus) => {
   try {
     // Implementasikan logika untuk mengubah status author
     // Misalnya, panggil API untuk mengupdate status
-    await axios.patch(`http://${URL}/author/edit-author/${id}/status`, { isApproved: newStatus === 'Aktif' });
+    await axios.patch(`https://${URL}/author/edit-author/${id}/status`, { isApproved: newStatus === 'Aktif' });
     
     // Update state lokal
     setAuthors(authors.map(author => 

@@ -25,7 +25,7 @@ export default function GuestDashboard() {
     const fetchPopularTests = async () => {
       try {
         const response = await fetch(
-          `http://${URL}/dashboard/popular-tests`
+          `https://${URL}/dashboard/popular-tests`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch popular tests");
@@ -47,7 +47,7 @@ export default function GuestDashboard() {
     const fetchFreeTests = async () => {
       try {
         const response = await fetch(
-          `http://${URL}/dashboard/free-tests`
+          `https://${URL}/dashboard/free-tests`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch free tests");
@@ -71,7 +71,7 @@ export default function GuestDashboard() {
 
     try {
       const response = await fetch(
-        `http://${URL}/dashboard/search-tests?title=${encodeURIComponent(
+        `https://${URL}/dashboard/search-tests?title=${encodeURIComponent(
           searchQuery
         )}`
       );

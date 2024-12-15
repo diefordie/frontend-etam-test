@@ -93,7 +93,7 @@ const MengerjakanTes = () => {
                     await fetchAnswersByResultId(savedResultId);
                 }
 
-                const response = await fetch(`http://${URL}/api/tests/get-test/${testId}`, {
+                const response = await fetch(`https://${URL}/api/tests/get-test/${testId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -135,7 +135,7 @@ const MengerjakanTes = () => {
                 if (savedResultId) {
                     setResultId(savedResultId);
                 }
-            const response = await fetch(`http://${URL}/answer/tests/${resultId}`, {
+            const response = await fetch(`https://${URL}/answer/tests/${resultId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -316,7 +316,7 @@ useEffect(() => {
 
     const saveDraftAnswer = async (testId, optionId, selectedOption) => {
         try {
-            const response = await fetch(`http://${URL}/answer/tests/${testId}/temp`, {
+            const response = await fetch(`https://${URL}/answer/tests/${testId}/temp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -339,7 +339,7 @@ useEffect(() => {
         try {
             console.log('Updating draft answer:', { resultId, oldOptionId, newOptionId, newAnswer });
 
-            const response = await fetch(`http://${URL}/answer/tests/${testId}/update`, {
+            const response = await fetch(`https://${URL}/answer/tests/${testId}/update`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -383,7 +383,7 @@ useEffect(() => {
             }
     
             // Kirim request ke backend dengan resultId di body
-            const response = await fetch(`http://${URL}/answer/tests/submit`, {
+            const response = await fetch(`https://${URL}/answer/tests/submit`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

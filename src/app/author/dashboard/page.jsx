@@ -75,7 +75,7 @@ export default function Home() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -126,7 +126,7 @@ export default function Home() {
         // Ambil token dari localStorage atau dari state management Anda
         const token = localStorage.getItem('token');
         
-        const response = await axios.get(`http://${URL}/api/tests/author-tests`, {
+        const response = await axios.get(`https://${URL}/api/tests/author-tests`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -150,7 +150,7 @@ export default function Home() {
         setLoading(true);
         const token = localStorage.getItem('token');
         
-        const response = await axios.get(`http://${URL}/author/author-data`, {
+        const response = await axios.get(`https://${URL}/author/author-data`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -175,7 +175,7 @@ export default function Home() {
     if (!searchQuery) return;
   
     try {
-      const response = await fetch(`http://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`https://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) {
         throw new Error('Failed to search tests');
       }
@@ -256,7 +256,7 @@ export default function Home() {
   // Logout function
   const handleLogout = async () => {
     try {
-        const response = await fetch(`http://${URL}/auth/logout`, {
+        const response = await fetch(`https://${URL}/auth/logout`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -28,7 +28,7 @@ const Login = () => {
         setError(''); // Reset error sebelum mencoba login
     
         try {
-            const response = await fetch(`http://${URL}/auth/login`, {
+            const response = await fetch(`https://${URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

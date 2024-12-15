@@ -75,7 +75,7 @@ export default function UserDashboard() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -121,7 +121,7 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchPopularTests = async () => {
       try {
-        const response = await fetch(`http://${URL}/dashboard/popular-tests`);
+        const response = await fetch(`https://${URL}/dashboard/popular-tests`);
         if (!response.ok) {
           throw new Error('Failed to fetch popular tests');
         }
@@ -141,7 +141,7 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchFreeTests = async () => {
       try {
-        const response = await fetch(`http://${URL}/dashboard/free-tests`);
+        const response = await fetch(`https://${URL}/dashboard/free-tests`);
         if (!response.ok) {
           throw new Error('Failed to fetch free tests');
         }
@@ -163,7 +163,7 @@ export default function UserDashboard() {
     if (!searchQuery) return;
 
     try {
-      const response = await fetch(`http://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`https://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) {
         throw new Error('Failed to search tests');
       }
@@ -345,7 +345,7 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const response = await fetch(`http://${URL}/api/favorites`, {
+        const response = await fetch(`https://${URL}/api/favorites`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -387,7 +387,7 @@ export default function UserDashboard() {
 
     try {
       if (isLiked) {
-        await fetch(`http://${URL}/api/favorites`, {
+        await fetch(`https://${URL}/api/favorites`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -396,7 +396,7 @@ export default function UserDashboard() {
           body: JSON.stringify({ testId: id }),
         });
       } else {
-        await fetch(`http://${URL}/api/favorites`, {
+        await fetch(`https://${URL}/api/favorites`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -418,7 +418,7 @@ export default function UserDashboard() {
   // Logout function
   const handleLogout = async () => {
     try {
-        const response = await fetch(`http://${URL}/auth/logout`, {
+        const response = await fetch(`https://${URL}/auth/logout`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

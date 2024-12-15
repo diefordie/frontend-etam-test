@@ -35,7 +35,7 @@ export default function EditProfile({ params }) {
         return;
       }
 
-      const response = await fetch(`http://${URL}/user/profile`, {
+      const response = await fetch(`https://${URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export default function EditProfile({ params }) {
 
     try {
       // Perbarui Nama
-      await fetch(`http://${URL}/user/profile/name`, {
+      await fetch(`https://${URL}/user/profile/name`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,7 @@ export default function EditProfile({ params }) {
       });
 
       // Perbarui Email
-      await fetch(`http://${URL}/user/profile/email`, {
+      await fetch(`https://${URL}/user/profile/email`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -119,7 +119,7 @@ export default function EditProfile({ params }) {
         const profileImageData = new FormData();
         profileImageData.append("profileImage", formData.profileImage);
 
-        await fetch(`http://${URL}/user/profile/photo`, {
+        await fetch(`https://${URL}/user/profile/photo`, {
           method: formData.profileImage ? "PATCH" : "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -130,7 +130,7 @@ export default function EditProfile({ params }) {
 
       // Perbarui Password jika `currentPassword` dan `newPassword` diisi
       if (formData.currentPassword && formData.newPassword) {
-        const passwordResponse = await fetch(`http://${URL}/user/profile/password`, {
+        const passwordResponse = await fetch(`https://${URL}/user/profile/password`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",

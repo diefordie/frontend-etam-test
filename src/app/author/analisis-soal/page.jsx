@@ -93,7 +93,7 @@ const draftTests = authorTests.filter(test => test.status === 'draft');
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -143,7 +143,7 @@ const draftTests = authorTests.filter(test => test.status === 'draft');
         // Ambil token dari localStorage atau dari state management Anda
         const token = localStorage.getItem('token');
         
-        const response = await axios.get('http://localhost:2000/api/tests/author-tests', {
+        const response = await axios.get(`https://${URL}/api/tests/author-tests`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -199,7 +199,7 @@ const draftTests = authorTests.filter(test => test.status === 'draft');
     if (!searchQuery) return;
   
     try {
-      const response = await fetch(`http://localhost:2000/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`https://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) {
         throw new Error('Failed to search tests');
       }

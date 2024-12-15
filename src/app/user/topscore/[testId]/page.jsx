@@ -29,7 +29,7 @@ const TopScore = () => {
 
             try {
                 setLoading(true);
-                const response = await axios.get(`http://${URL}/api/leaderboard/${params.testId}`);
+                const response = await axios.get(`https://${URL}/api/leaderboard/${params.testId}`);
                 if (response.data && response.data.data) {
                     setScores(response.data.data);
                 } else {
@@ -61,7 +61,7 @@ const TopScore = () => {
     
           try {
             setLoadingUser(true);
-            const response = await fetch(`http://${URL}/user/profile`, {
+            const response = await fetch(`https://${URL}/user/profile`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -103,7 +103,7 @@ const TopScore = () => {
     
             setLoadingTitle(true);
             try {
-                const response = await axios.get(`http://${URL}/test/get-test/${params.testId}`);
+                const response = await axios.get(`https://${URL}/test/get-test/${params.testId}`);
                 if (response.status === 200 && response.data && response.data.data && response.data.data.title) {
                     setTestTitle(response.data.data.title);
                 } else {

@@ -65,7 +65,7 @@ const MembuatSoal = () => {
     if (!multiplechoiceId) return;
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://${URL}/api/multiplechoice/question/${multiplechoiceId}`);
+        const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`);
         if (!response.ok) {
           const errorMessage = await response.text(); 
           throw new Error(`Error: ${response.status} - ${errorMessage}`);
@@ -160,7 +160,7 @@ const MembuatSoal = () => {
         // Cek apakah multiplechoiceId ada
         if (multiplechoiceId) {
           // 1. Hapus data dari database
-          const response = await fetch(`http://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
+          const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
             method: 'DELETE',
           });
   
@@ -236,7 +236,7 @@ const MembuatSoal = () => {
 
     try {
       if (optionId) {
-        const response = await fetch(`http://${URL}/api/multiplechoice/option/${optionId}`, {
+        const response = await fetch(`https://${URL}/api/multiplechoice/option/${optionId}`, {
             method: 'DELETE',
         });
         
@@ -297,7 +297,7 @@ const MembuatSoal = () => {
 
       if (multiplechoiceId !== "null") {
         // UPDATE existing question
-        response = await fetch(`http://${URL}/api/multiplechoice/update-question/${multiplechoiceId}`, {
+        response = await fetch(`https://${URL}/api/multiplechoice/update-question/${multiplechoiceId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -320,7 +320,7 @@ const MembuatSoal = () => {
         }
       } else {
         // CREATE new question
-        response = await fetch(`http://${URL}/api/multiplechoice/add-questions`, {
+        response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

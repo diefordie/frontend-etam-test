@@ -44,7 +44,7 @@ function App() {
   useEffect(() => {
     const fetchTestDetail = async () => {
       try {
-        const response = await fetch(`http://${URL}/api/tests/get-tests/${testId}`);
+        const response = await fetch(`https://${URL}/api/tests/get-tests/${testId}`);
         if (!response.ok) {
           const errorMessage = await response.text();
           throw new Error(`Error: ${response.status} - ${errorMessage}`)
@@ -69,7 +69,7 @@ function App() {
         const token = localStorage.getItem('token'); // Ambil token dari localStorage
         
         // Ambil token dari backend
-        const response = await fetch(`http://${URL}/api/payment/payment-process`, {
+        const response = await fetch(`https://${URL}/api/payment/payment-process`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

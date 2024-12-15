@@ -45,7 +45,7 @@ export default function PublikasiPage() {
     }
 
     try {
-        const response = await fetch(`http://${URL}/test/tests/${testId}/publish`, {
+        const response = await fetch(`https://${URL}/test/tests/${testId}/publish`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

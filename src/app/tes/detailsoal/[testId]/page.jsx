@@ -48,7 +48,7 @@ const DetailSoal = () => {
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -184,7 +184,7 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch(`http://${URL}/tes/${testId}/detail`, { // Ganti URL dengan endpoint yang benar
+      const response = await fetch(`https://${URL}/tes/${testId}/detail`, { // Ganti URL dengan endpoint yang benar
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -229,7 +229,7 @@ const handleStartTryOut = async () => {
   }
 
   try {
-    const response = await fetch(`http://${URL}/api/transaction/check-status?testId=${testId}`, {
+    const response = await fetch(`https://${URL}/api/transaction/check-status?testId=${testId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

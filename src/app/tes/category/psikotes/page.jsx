@@ -74,7 +74,7 @@ export default function Psikotes() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -120,7 +120,7 @@ export default function Psikotes() {
   useEffect(() => {
     const fetchPopularTestsByCategory = async () => {
       try {
-        const response = await fetch(`http://${URL}/dashboard/popular-tests-by-category?category=Psikotes`);
+        const response = await fetch(`https://${URL}/dashboard/popular-tests-by-category?category=Psikotes`);
         if (!response.ok) {
           throw new Error('Failed to fetch popular tests by category');
         }
@@ -140,7 +140,7 @@ export default function Psikotes() {
   useEffect(() => {
     const fetchFreeTestsByCategory = async () => {
       try {
-        const response = await fetch(`http://${URL}/dashboard/free-tests-by-category?category=Psikotes`);
+        const response = await fetch(`https://${URL}/dashboard/free-tests-by-category?category=Psikotes`);
         if (!response.ok) {
           throw new Error('Failed to fetch free tests by category');
         }
@@ -162,7 +162,7 @@ export default function Psikotes() {
     if (!searchQuery) return;
 
     try {
-      const response = await fetch(`http://${URL}/dashboard/search-tests-by-category?title=${encodeURIComponent(searchQuery)}&category=Psikotes`);
+      const response = await fetch(`https://${URL}/dashboard/search-tests-by-category?title=${encodeURIComponent(searchQuery)}&category=Psikotes`);
       if (!response.ok) {
         throw new Error('Failed to search tests');
       }
@@ -307,7 +307,7 @@ export default function Psikotes() {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const response = await fetch(`http://${URL}/api/favorites`, {
+        const response = await fetch(`https://${URL}/api/favorites`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -354,7 +354,7 @@ export default function Psikotes() {
     try {
       if (isLiked) {
         // Jika sudah di-like, lakukan DELETE request
-        await fetch(`http://${URL}/api/favorites`, {
+        await fetch(`https://${URL}/api/favorites`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -364,7 +364,7 @@ export default function Psikotes() {
         });
       } else {
         // Jika belum di-like, lakukan POST request
-        await fetch(`http://${URL}/api/favorites`, {
+        await fetch(`https://${URL}/api/favorites`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

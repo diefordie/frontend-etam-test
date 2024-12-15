@@ -71,7 +71,7 @@ export default function Favorite() {
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -150,7 +150,7 @@ const toggleSidebar = () => {
 useEffect(() => {
   const fetchFavoritesData = async () => {
     try {
-      const response = await fetch(`http://${URL}/api/favorites`, {
+      const response = await fetch(`https://${URL}/api/favorites`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -204,7 +204,7 @@ const toggleLike = async (id) => {
   try {
     if (isLiked) {
       // DELETE request
-      const response = await fetch(`http://localhost:2000/api/favorites`, {
+      const response = await fetch(`https://${URL}/api/favorites`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -230,7 +230,7 @@ const toggleLike = async (id) => {
       }
     } else {
       // POST request
-      const response = await fetch(`http://localhost:2000/api/favorites`, {
+      const response = await fetch(`https://${URL}/api/favorites`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ const toggleLike = async (id) => {
 // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch('http://localhost:2000/auth/logout', {
+      const response = await fetch(`https://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

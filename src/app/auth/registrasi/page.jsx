@@ -26,7 +26,7 @@ const Registrasi = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://${URL}/auth/registrasi`, {
+            const response = await fetch(`https://${URL}/auth/registrasi`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

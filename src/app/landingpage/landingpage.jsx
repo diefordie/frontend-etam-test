@@ -18,7 +18,7 @@ const TestimonialsSection = () => {
   useEffect(() => {
     const fetchTestimonies = async () => {
       try {
-        const response = await fetch(`http://${URL}/api/testimonies`, {
+        const response = await fetch(`https://${URL}/api/testimonies`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

@@ -31,7 +31,7 @@ const BuatTes = () => {
           throw new Error('No token found');
         }
 
-        const response = await fetch(`http://${URL}/author/author-data`, {
+        const response = await fetch(`https://${URL}/author/author-data`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
