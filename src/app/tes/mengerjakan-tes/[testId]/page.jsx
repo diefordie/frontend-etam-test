@@ -233,7 +233,7 @@ useEffect(() => {
         } else {
             // Fetch dari backend jika tidak ditemukan di localStorage
             try {
-                const response = await fetch(`http://${URL}/timer/${testId}/worktime`, {
+                const response = await fetch(`https://${URL}/timer/${testId}/worktime`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) throw new Error('Failed to fetch worktime');
