@@ -154,7 +154,7 @@ const saveWorkTime = (time) => {
         }
 
         // Now fetch leaderboard data using the fetched test identifier
-        const leaderboardResponse = await fetch(`https://${URL}/api/leaderboard/${fetchedTestId}`);
+        const leaderboardResponse = await fetch(`https://${URL}/api/leaderboard/${testId}`);
         if (!leaderboardResponse.ok) {
           throw new Error('Failed to fetch leaderboard data');
         }
