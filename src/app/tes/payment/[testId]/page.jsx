@@ -1,22 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { jwtDecode } from "jwt-decode";
-import { IoPersonCircle } from "react-icons/io5";
-import { SlBookOpen } from "react-icons/sl";
-
-import dotenv from 'dotenv';
-dotenv.config();
-const URL = process.env.NEXT_PUBLIC_API_URL;
+import { useState, useEffect } from 'react';
 
 function App() {
   const { testId } = useParams();
-  const [userId, setUserId] = useState(null);
   const [testTitle, setTestTitle] = useState('');
-  const [testSimilarity, setTestSimilarity] = useState(null);
-  const [testPrice, setTestPrice] = useState(null);
+  const [testSimilarity, setTestSimilarity] = useState();
+  const [testPrice, setTestPrice] = useState();
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -29,13 +21,6 @@ function App() {
 
     document.body.appendChild(script)
 
-     // Decode token to get userId
-    const token = localStorage.getItem('token');
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      setUserId(decodedToken.id);
-    }
-
     return () => {
       document.body.removeChild(script)
     }
@@ -44,7 +29,7 @@ function App() {
   useEffect(() => {
     const fetchTestDetail = async () => {
       try {
-        const response = await fetch(`https://${URL}/api/tests/get-tests/${testId}`);
+        const response = await fetch(`http://localhost:2000/api/tests/test-detail/${testId}`);
         if (!response.ok) {
           const errorMessage = await response.text();
           throw new Error(`Error: ${response.status} - ${errorMessage}`)
@@ -59,30 +44,37 @@ function App() {
         setError('Terjadi kesalahan: ' + error.message);
       }
     };
+
+    if (testId) {
       fetchTestDetail(); // Memanggil API ketika testId ada
+    }
   }, [testId]);
 
-
   const handlePayment = async () => {
+    const token = localStorage.getItem('token'); // Ambil token dari localStorage
+  
+    if (!token) {
+      console.error('Token is missing!');
+      return; // Jangan lanjutkan jika token tidak ada
+    }
+  
     if (testId) {
       try {
-        const token = localStorage.getItem('token'); // Ambil token dari localStorage
-        
-        // Ambil token dari backend
-        const response = await fetch(`https://${URL}/api/payment/payment-process`, {
+        // Panggil API untuk membuat payment token
+        const response = await fetch('http://localhost:2000/api/payment/payment-process', {
           method: 'POST',
           headers: {
+            'Authorization': `Bearer ${token}`, // Sertakan token dalam header
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // Tambahkan token ke header
           },
-          body: JSON.stringify({ testId }), 
+          body: JSON.stringify({ testId }),
         });
   
         const data = await response.json();
+        console.log('Payment token created:', data);
   
-        // Cek apakah token berhasil didapatkan
+        // Validasi respons dan tampilkan Snap Midtrans
         if (response.ok && data.token) {
-          // Menampilkan Midtrans Snap
           window.snap.pay(data.token, {
             onSuccess: function (result) {
               console.log('Payment success:', result);
@@ -130,7 +122,11 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           <div className="text-white text-sm">Profile</div>
           {/* Profile Picture */}
-          <IoPersonCircle className="w-8 h-8 text-white" />
+          <img 
+            src="/images/Layer_1.png" 
+            alt="Profile" 
+            className="w-8 h-8 rounded-full"
+          />
         </div>
       </div>
     </nav>
@@ -143,7 +139,11 @@ const PaymentBox = () => {
     <div className="flex justify-center items-center flex-1">
       <div className="bg-[#F3F3F3] shadow-lg rounded-lg p-8 w-full max-w-md text-center relative">
         {/* Logo Buku */}
-        <SlBookOpen className="h-16 mx-auto mb-4 text-gray-500" />
+        <img 
+          src="/images/Vector_book.png" 
+          alt="Logo Buku" 
+          className="h-16 mx-auto mb-4"
+        />
 
         {/* Header */}
         <h1 className="text-2xl font-bold mb-2">{testTitle}</h1>
