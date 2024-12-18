@@ -16,6 +16,7 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 export default function GuestDashboard() {
   const [popularTests, setPopularTests] = useState([]);
   const [freeTests, setFreeTests] = useState([]);
+  const [berbayarTests, setBerbayarTests] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState([""]);
   const [loading, setLoading] = useState([true]);
@@ -24,9 +25,7 @@ export default function GuestDashboard() {
   useEffect(() => {
     const fetchPopularTests = async () => {
       try {
-        const response = await fetch(
-          `https://${URL}/dashboard/popular-tests`
-        );
+        const response = await fetch(`https://${URL}/dashboard/popular-tests`);
         if (!response.ok) {
           throw new Error("Failed to fetch popular tests");
         }
@@ -46,9 +45,7 @@ export default function GuestDashboard() {
   useEffect(() => {
     const fetchFreeTests = async () => {
       try {
-        const response = await fetch(
-          `https://${URL}/dashboard/free-tests`
-        );
+        const response = await fetch(`https://${URL}/dashboard/free-tests`);
         if (!response.ok) {
           throw new Error("Failed to fetch free tests");
         }
@@ -63,6 +60,26 @@ export default function GuestDashboard() {
     };
 
     fetchFreeTests();
+  }, []);
+
+  useEffect(() => {
+    const fetchBerbayarTests = async () => {
+      try {
+        const response = await fetch(`https://${URL}/dashboard/locked-tests`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch locked tests");
+        }
+        const data = await response.json();
+        setBerbayarTests(data);
+      } catch (error) {
+        console.error("Error fetching locked tests:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBerbayarTests();
   }, []);
 
   const handleSearch = async (e) => {
@@ -156,6 +173,41 @@ export default function GuestDashboard() {
   const populerprevSlide = () => {
     if (populercurrentIndex > 0) {
       populersetCurrentIndex(populercurrentIndex - 1);
+    }
+  };
+
+  // fungsi slider section berbayar
+  const [berbayarcurrentIndex, berbayarsetCurrentIndex] = useState(0);
+  const [berbayaritemsToShow, setBerbayarItemsToShow] = useState(2);
+
+  useEffect(() => {
+    const updateItemsToShow = () => {
+      if (window.innerWidth >= 1024) {
+        setBerbayarItemsToShow(4); // Tampilkan 4 item di desktop
+      } else {
+        setBerbayarItemsToShow(2); // Tampilkan 2 item di mobile
+      }
+    };
+
+    // Jalankan saat component dimuat
+    updateItemsToShow();
+
+    // Tambahkan event listener untuk mendeteksi perubahan ukuran layar
+    window.addEventListener("resize", updateItemsToShow);
+
+    // Bersihkan event listener saat component dilepas
+    return () => window.removeEventListener("resize", updateItemsToShow);
+  }, []);
+
+  const berbayarnextSlide = () => {
+    if (berbayarcurrentIndex < berbayarTests.length - berbayaritemsToShow) {
+      berbayarsetCurrentIndex(berbayarcurrentIndex + 1);
+    }
+  };
+
+  const berbayarprevSlide = () => {
+    if (berbayarcurrentIndex > 0) {
+      berbayarsetCurrentIndex(berbayarcurrentIndex - 1);
     }
   };
 
@@ -362,7 +414,7 @@ export default function GuestDashboard() {
               type="submit"
               className="p-1 lg:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins "
             >
-               <FaSearch className="h-5 w-5 text-gray-600" />
+              <FaSearch className="h-5 w-5 text-gray-600" />
             </button>
           </form>
         </div>
@@ -389,14 +441,16 @@ export default function GuestDashboard() {
                       <div className="flex items-center space-x-2 font-bold text-deepBlue">
                         <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
                           <FaEye />
-                          <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
+                          <span className="text-[0.6rem] lg:text-sm font-poppins">
+                            {test.accessCount}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex justify-center mt-2 lg:mt-4 relative z-20">
                       <div className="text-8xl">
-                          <SlBookOpen />
+                        <SlBookOpen />
                       </div>
                     </div>
 
@@ -422,23 +476,29 @@ export default function GuestDashboard() {
 
                       <div className="flex justify-between space-x-2 leading-relaxed mt-1">
                         <div className="flex text-left space-x-1 lg:space-x-4">
-                        {formData.profileImage ? (
-                          <img
-                            src={formData.profileImage}
-                            alt="Profil"
-                            className="h-16 w-16 rounded-full object-cover"
-                          />
-                        ) : (
-                          <IoPersonCircle className="h-16 w-16 text-white-500" />
-                        )}
+                          {test.author.authorPhoto ? (
+                            <img
+                              src={test.author.authorPhoto}
+                              alt={test.category}
+                              className="h-3 lg:h-6 object-contain"
+                            />
+                          ) : (
+                            <IoPersonCircle className="h-3 lg:h-6 text-white" />
+                          )}
                           <span className="text-[0.375rem] lg:text-sm font-semibold">
                             {test.author.name}
                           </span>
                         </div>
+
                         <span className="text-[0.375rem] lg:text-sm font-semibold">
-                            {Number(test.price) === 0 ? 'Gratis' : (
-                                <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
-                            )}
+                          {Number(test.price) === 0 ? (
+                            "Gratis"
+                          ) : (
+                            <IoIosLock
+                              className="h-2 lg:h-4 inline-block text-current object-contain text-white"
+                              alt="Berbayar"
+                            />
+                          )}
                         </span>
                       </div>
                     </div>
@@ -537,7 +597,7 @@ export default function GuestDashboard() {
                 >
                   <div className="flex justify-between items-center z-10 p-2">
                     <div className="flex items-center space-x-2 font-bold text-deepBlue">
-                        <FaEye />
+                      <FaEye />
                       <span className="text-[0.6rem] lg:text-sm font-poppins">
                         {test.accessCount}
                       </span>
@@ -585,9 +645,15 @@ export default function GuestDashboard() {
                           {test.author.name}
                         </span>
                       </div>
+
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
-                        {Number(test.price) === 0 ? 'Gratis' : (
-                            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
+                        {Number(test.price) === 0 ? (
+                          "Gratis"
+                        ) : (
+                          <IoIosLock
+                            className="h-2 lg:h-4 inline-block text-current object-contain text-white"
+                            alt="Berbayar"
+                          />
                         )}
                       </span>
                     </div>
@@ -618,14 +684,17 @@ export default function GuestDashboard() {
         </div>
       </section>
 
-      {/* Bagian gratis */}
+      {/* Bagian Berbayar */}
       <section className="block mx-auto p-5 font-poppins relative">
         <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
-          Gratis
+          Berbayar
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {freeTests
-              .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
+            {berbayarTests
+              .slice(
+                berbayarcurrentIndex,
+                berbayarcurrentIndex + berbayaritemsToShow
+              )
               .map((test) => (
                 <div
                   key={test.testId}
@@ -634,7 +703,9 @@ export default function GuestDashboard() {
                   <div className="flex justify-between items-center z-10">
                     <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
                       <FaEye />
-                      <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
+                      <span className="text-[0.6rem] lg:text-sm font-poppins">
+                        {test.accessCount}
+                      </span>
                     </div>
                   </div>
 
@@ -666,19 +737,130 @@ export default function GuestDashboard() {
 
                     <div className="flex justify-between space-x-2 leading-relaxed mt-1">
                       <div className="flex text-left space-x-1 lg:space-x-4">
-                          {test.author.authorPhoto ? (
-                            <img
-                              src={test.author.authorPhoto}
-                              alt={test.category}
-                              className="h-3 lg:h-6 object-contain"
-                            />
-                          ) : (
-                            <IoPersonCircle className="h-3 lg:h-6 text-white" />
-                          )}
+                        {test.author.authorPhoto ? (
+                          <img
+                            src={test.author.authorPhoto}
+                            alt={test.category}
+                            className="h-3 lg:h-6 object-contain"
+                          />
+                        ) : (
+                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
+                        )}
+                        <span className="text-[0.375rem] lg:text-sm font-semibold">
+                          {test.author.name}
+                        </span>
                       </div>
+
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
-                        {Number(test.price) === 0 ? 'Gratis' : (
-                            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
+                        {Number(test.price) === 0 ? (
+                          "Gratis"
+                        ) : (
+                          <IoIosLock
+                            className="h-2 lg:h-4 inline-block text-current object-contain text-white"
+                            alt="Berbayar"
+                          />
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+          {/* Tombol panah kiri */}
+          <button
+            onClick={berbayarprevSlide}
+            className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
+              berbayarcurrentIndex === 0 ? "hidden" : ""
+            }`}
+          >
+            &#10094;
+          </button>
+          {/* Tombol panah kanan */}
+          <button
+            onClick={berbayarnextSlide}
+            className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
+              berbayarcurrentIndex >= berbayarTests.length - berbayaritemsToShow
+                ? "hidden"
+                : ""
+            }`}
+          >
+            &#10095;
+          </button>
+        </div>
+      </section>
+
+      {/* Bagian gratis */}
+      <section className="block mx-auto p-5 font-poppins relative">
+        <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
+          Gratis
+          {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+            {freeTests
+              .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
+              .map((test) => (
+                <div
+                  key={test.testId}
+                  className="bg-abumuda shadow-lg relative group"
+                >
+                  <div className="flex justify-between items-center z-10">
+                    <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
+                      <FaEye />
+                      <span className="text-[0.6rem] lg:text-sm font-poppins">
+                        {test.accessCount}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center mt-2 lg:mt-4 relative z-20 ">
+                    <div className="text-8xl">
+                      <SlBookOpen />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 ">
+                    <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">
+                      {test.category}
+                    </h3>
+                  </div>
+
+                  <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 ">
+                    <div className="flex items-center space-x-2 justify-between">
+                      <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">
+                        {test.title}
+                      </h3>
+                    </div>
+
+                    <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">
+                      Prediksi kemiripan {test.similarity}%
+                    </p>
+                    <p className="text-[0.4rem] lg:text-xs leading-relaxed">
+                      Dibuat Oleh:
+                    </p>
+
+                    <div className="flex justify-between space-x-2 leading-relaxed mt-1">
+                      <div className="flex text-left space-x-1 lg:space-x-4">
+                        {test.author.authorPhoto ? (
+                          <img
+                            src={test.author.authorPhoto}
+                            alt={test.category}
+                            className="h-3 lg:h-6 object-contain"
+                          />
+                        ) : (
+                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
+                        )}
+                        <span className="text-[0.375rem] lg:text-sm font-semibold">
+                          {test.author.name}
+                        </span>
+                      </div>
+
+                      <span className="text-[0.375rem] lg:text-sm font-semibold">
+                        {Number(test.price) === 0 ? (
+                          "Gratis"
+                        ) : (
+                          <IoIosLock
+                            className="h-2 lg:h-4 inline-block text-current object-contain text-white"
+                            alt="Berbayar"
+                          />
                         )}
                       </span>
                     </div>
