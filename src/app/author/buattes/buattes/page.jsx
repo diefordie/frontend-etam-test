@@ -80,7 +80,7 @@ const BuatTes = () => {
     };
   
     try {
-      const response = await fetch(`http://${URL}/test/tests`, {
+      const response = await fetch(`https://${URL}/test/tests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

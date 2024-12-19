@@ -31,8 +31,8 @@ const KotakNomor = () => {
   }, [testId]);
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
+
+    const params = new URLSearchParams(window.location.search);
     const testIdFromUrl = params.get("testId");
     const multiplechoiceIdFromUrl = params.get("multiplechoiceId");
     const pageNameFromUrl = params.get("pageName") || localStorage.getItem('pageName');
