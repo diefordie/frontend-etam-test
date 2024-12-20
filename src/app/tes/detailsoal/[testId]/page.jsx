@@ -9,6 +9,8 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import {IoPersonCircle} from "react-icons/io5";
 import {LuFileSpreadsheet} from "react-icons/lu";
 import {LuTimer} from "react-icons/lu";
+import { IoMdArrowRoundBack } from "react-icons/io";
+import Swal from 'sweetalert2';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -245,34 +247,74 @@ const handleStartTryOut = async () => {
 
     const data = await response.json();
 
-    // Tangani redirect berdasarkan status yang diterima
-    switch (data.status) {
-      case 'PAID':
-        router.push(`/tes/mengerjakan-tes/${testId}`);
-        break;
-      case 'PENDING':
-        alert('Menunggu pembayaran.'); // Tampilkan pesan kepada pengguna
-        router.push(`/tes/kuis-terkunci-pending/${testId}`); // Redirect ke halaman pending
-        break;
-      case 'FAILED':
-        alert('Pembayaran gagal. Silakan coba lagi.');
-        router.push(`/tes/kuis-terkunci-akses/${testId}`);
-        break;
-      case 'EXPIRED':
-        alert('Transaksi telah kedaluwarsa. Silakan coba lagi.');
-        router.push(`/tes/kuis-terkunci-akses/${testId}`);
-        break;
-      case 'NOT_FOUND':
-        alert('Dapatkan akses.');
-        router.push(`/tes/kuis-terkunci-akses/${testId}`);
-        break;
-      default:
-        alert('Status transaksi tidak dikenal.');
+      // Tangani redirect berdasarkan status yang diterima
+      switch (data.status) {
+        case 'PAID':
+          router.push(`/tes/mengerjakan-tes/${testId}`);
+          break;
+          case 'PENDING':
+            Swal.fire({
+              icon: 'info',
+              title: 'Menunggu Pembayaran',
+              text: 'Harap selesaikan pembayaran untuk melanjutkan.',
+              confirmButtonText: 'OK',
+            }).then(() => {
+              router.push(`/tes/kuis-terkunci-pending/${testId}`);
+            });
+            break;
+        case 'FAILED':
+            Swal.fire({
+              icon: 'error',
+              title: 'Pembayaran Gagal',
+              text: 'Pembayaran Anda tidak berhasil. Silakan coba lagi.',
+              confirmButtonText: 'Coba Lagi',
+              customClass: {
+                confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded',
+              },
+            }).then(() => {
+              router.push(`/tes/kuis-terkunci-akses/${testId}`);
+            });
+          break;
+        case 'EXPIRED':
+          Swal.fire({
+            icon: 'error',
+            title: 'Transaksi Kedaluwarsa',
+            text: 'Transaksi telah kedaluwarsa. Silakan coba lagi.',
+            confirmButtonText: 'OK',
+          }).then(() => {
+            router.push(`/tes/kuis-terkunci-akses/${testId}`);
+          });
+          break;
+      
+          case 'NOT_FOUND':
+            Swal.fire({
+              title: 'Akses Tidak Ditemukan',
+              text: 'Anda perlu mendapatkan akses untuk mengikuti tes ini.',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Dapatkan Akses',
+              cancelButtonText: 'Batal',
+              customClass: {
+                confirmButton:
+                  'bg-deepBlue hover:bg-paleBlue hover:text-deepBlue hover:border text-white font-bold py-2 px-4 rounded',
+                cancelButton:
+                  'bg-red-500 hover:bg-red-800 text-white font-bold py-2 px-4 rounded',
+              },
+            }).then((result) => {
+              if (result.isConfirmed) {
+                router.push(`/tes/kuis-terkunci-akses/${testId}`);
+              }
+            });
+            break;
+          break;
+      
+        default:
+          alert('Status transaksi tidak dikenal.');
+      }
+    } catch (error) {
+      console.error('Error checking status:', error);
+      alert('Terjadi kesalahan saat memeriksa status transaksi.');
     }
-  } catch (error) {
-    console.error('Error checking status:', error);
-    alert('Terjadi kesalahan saat memeriksa status transaksi.');
-  }
 };
 
 
@@ -296,149 +338,126 @@ const handleStartTryOut = async () => {
             <div className="flex justify-between items-center w-full">
                 <div className="flex items-center p-2 lg:ml-9">
                 
-                    <button onClick={toggleSidebar}>
-                        <img 
-                        src="/images/menu-white.png" 
-                        alt="Menu" 
-                        className="h-[20px] lg:h-[30px] lg:hidden" 
-                        />
-                    </button>
-        
                     <Link href="/user/dashboard">
+                      <IoMdArrowRoundBack className='lg:hidden text-white text-2xl ' />
+                    </Link> 
+        
+                    <Link href="/">
                         <img 
                         src="/images/etamtest.png" 
                         alt="EtamTest" 
-                        className="lg:h-14 h-8 mr-3 object-contain" 
+                        className="lg:h-14 h-8 ml-5 md:ml-8 object-contain" 
                         />
                     </Link> 
             
                 </div>
 
-                <div className="relative flex items-center ">
-                <div className="mx-auto">
-                    {/* Judul besar */}
-                    <h5 className="text-sm lg:text-3xl font-bold font-bodoni lg:mr-8">Detail Soal</h5>
-                        {/* Breadcrumb di bawah h5 */}
-                        <nav className="hidden lg:block mt-2">
-                            <ol className="list-reset flex space-x-2 ">
-                            <li>
-                                <Link href="/user-dashboard" legacyBehavior>
-                                <a className="hover:text-orange font-poppins font-bold">Home</a>
-                                </Link>
-                            </li>
-                            <li>/</li>
-                            <li>
-                                <Link href={`/tes/detailsoal/${testId}`} legacyBehavior>
-                                <a className="hover:text-orange font-poppins font-bold">Detail Soal</a>
-                                </Link>
-                            </li>
-                            </ol>
-                        </nav>
-                </div>
-                    <div className='hidden lg:block'>
-                            {userProfile?.userPhoto ? (
-                        <img
-                          src={userProfile.userPhoto}
-                          alt="User Profile"
-                          className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
-                          onMouseEnter={() => setDropdownOpen(true)}
-                          onMouseLeave={() => setDropdownOpen(false)}
-                        />
-                      ) : (
-                        <IoPersonCircle
-                          className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
-                          onMouseEnter={() => setDropdownOpen(true)}
-                          onMouseLeave={() => setDropdownOpen(false)}
-                        />
-                      )}
-                    {/* Dropdown */}
-                    {isDropdownOpen && (
-                        <div 
-                        className="absolute right-0 mt-1 w-35 bg-white rounded-lg shadow-lg z-10 p-1
-                                    before:content-[''] before:absolute before:-top-4 before:right-8 before:border-8 
-                                    before:border-transparent before:border-b-white"
+                <div className="relative flex inline-block items-center ">
+                  <div className="mx-auto">
+                      {/* Judul besar */}
+                      <h5 className="hidden lg:block md:text-sm lg:text-3xl font-bold font-bodoni lg:mr-8">Detail Soal</h5>
+                          {/* Breadcrumb di bawah h5 */}
+                          <nav className="hidden lg:block mt-2">
+                              <ol className="list-reset flex space-x-2 ">
+                              <li>
+                                  <Link href="/user/dashboard" legacyBehavior>
+                                  <a className="hover:text-orange font-poppins font-bold">Home</a>
+                                  </Link>
+                              </li>
+                              <li>/</li>
+                              <li>
+                                  <Link href="" legacyBehavior>
+                                  <a className="hover:text-orange font-poppins font-bold">Detail Soal</a>
+                                  </Link>
+                              </li>
+                              </ol>
+                          </nav>
+                  </div>
+                  {/* Profile */}
+                  <div className="relative inline-block">
+                    {userData?.userPhoto ? (
+                      <img
+                        src={userData.userPhoto}
+                        alt="User Profile"
+                        className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
                         onMouseEnter={() => setDropdownOpen(true)}
                         onMouseLeave={() => setDropdownOpen(false)}
-                        >
-                        <Link legacyBehavior href={`/user/edit-profile/${userData?.id}`}>
-                            <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
-                            Ubah Profil
-                            </a>
-                        </Link>
-                        <Link legacyBehavior href="/logout">
-                            <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md">
-                            Logout
-                            </a>
-                        </Link>
-                        </div>
+                      />
+                    ) : (
+                      <IoPersonCircle
+                        className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
+                        onMouseEnter={() => setDropdownOpen(true)}
+                        onMouseLeave={() => setDropdownOpen(false)}
+                      />
                     )}
-                    </div>
+
+                    {/* Dropdown */}
+                    {isDropdownOpen && (
+                      <div
+                        className="absolute right-2 mt-0 w-37 bg-white rounded-lg shadow-lg z-10 p-1 
+                        before:content-[''] before:absolute before:-top-4 before:right-8 before:border-8
+                        before:border-transparent before:border-b-white"
+                        onMouseEnter={() => setDropdownOpen(true)}
+                        onMouseLeave={() => setDropdownOpen(false)}
+                      >
+                        <Link legacyBehavior href={`/user/edit-profile/${userId}`}>
+                          <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
+                            Ubah Profil
+                          </a>
+                        </Link>
+                        <Link legacyBehavior href="/auth/login">
+                          <a
+                            onClick={handleLogout}
+                            className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+                          >
+                            Logout
+                          </a>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
             </div>
         </header>
-
-
-        {/* Sidebar ketika tampilan mobile */}
-        <aside className={`fixed top-17 pt-5 left-0 w-64 bg-white h-full transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden z-40`}>
-        <ul className="p-4 space-y-4 text-deepblue round-lg">
-            <div className="flex flex-col items-center">
-            <li>
-                <IoPersonCircle
-                className="h-14 cursor-pointer mb-2" 
-                />
-            </li>
-            <p className="font-bold">{userData?.name}</p>
-            </div>
-            {menus.map((menu, index) => (
-            <li key={index}>
-                <Link legacyBehavior href={menu.href}>
-                <a className="block hover:text-deepBlue hover:bg-paleBlue font-bold p-2">{menu.text}</a>
-                </Link>
-            </li>
-            ))}
-        </ul>
-        </aside>
-
       
         <div className="bg-white w-full max-w-2xl mt-8 rounded-lg shadow-md p-6 font-poppins ">
-                <div className="bg-gray-100 p-4 rounded-md mt-4 text-gray-600">
-                    <h2 className="text-center text-2xl font-semibold text-deepBlue">Detail Soal</h2>
-                    <p className="text-center text-sm font-bold text-deepBlue mt-2">{testData.title}</p>
-                    <p className="text-center text-sm text-gray-500 mt-2">
-                       <LuTimer className="inline mr-1 text-lg relative -top-0.5" /> {testData.duration} menit
-                    </p>
-                </div>
+          <div className="bg-gray-100 p-4 rounded-md mt-4 text-gray-600">
+              <h2 className="text-center text-2xl font-semibold text-deepBlue">Detail Soal</h2>
+              <p className="text-center text-sm font-bold text-deepBlue mt-2">{testData.title}</p>
+              <p className="text-center text-sm text-gray-500 mt-2">
+                  <LuTimer className="inline mr-1 text-lg relative -top-0.5" /> {testData.duration} menit
+              </p>
+          </div>
 
-                <div className="flex flex-col items-center justify-center">
-                    <div className="bg-gray-100 font-bold p-4 rounded-md mt-4 text-gray-600">
-                        <p className="border border-gray-500 text-[0.8rem] rounded-md p-4 text-justify text-gray-500 font-bold">
-                        {testData.description}
-                        </p>
-                        <div className="mt-6 space-y-4 text-[1.0rem]  font-poppins text-gray-500 ">
-          {/* Periksa apakah groupedQuestions ada */}
-          {testData.groupedQuestions ? (
-            Object.entries(testData.groupedQuestions).map(([subtestName, subtest]) => (
-              <div key={subtestName} className="flex justify-between">
-                <span>{subtestName}</span>
-                <span className="flex items-center">
-                      <LuFileSpreadsheet alt="Paper Icon" className="w-4 h-4 mr-2 relative -top-0.5" />
-                      <span className="mr-2">{subtest.count} soal</span>
-                    </span>
+          <div className="flex flex-col items-center justify-center">
+              <div className="bg-gray-100  w-full max-w-2xl font-bold p-4 rounded-md mt-4 text-gray-600">
+                  <p className="border border-gray-500 text-[0.8rem] rounded-md p-4 text-justify text-gray-500 font-bold">
+                  {testData.description}
+                  </p>
+                  <div className="mt-6 space-y-4 text-[1.0rem]  font-poppins text-gray-500 ">
+                    {/* Periksa apakah groupedQuestions ada */}
+                    {testData.groupedQuestions ? (
+                      Object.entries(testData.groupedQuestions).map(([subtestName, subtest]) => (
+                        <div key={subtestName} className="flex justify-between">
+                          <span>{subtestName}</span>
+                          <span className="flex items-center">
+                                <LuFileSpreadsheet alt="Paper Icon" className="w-4 h-4 mr-2 relative -top-0.5" />
+                                <span className="mr-2">{subtest.count} soal</span>
+                              </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-red-500">Tidak ada pertanyaan tersedia.</p> // Pesan jika groupedQuestions tidak ada
+                    )}
+                  </div>
               </div>
-            ))
-          ) : (
-            <p className="text-red-500">Tidak ada pertanyaan tersedia.</p> // Pesan jika groupedQuestions tidak ada
-          )}
-        </div>
-      </div>
-      <button className="bg-deepBlue text-white text-sm mt-6 py-3 px-4 rounded-full font-poppins" onClick={handleStartTryOut}>
-        Mulai Try Out Sekarang
-      </button>
-      
-    </div>
-  </div>
+              <button className="bg-deepBlue text-white text-sm mt-6 py-3 px-4 rounded-full font-poppins" onClick={handleStartTryOut}>
+                Mulai Try Out Sekarang
+              </button>
 
+          </div>
+        </div>
 
     </div>
   );

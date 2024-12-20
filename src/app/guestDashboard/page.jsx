@@ -6,8 +6,10 @@ import { FaEye } from "react-icons/fa";
 import { SlBookOpen } from "react-icons/sl";
 import { IoIosLock } from "react-icons/io";
 import { IoPersonCircle } from "react-icons/io5";
-import { IoMenu } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
+import { IoMenu } from "react-icons/io5";
+import Image from 'next/image';
+
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -18,9 +20,10 @@ export default function GuestDashboard() {
   const [freeTests, setFreeTests] = useState([]);
   const [berbayarTests, setBerbayarTests] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [searchQuery, setSearchQuery] = useState([""]);
+  const [searchQuery, setSearchQuery] = useState ('');
   const [loading, setLoading] = useState([true]);
   const [error, setError] = useState([null]);
+  const isLoggedIn = false;
 
   useEffect(() => {
     const fetchPopularTests = async () => {
@@ -82,26 +85,38 @@ export default function GuestDashboard() {
     fetchBerbayarTests();
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery) return;
+  const debounce = (func, delay) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  };
 
+  const handleSearch = debounce(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setLoading(true);
     try {
-      const response = await fetch(
-        `https://${URL}/dashboard/search-tests?title=${encodeURIComponent(
-          searchQuery
-        )}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to search tests");
-      }
+      const response = await fetch(`https://${URL}/dashboard/search-tests?title=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error("Failed to search tests");
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
       console.error("Error searching tests:", error);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, 500); 
+
+  const handleInputChange = (e) => {
+    const value = e.target.value || ''; 
+    setSearchQuery(value);
+    handleSearch(value);
+  }; 
 
   if (loading && !error) {
     return <div className="text-center mt-20">Loading...</div>;
@@ -309,10 +324,10 @@ export default function GuestDashboard() {
           <div className="flex justify-between">
             {/* Ikon Menu untuk mobile */}
             <button onClick={toggleSidebar}>
-              <img
-                src="/images/menu-white.png"
-                alt="Menu"
-                className="h-[30px] lg:hidden"
+              <IoMenu
+                className={`h-[30px] w-[30px] lg:hidden ${
+                  isSidebarOpen ? "text-black" : "text-white"
+                }`}
               />
             </button>
 
@@ -366,16 +381,12 @@ export default function GuestDashboard() {
         } lg:hidden z-40`}
       >
         <ul className="p-4 space-y-4 text-deepblue round-lg">
-          <div className="flex flex-col items-center">
-            <li>
-              <img
-                src="/images/profile-black.png"
-                alt="profile"
-                className="h-14 cursor-pointer mb-2"
-              />
-            </li>
-            <p className="font-bold">Guest</p>
-          </div>
+        <div className="flex flex-col items-center">
+          <li>
+            <IoPersonCircle className="h-14 w-14 cursor-pointer mb-2 text-black" />
+          </li>
+          <p className="font-bold">Guest</p>
+        </div>
           {menus.map((menu, index) => (
             <li key={index}>
               <Link legacyBehavior href={menu.href}>
@@ -398,30 +409,31 @@ export default function GuestDashboard() {
 
       {/* Search Bar */}
       <section className="bg-gradient-custom p-20 lg:pt-40 pt-30">
-        <div className="container justify-between mt-10 lg:mt-4 lg:max-w-[610px] max-w-full ">
-          <form
-            onSubmit={handleSearch}
-            className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins"
-          >
-            <input
+      <div className="container justify-between mt-10 lg:mt-4 lg:max-w-[610px] max-w-full">
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins sm:max-w-[400px] lg:max-w-[610px] justify-between"
+        >
+          <input
               type="text"
               placeholder="Cari Tes Soal"
-              className="flex-grow p-1 lg:p-2  rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
+              className="flex-grow p-1 lg:p-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleInputChange}
             />
-            <button
-              type="submit"
-              className="p-1 lg:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins "
-            >
-              <FaSearch className="h-5 w-5 text-gray-600" />
-            </button>
-          </form>
-        </div>
-      </section>
+          <button
+            type="submit"
+            className="p-1 sm:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins flex items-center justify-end"
+          >
+            <FaSearch className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
+          </button>
+        </form>
+      </div>
+    </section>
+
 
       {/* Bagian search bar */}
-      {searchResults.length > 0 && (
+      {!loading && searchQuery.trim() && searchResults.length > 0 && (
         <section className="block mx-auto p-5 font-poppins relative">
           <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
             Hasil Pencarian
@@ -449,7 +461,7 @@ export default function GuestDashboard() {
                     </div>
 
                     <div className="flex justify-center mt-2 lg:mt-4 relative z-20">
-                      <div className="text-8xl">
+                      <div className="text-4xl lg:text-8xl">
                         <SlBookOpen />
                       </div>
                     </div>
@@ -530,7 +542,7 @@ export default function GuestDashboard() {
       )}
 
       {/* Bagian Katagori */}
-      <section className="block  mx-auto p-3 text-deepBlue">
+      <section className="block mx-auto p-3 text-deepBlue">
         <div className="font-bold mt-5 font-poppins text-deepBlue">
           Kategori
           <div className="relative ">
@@ -544,10 +556,13 @@ export default function GuestDashboard() {
                 .map((category, index) => (
                   <Link key={index} href={category.href} legacyBehavior>
                     <a className="hover:text-gray-300 mx-2">
-                      <img
+                      <Image
                         src={category.src}
                         alt={category.alt}
-                        className="h-300 lg:h-[320px] object-contain"
+                        width={320}
+                        height={300}
+                        className="object-cover rounded-lg"
+                        priority
                       />
                     </a>
                   </Link>
@@ -579,317 +594,309 @@ export default function GuestDashboard() {
         </div>
       </section>
 
-      {/* Bagian Paling Populer */}
-      <section className="mx-auto p-5 font-poppins relative">
-        <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
-          Paling Populer
-          {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
-          <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {popularTests
-              .slice(
-                populercurrentIndex,
-                populercurrentIndex + populeritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg relative group"
-                >
-                  <div className="flex justify-between items-center z-10 p-2">
-                    <div className="flex items-center space-x-2 font-bold text-deepBlue">
-                      <FaEye />
-                      <span className="text-[0.6rem] lg:text-sm font-poppins">
-                        {test.accessCount}
-                      </span>
-                    </div>
+{/* Bagian Paling Populer */}
+<section className="mx-auto p-5 font-poppins relative">
+  <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
+    Paling Populer
+    {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
+    <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {popularTests
+        .slice(
+          populercurrentIndex,
+          populercurrentIndex + populeritemsToShow
+        )
+        .map((test) => (
+          <Link
+            key={test.testId}
+            href={isLoggedIn ? `/test/${test.testId}` : "/auth/login"}
+            legacyBehavior
+          >
+            <a className="hover:text-gray-300">
+              <div className="bg-abumuda shadow-lg relative group">
+                <div className="flex justify-between items-center z-10 p-2">
+                  <div className="flex items-center space-x-2 font-bold text-deepBlue">
+                    <FaEye />
+                    <span className="text-[0.6rem] lg:text-sm font-poppins">
+                      {test.accessCount}
+                    </span>
                   </div>
+                </div>
 
-                  <div className="flex justify-center mt-2 lg:mt-4 ">
-                    <div className="text-8xl">
-                      <SlBookOpen />
-                    </div>
+                <div className="flex justify-center mt-2 lg:mt-4 ">
+                  <div className="text-4xl lg:text-8xl">
+                    <SlBookOpen />
                   </div>
+                </div>
 
-                  <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue ">
-                    <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">
-                      {test.category}
+                <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue ">
+                  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">
+                    {test.category}
+                  </h3>
+                </div>
+
+                <div className="bg-deepBlue text-white p-1 lg:p-2 mt-4 relative z-20">
+                  <div className="flex items-center space-x-2 justify-between">
+                    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">
+                      {test.title}
                     </h3>
                   </div>
 
-                  <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 ">
-                    <div className="flex items-center space-x-2 justify-between">
-                      <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">
-                        {test.title}
-                      </h3>
-                    </div>
+                  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">
+                    Prediksi kemiripan {test.similarity}%
+                  </p>
+                  <p className="text-[0.4rem] lg:text-xs leading-relaxed">
+                    Dibuat Oleh:
+                  </p>
 
-                    <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">
-                      Prediksi kemiripan {test.similarity}%
-                    </p>
-                    <p className="text-[0.4rem] lg:text-xs leading-relaxed">
-                      Dibuat Oleh:
-                    </p>
-
-                    <div className="flex justify-between space-x-2 leading-relaxed mt-1">
-                      <div className="flex text-left space-x-1 lg:space-x-4">
-                        {test.author.authorPhoto ? (
-                          <img
-                            src={test.author.authorPhoto}
-                            alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
-                          />
-                        ) : (
-                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
-                        )}
-                        <span className="text-[0.375rem] lg:text-sm font-semibold">
-                          {test.author.name}
-                        </span>
-                      </div>
-
+                  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
+                    <div className="flex text-left space-x-1 lg:space-x-4">
+                      {test.author.authorPhoto ? (
+                        <img
+                          src={test.author.authorPhoto}
+                          alt={test.category}
+                          className="h-3 lg:h-6 object-contain"
+                        />
+                      ) : (
+                        <IoPersonCircle className="h-3 lg:h-6 text-white" />
+                      )}
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
-                        {Number(test.price) === 0 ? (
-                          "Gratis"
-                        ) : (
-                          <IoIosLock
-                            className="h-2 lg:h-4 inline-block text-current object-contain text-white"
-                            alt="Berbayar"
-                          />
-                        )}
+                        {test.author.name}
                       </span>
                     </div>
+
+                    <span className="text-[0.375rem] lg:text-sm font-semibold">
+                      {Number(test.price) === 0 ? (
+                        "Gratis"
+                      ) : (
+                        <IoIosLock
+                          className="h-2 lg:h-4 inline-block text-current object-contain text-white"
+                          alt="Berbayar"
+                        />
+                      )}
+                    </span>
                   </div>
                 </div>
-              ))}
-          </div>
-          {/* Tombol panah kiri */}
-          <button
-            onClick={populerprevSlide}
-            className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
-              populercurrentIndex === 0 ? "hidden" : ""
-            }`}
+              </div>
+            </a>
+          </Link>
+        ))}
+    </div>
+  </div>
+</section>
+
+{/* Bagian Berbayar */}
+<section className="block mx-auto p-5 font-poppins relative">
+  <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
+    Berbayar
+    {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+      {berbayarTests
+        .slice(
+          berbayarcurrentIndex,
+          berbayarcurrentIndex + berbayaritemsToShow
+        )
+        .map((test) => (
+          <Link
+            key={test.testId}
+            href={isLoggedIn ? `/test/${test.testId}` : "/auth/login"}
+            legacyBehavior
           >
-            &#10094;
-          </button>
-          {/* Tombol panah kanan */}
-          <button
-            onClick={populernextSlide}
-            className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
-              populercurrentIndex >= popularTests.length - populeritemsToShow
-                ? "hidden"
-                : ""
-            }`}
-          >
-            &#10095;
-          </button>
-        </div>
-      </section>
-
-      {/* Bagian Berbayar */}
-      <section className="block mx-auto p-5 font-poppins relative">
-        <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
-          Berbayar
-          {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {berbayarTests
-              .slice(
-                berbayarcurrentIndex,
-                berbayarcurrentIndex + berbayaritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg relative group"
-                >
-                  <div className="flex justify-between items-center z-10">
-                    <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
-                      <FaEye />
-                      <span className="text-[0.6rem] lg:text-sm font-poppins">
-                        {test.accessCount}
-                      </span>
-                    </div>
+            <a className="hover:text-gray-300">
+              <div className="bg-abumuda shadow-lg relative group">
+                <div className="flex justify-between items-center z-10">
+                  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
+                    <FaEye />
+                    <span className="text-[0.6rem] lg:text-sm font-poppins">
+                      {test.accessCount}
+                    </span>
                   </div>
+                </div>
 
-                  <div className="flex justify-center mt-2 lg:mt-4 relative z-20 ">
-                    <div className="text-8xl">
-                      <SlBookOpen />
-                    </div>
+                <div className="flex justify-center mt-2 lg:mt-4 relative z-20 ">
+                  <div className="text-4xl lg:text-8xl">
+                    <SlBookOpen />
                   </div>
+                </div>
 
-                  <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 ">
-                    <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">
-                      {test.category}
+                <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 ">
+                  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">
+                    {test.category}
+                  </h3>
+                </div>
+
+                <div className="bg-deepBlue text-white p-1 lg:p-2 mt-4 relative z-20">
+                  <div className="flex items-center space-x-2 justify-between">
+                    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">
+                      {test.title}
                     </h3>
                   </div>
 
-                  <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 ">
-                    <div className="flex items-center space-x-2 justify-between">
-                      <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">
-                        {test.title}
-                      </h3>
-                    </div>
+                  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">
+                    Prediksi kemiripan {test.similarity}%
+                  </p>
+                  <p className="text-[0.4rem] lg:text-xs leading-relaxed">
+                    Dibuat Oleh:
+                  </p>
 
-                    <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">
-                      Prediksi kemiripan {test.similarity}%
-                    </p>
-                    <p className="text-[0.4rem] lg:text-xs leading-relaxed">
-                      Dibuat Oleh:
-                    </p>
-
-                    <div className="flex justify-between space-x-2 leading-relaxed mt-1">
-                      <div className="flex text-left space-x-1 lg:space-x-4">
-                        {test.author.authorPhoto ? (
-                          <img
-                            src={test.author.authorPhoto}
-                            alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
-                          />
-                        ) : (
-                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
-                        )}
-                        <span className="text-[0.375rem] lg:text-sm font-semibold">
-                          {test.author.name}
-                        </span>
-                      </div>
-
+                  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
+                    <div className="flex text-left space-x-1 lg:space-x-4">
+                      {test.author.authorPhoto ? (
+                        <img
+                          src={test.author.authorPhoto}
+                          alt={test.category}
+                          className="h-3 lg:h-6 object-contain"
+                        />
+                      ) : (
+                        <IoPersonCircle className="h-3 lg:h-6 text-white" />
+                      )}
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
-                        {Number(test.price) === 0 ? (
-                          "Gratis"
-                        ) : (
-                          <IoIosLock
-                            className="h-2 lg:h-4 inline-block text-current object-contain text-white"
-                            alt="Berbayar"
-                          />
-                        )}
+                        {test.author.name}
                       </span>
                     </div>
+
+                    <span className="text-[0.375rem] lg:text-sm font-semibold">
+                      <IoIosLock
+                        className="h-2 lg:h-4 inline-block text-current object-contain text-white"
+                        alt="Berbayar"
+                      />
+                    </span>
                   </div>
                 </div>
-              ))}
-          </div>
-          {/* Tombol panah kiri */}
-          <button
-            onClick={berbayarprevSlide}
-            className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
-              berbayarcurrentIndex === 0 ? "hidden" : ""
-            }`}
+              </div>
+            </a>
+          </Link>
+        ))}
+    </div>
+    {/* Tombol panah kiri */}
+    <button
+      onClick={berbayarprevSlide}
+      className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
+        berbayarcurrentIndex === 0 ? "hidden" : ""
+      }`}
+    >
+      &#10094;
+    </button>
+    {/* Tombol panah kanan */}
+    <button
+      onClick={berbayarnextSlide}
+      className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
+        berbayarcurrentIndex >= berbayarTests.length - berbayaritemsToShow
+          ? "hidden"
+          : ""
+      }`}
+    >
+      &#10095;
+    </button>
+  </div>
+</section>
+
+{/* Bagian Gratis */}
+<section className="block mx-auto p-5 font-poppins relative">
+  <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
+    Gratis
+    {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+      {freeTests
+        .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
+        .map((test) => (
+          <Link
+            key={test.testId}
+            href={isLoggedIn ? `/test/${test.testId}` : "/auth/login"}
+            legacyBehavior
           >
-            &#10094;
-          </button>
-          {/* Tombol panah kanan */}
-          <button
-            onClick={berbayarnextSlide}
-            className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
-              berbayarcurrentIndex >= berbayarTests.length - berbayaritemsToShow
-                ? "hidden"
-                : ""
-            }`}
-          >
-            &#10095;
-          </button>
-        </div>
-      </section>
-
-      {/* Bagian gratis */}
-      <section className="block mx-auto p-5 font-poppins relative">
-        <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
-          Gratis
-          {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {freeTests
-              .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg relative group"
-                >
-                  <div className="flex justify-between items-center z-10">
-                    <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
-                      <FaEye />
-                      <span className="text-[0.6rem] lg:text-sm font-poppins">
-                        {test.accessCount}
-                      </span>
-                    </div>
+            <a className="hover:text-gray-300">
+              <div className="bg-abumuda shadow-lg relative group">
+                <div className="flex justify-between items-center z-10">
+                  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
+                    <FaEye />
+                    <span className="text-[0.6rem] lg:text-sm font-poppins">
+                      {test.accessCount}
+                    </span>
                   </div>
+                </div>
 
-                  <div className="flex justify-center mt-2 lg:mt-4 relative z-20 ">
-                    <div className="text-8xl">
-                      <SlBookOpen />
-                    </div>
+                <div className="flex justify-center mt-2 lg:mt-4 relative z-20 ">
+                  <div className="text-4xl lg:text-8xl">
+                    <SlBookOpen />
                   </div>
+                </div>
 
-                  <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 ">
-                    <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">
-                      {test.category}
+                <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 ">
+                  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">
+                    {test.category}
+                  </h3>
+                </div>
+
+                <div className="bg-deepBlue text-white p-1 lg:p-2 mt-4 relative z-20">
+                  <div className="flex items-center space-x-2 justify-between">
+                    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">
+                      {test.title}
                     </h3>
                   </div>
 
-                  <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 ">
-                    <div className="flex items-center space-x-2 justify-between">
-                      <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">
-                        {test.title}
-                      </h3>
-                    </div>
+                  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">
+                    Prediksi kemiripan {test.similarity}%
+                  </p>
+                  <p className="text-[0.4rem] lg:text-xs leading-relaxed">
+                    Dibuat Oleh:
+                  </p>
 
-                    <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">
-                      Prediksi kemiripan {test.similarity}%
-                    </p>
-                    <p className="text-[0.4rem] lg:text-xs leading-relaxed">
-                      Dibuat Oleh:
-                    </p>
-
-                    <div className="flex justify-between space-x-2 leading-relaxed mt-1">
-                      <div className="flex text-left space-x-1 lg:space-x-4">
-                        {test.author.authorPhoto ? (
-                          <img
-                            src={test.author.authorPhoto}
-                            alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
-                          />
-                        ) : (
-                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
-                        )}
-                        <span className="text-[0.375rem] lg:text-sm font-semibold">
-                          {test.author.name}
-                        </span>
-                      </div>
-
+                  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
+                    <div className="flex text-left space-x-1 lg:space-x-4">
+                      {test.author.authorPhoto ? (
+                        <img
+                          src={test.author.authorPhoto}
+                          alt={test.category}
+                          className="h-3 lg:h-6 object-contain"
+                        />
+                      ) : (
+                        <IoPersonCircle className="h-3 lg:h-6 text-white" />
+                      )}
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
-                        {Number(test.price) === 0 ? (
-                          "Gratis"
-                        ) : (
-                          <IoIosLock
-                            className="h-2 lg:h-4 inline-block text-current object-contain text-white"
-                            alt="Berbayar"
-                          />
-                        )}
+                        {test.author.name}
                       </span>
                     </div>
+
+                    <span className="text-[0.375rem] lg:text-sm font-semibold">
+                      {Number(test.price) === 0 ? (
+                        "Gratis"
+                      ) : (
+                        <IoIosLock
+                          className="h-2 lg:h-4 inline-block text-current object-contain text-white"
+                          alt="Berbayar"
+                        />
+                      )}
+                    </span>
                   </div>
                 </div>
-              ))}
-          </div>
-          {/* Tombol panah kiri */}
-          <button
-            onClick={gratisprevSlide}
-            className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
-              gratiscurrentIndex === 0 ? "hidden" : ""
-            }`}
-          >
-            &#10094;
-          </button>
-          {/* Tombol panah kanan */}
-          <button
-            onClick={gratisnextSlide}
-            className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
-              gratiscurrentIndex >= freeTests.length - gratisitemsToShow
-                ? "hidden"
-                : ""
-            }`}
-          >
-            &#10095;
-          </button>
-        </div>
-      </section>
+              </div>
+            </a>
+          </Link>
+        ))}
+    </div>
+    {/* Tombol panah kiri */}
+    <button
+      onClick={gratisprevSlide}
+      className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
+        gratiscurrentIndex === 0 ? "hidden" : ""
+      }`}
+    >
+      &#10094;
+    </button>
+    {/* Tombol panah kanan */}
+    <button
+      onClick={gratisnextSlide}
+      className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${
+        gratiscurrentIndex >= freeTests.length - gratisitemsToShow
+          ? "hidden"
+          : ""
+      }`}
+    >
+      &#10095;
+    </button>
+  </div>
+</section>
+
     </>
   );
 }

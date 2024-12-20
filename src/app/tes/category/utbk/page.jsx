@@ -10,6 +10,9 @@ import { IoSearch } from "react-icons/io5";
 import { FaLock } from "react-icons/fa";
 import { SlBookOpen } from "react-icons/sl";
 import { FaEye } from "react-icons/fa";
+import {IoIosLock} from "react-icons/io";
+import { IoMdArrowRoundBack } from "react-icons/io";
+
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -20,7 +23,7 @@ export default function UTBK() {
   const [freeTestsByCategory, setFreeTestsByCategory] = useState([]);
   const [berbayarTests, setBerbayarTests] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [searchQuery, setSearchQuery] = useState (['']);
+  const [searchQuery, setSearchQuery] = useState ('');
   const [loading, setLoading] = useState([true]);
   const [error, setError] = useState([null]);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -178,22 +181,38 @@ export default function UTBK() {
     fetchFreeTestsByCategory();
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery) return;
+  const debounce = (func, delay) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  };
 
+  const handleSearch = debounce(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setLoading(true);
     try {
       const response = await fetch(`https://${URL}/dashboard/search-tests-by-category?title=${encodeURIComponent(searchQuery)}&category=UTBK`);
-      if (!response.ok) {
-        throw new Error('Failed to search tests');
-      }
+      if (!response.ok) throw new Error("Failed to search tests");
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
-      console.error('Error searching tests:', error);
+      console.error("Error searching tests:", error);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, 500); 
+
+  const handleInputChange = (e) => {
+    const value = e.target.value || ''; 
+    setSearchQuery(value);
+    handleSearch(value);
+  }; 
 
   if (loading && !error) {
     return <div className="text-center mt-20">Loading...</div>;
@@ -443,22 +462,20 @@ export default function UTBK() {
     <>
     <header className="relative flex w-full bg-deepBlue text-white p-3 items-center z-50">
       <div className="flex justify-between items-center w-full">
-        <div className="flex items-center p-2 lg:ml-9">
-          
-        <button onClick={toggleSidebar}>
-              <AiOutlineBars className="h-[20px] lg:h-[30px] lg:hidden text-white" />
-            </button>
-  
-              <Link href="/">
-                <img 
-                  src="/images/etamtest.png" 
-                  alt="EtamTest" 
-                  className="lg:h-14 h-8 mr-3 object-contain" 
-                />
-              </Link> 
-      
-        </div>
+        <div className="flex items-center p-2 lg:ml-9">  
+        {/* Tombol Back */}
+        <Link href="/user/dashboard">
+              <IoMdArrowRoundBack className="lg:hidden text-white text-2xl" />
+            </Link>
 
+            <Link href="/">
+              <img
+                src="/images/etamtest.png"
+                alt="EtamTest"
+                className="lg:h-14 h-8 mr-3 object-contain"
+              />
+            </Link> 
+        </div>
         <div className="relative flex inline-block items-center ">
           <div className="mx-auto">
               {/* Judul besar */}
@@ -528,61 +545,33 @@ export default function UTBK() {
       </div>
     </header>
 
-
-    {/* Sidebar ketika tampilan mobile */}
-    <aside className={`fixed top-17 pt-5 left-0 w-64 bg-white h-full transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden z-40`}>
-      <ul className="p-4 space-y-4 text-deepblue round-lg">
-        <div className="flex flex-col items-center">
-          <li>
-          <IoPersonCircle className="h-14 cursor-pointer mb-2 text-black" />
-          </li>
-          <p className="font-bold">Desti Nur Irawati</p>
-        </div>
-        {menus.map((menu, index) => (
-          <li key={index}>
-            <Link legacyBehavior href={menu.href}>
-              <a className="block hover:text-deepBlue hover:bg-paleBlue font-bold p-2">{menu.text}</a>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </aside>
-
-    {/* Overlay untuk menutup sidebar */}
-    {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black opacity-50 lg:hidden z-30"
-          onClick={toggleSidebar}
-        ></div>
-    )}
-
     {/* Search Bar */}
-    <section className="bg-gradient-custom p-20 lg:pt-20 pt-25">
-      <div className="container justify-between mt-2 lg:mt-4 lg:max-w-[610px] max-w-full ">
-        <form 
-          onSubmit={handleSearch} 
-          className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins"
+    <section className="bg-gradient-custom p-20 lg:pt-40 pt-30">
+      <div className="container justify-between mt-10 lg:mt-4 lg:max-w-[610px] max-w-full">
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins sm:max-w-[400px] lg:max-w-[610px] justify-between"
         >
-          <input 
-            type="text" 
-            placeholder="Cari Tes Soal" 
-            className="flex-grow p-1 lg:p-2  rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button 
-            type="submit" 
-            className="p-1 lg:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins "
+          <input
+              type="text"
+              placeholder="Cari Tes Soal"
+              className="flex-grow p-1 lg:p-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
+              value={searchQuery}
+              onChange={handleInputChange}
+            />
+          <button
+            type="submit"
+            className="p-1 sm:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins flex items-center justify-end"
           >
-            <IoSearch className="h-5 w-5 text-gray-500" />
+            <IoSearch className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
           </button>
         </form>
       </div>
-
     </section>
+
     
     {/* Bagian search bar */}
-    {searchResults.length > 0 && (
+    {!loading && searchQuery.trim() && searchResults.length > 0 && (
         <section className="block mx-auto p-5 font-poppins relative">
         <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
             Hasil Pencarian
@@ -681,6 +670,7 @@ export default function UTBK() {
       )}
 
     {/* Bagian Paling Populer */}
+    {popularTestsByCategory && popularTestsByCategory.length > 0 && (
     <section className="mx-auto p-5 font-poppins relative">
         <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
           Paling Populer
@@ -777,6 +767,7 @@ export default function UTBK() {
           </button>
         </div>
     </section>
+    )}
 
     {/* Bagian Berbayar */}
     <section className="block mx-auto p-5 font-poppins relative">

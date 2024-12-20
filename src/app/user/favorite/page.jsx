@@ -10,6 +10,7 @@ import { FaEye } from "react-icons/fa";
 import { IoIosLock } from "react-icons/io";
 import { SlBookOpen } from "react-icons/sl";
 import dotenv from 'dotenv';
+import { TbFileSad } from "react-icons/tb";
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -283,7 +284,11 @@ const handleLogout = async () => {
           <div className="flex justify-between">
             {/* Ikon Menu untuk mobile */}
             <button onClick={toggleSidebar}>
-            <IoMenu  className="h-[30px] lg:hidden"/>
+              <IoMenu
+                className={`h-[30px] w-[30px] lg:hidden ${
+                  isSidebarOpen ? "text-black" : "text-white"
+                }`}
+              />
             </button>
 
             <button onClick={toggleSidebar}>
@@ -309,18 +314,18 @@ const handleLogout = async () => {
               </ul>
             </nav>
             {/* Profile */}
-            <div className="relative inline-block">
+            <div className="relative inline-block  ">
               {userData?.userPhoto ? (
                 <img
                   src={userData.userPhoto}
                   alt="User Profile"
-                  className="h-14 w-14 rounded-full cursor-pointer mr-5"
+                  className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover hidden lg:block"
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 />
               ) : (
                 <IoPersonCircle
-                  className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
+                  className="h-14 w-14 rounded-full cursor-pointer text-white mr-5 hidden lg:block"
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 />
@@ -362,11 +367,21 @@ const handleLogout = async () => {
         <ul className="p-4 space-y-4 text-deepblue round-lg">
           <div className="flex flex-col items-center">
             <li>
-            <img 
-              src={userData?.userPhoto || "/images/profile-black.png"} // Gunakan foto dari userData atau gambar default
-              alt="profile" 
-              className="h-14 w-14 cursor-pointer mb-2 rounded-full" 
-            />
+            {userData?.userPhoto ? (
+              <img
+                    src={userData.userPhoto}
+                    alt="User Profile"
+                    className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
+                    onMouseEnter={() => setDropdownOpen(true)}
+                    onMouseLeave={() => setDropdownOpen(false)}
+                  />
+                ) : (
+                  <IoPersonCircle
+                    className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
+                    onMouseEnter={() => setDropdownOpen(true)}
+                    onMouseLeave={() => setDropdownOpen(false)}
+                  />
+              )}
             </li>
             <p className="font-bold">{userData?.name}</p>
           </div>
@@ -394,21 +409,29 @@ const handleLogout = async () => {
         <div className="mx-auto font-bold font-poppins text-deepBlue">
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {favorites.filter((test) => !test.isHidden).map((test) => (
+            {favorites.length === 0 || favorites.filter((test) => !test.isHidden).length === 0 ? (
+                <div className="col-span-full flex flex-col items-center justify-center text-center text-gray-500 h-screen">
+                  <TbFileSad className="text-6xl lg:text-8xl  -mt-20" />
+                  <p className="mt-2">Tidak ada data ditemukan</p>
+                </div>
+              ) : (
+            favorites.filter((test) => !test.isHidden).map((test) => (
               <div key={test.testId} className="bg-abumuda shadow-lg relative group">
                 
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
                   <div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
-                    <div className="flex items-center space-x-2 font-bold text-deepBlue">
-                      <FaEye className="h-3 lg:h-4 ml-2 text-current object-contain" alt="Views" />
+                    <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
+                      <FaEye />
                       <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
                     </div>
                   </div>
 
                   <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                    <SlBookOpen className="text-[20px] lg:text-[90px] object-contain text-current text-[#0B61AA]" alt={test.category} />
+                    <div className="text-4xl lg:text-8xl">
+                      <SlBookOpen />
+                    </div>
                   </div>
 
                   <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 group-hover:blur-[2px] transition duration-300">
@@ -424,38 +447,34 @@ const handleLogout = async () => {
                     <p className="text-[0.4rem] lg:text-xs leading-relaxed">Dibuat Oleh:</p>
 
                     <div className="flex justify-between space-x-2 leading-relaxed mt-1">
-                    <div className="flex text-left space-x-1 lg:space-x-4">
-                      {test.author.authorPhoto ? (
-                        <img 
-                            src={test.author.authorPhoto} 
-                            alt={test.author.name} 
-                            className="h-3 lg:h-5 object-contain" 
-                        />
-                      ) : (
-                        <IoPersonCircle 
-                            className="h-3 lg:h-5 text-white object-contain" 
-                            alt={test.author.name}
-                        />
-                      )}
+                      <div className="flex text-left space-x-1 lg:space-x-4">
+                        {test.author.authorPhoto ? (
+                          <img
+                            src={test.author.authorPhoto}
+                            alt={test.category}
+                            className="h-3 lg:h-6 object-contain"
+                          />
+                        ) : (
+                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
+                        )}
                         <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
                       </div>
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
                         {Number(test.price) === 0 ? 'Gratis' : (
-                            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
+                          <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
                         )}
                       </span>
                     </div>
                   </div>
 
                   <div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
-                    <a href={`/tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+                    <a href={` /tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
                       Mulai
                     </a>
                     <a href={`/user/topscore/${test.id}`} className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
                       <i className="fa-solid fa-medal"></i>
                       <span className="ml-1">Top Score</span>
                     </a>
-            
                     <button 
                       onClick={() => toggleLike(test.id)} 
                       className="lg:block text-center bg-paleBlue text-deepBlue inline-block px-3 py-2 rounded-full hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0"
@@ -465,7 +484,8 @@ const handleLogout = async () => {
                   </div>
 
               </div>
-            ))}
+            ))
+          )}
           </div>
         </div>
       </section>

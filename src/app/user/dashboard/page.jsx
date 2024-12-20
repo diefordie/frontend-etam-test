@@ -11,6 +11,7 @@ import { IoPersonCircle } from "react-icons/io5";
 import { IoMenu } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import dotenv from 'dotenv';
+import Image from 'next/image';
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -21,7 +22,7 @@ export default function UserDashboard() {
   const [freeTests, setFreeTests] = useState([]);
   const [berbayarTests, setBerbayarTests] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [searchQuery, setSearchQuery] = useState (['']);
+  const [searchQuery, setSearchQuery] = useState ('');
   const [loading, setLoading] = useState([true]);
   const [error, setError] = useState([null]);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -179,22 +180,38 @@ export default function UserDashboard() {
     fetchBerbayarTests();
   }, []);  
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery) return;
+  const debounce = (func, delay) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  };
 
+  const handleSearch = debounce(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setLoading(true);
     try {
-      const response = await fetch(`https://${URL}/dashboard/search-tests?title=${encodeURIComponent(searchQuery)}`);
-      if (!response.ok) {
-        throw new Error('Failed to search tests');
-      }
+      const response = await fetch(`https://${URL}/dashboard/search-tests?title=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error("Failed to search tests");
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
-      console.error('Error searching tests:', error);
+      console.error("Error searching tests:", error);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, 500); 
+
+  const handleInputChange = (e) => {
+    const value = e.target.value || ''; 
+    setSearchQuery(value);
+    handleSearch(value);
+  }; 
 
   if (loading && !error) {
     return <div className="text-center mt-20">Loading...</div>;
@@ -499,16 +516,20 @@ const berbayarprevSlide = () => {
       <header className="fixed p-4 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
         <div className="mx-auto flex justify-between items-center font-poppins max-w-full ">
           <div className="flex justify-between">
-            {/* Ikon Menu untuk mobile */}
-            <button onClick={toggleSidebar}>
-            <IoMenu  className="h-[30px] lg:hidden"/>
+          <button onClick={toggleSidebar}>
+              <IoMenu
+                className={`h-[30px] w-[30px] lg:hidden ${
+                  isSidebarOpen ? "text-black" : "text-white"
+                }`}
+              />
             </button>
 
+
             <button onClick={toggleSidebar}>
-            <img 
-                src="/images/etamtest.png" 
-                alt="EtamTest" 
-                className="h-[30px] lg:h-10 pl-3" 
+            <img
+                src="/images/etamtest.png"
+                alt="EtamTest"
+                className="h-[30px] lg:h-10 pl-3"
               />
             </button>
           </div>
@@ -527,7 +548,7 @@ const berbayarprevSlide = () => {
               </ul>
             </nav>
             {/* Profile */}
-            <div className="relative inline-block">
+            <div className="relative inline-block hidden lg:block">
               {userData?.userPhoto ? (
                 <img
                   src={userData.userPhoto}
@@ -578,16 +599,20 @@ const berbayarprevSlide = () => {
       {/* Sidebar ketika tampilan mobile */}
       <aside className={`fixed top-16 pt-6 left-0 w-64 bg-white h-full transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden z-40`}>
         <ul className="p-4 space-y-4 text-deepblue round-lg">
-          <div className="flex flex-col items-center">
-            <li>
-            <img 
-              src={userData?.userPhoto || "/images/profile-black.png"} // Gunakan foto dari userData atau gambar default
-              alt="profile" 
-              className="h-14 w-14 cursor-pointer mb-2 rounded-full" 
-            />
-            </li>
-            <p className="font-bold">{userData?.name}</p>
-          </div>
+        <div className="flex flex-col items-center">
+          <li>
+            {userData?.userPhoto ? (
+              <img
+                src={userData.userPhoto}
+                alt="profile"
+                className="h-14 w-14 cursor-pointer mb-2 rounded-full object-cover"
+              />
+            ) : (
+              <IoPersonCircle className="h-14 w-14 cursor-pointer mb-2 text-black" />
+            )}
+          </li>
+          <p className="font-bold">{userData?.name || "Guest"}</p>
+        </div>
           {menus.map((menu, index) => (
             <li key={index}>
               <Link legacyBehavior href={menu.href}>
@@ -607,31 +632,31 @@ const berbayarprevSlide = () => {
       )}
 
       {/* Search Bar */}
-      <section className="bg-gradient-custom p-20 lg:pt-40 ">
-        <div className="container justify-between mt-20 lg:mt-4 lg:max-w-[610px] max-w-full ">
-          <form 
-            onSubmit={handleSearch} 
-            className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins"
+      <section className="bg-gradient-custom p-20 lg:pt-40 pt-30">
+        <div className="container justify-between mt-10 lg:mt-4 lg:max-w-[610px] max-w-full ">
+          <form
+            onSubmit={handleSearch}
+            className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins sm:max-w-[400px] lg:max-w-[610px] justify-between"
           >
-            <input 
-              type="text" 
-              placeholder="Cari Tes Soal" 
-              className="flex-grow p-1 lg:p-2  rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
+            <input
+              type="text"
+              placeholder="Cari Tes Soal"
+              className="flex-grow p-1 lg:p-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleInputChange}
             />
-            <button 
-              type="submit" 
-              className="p-1 lg:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins "
+            <button
+              type="submit"
+              className="p-1 sm:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins flex items-center justify-end"
             >
-            <IoSearch className="h-5 w-5 text-gray-600" />
+            <IoSearch className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
             </button>
           </form>
         </div>
       </section>
     
-      {/* Bagian search bar */}      
-      {searchResults.length > 0 && (
+      {/* Bagian search bar */}
+      {!loading && searchQuery.trim() && searchResults.length > 0 && (
         <section className="block mx-auto p-5 font-poppins relative">
         <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
             Hasil Pencarian
@@ -651,7 +676,7 @@ const berbayarprevSlide = () => {
                 </div>
 
                 <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="text-8xl">
+                  <div className="text-4xl lg:text-8xl">
                       <SlBookOpen />
                   </div>
                 </div>
@@ -737,8 +762,15 @@ const berbayarprevSlide = () => {
             <div className="flex overflow-hidden w-full">
               {categories.slice(catagoriescurrentIndex, catagoriescurrentIndex + catagoriesitemsToShow).map((category, index) => (
                 <Link key={index} href={category.href} legacyBehavior>
-                  <a className="hover:text-gray-300 hover:animate-flyIn  mx-2">
-                    <img src={category.src} alt={category.alt} className="h-300 lg:h-[320px] object-contain" />
+                  <a className="hover:text-gray-300 hover:animate-flyIn mx-2">
+                    <Image
+                      src={category.src}
+                      alt={category.alt}
+                      width={320}
+                      height={300}
+                      className="object-cover rounded-lg"
+                      priority
+                    />
                   </a>
                 </Link>
               ))}
@@ -763,14 +795,14 @@ const berbayarprevSlide = () => {
       </section>
 
       {/* Bagian Paling Populer */}
-      <section className="mx-auto p-5 font-poppins relative">
-        <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
-          Paling Populer
-          {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
-          <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {popularTests.slice(populercurrentIndex, populercurrentIndex + populeritemsToShow).map((test) => (
-              <div key={test.testId} className="bg-abumuda shadow-lg relative group">
-                
+      {popularTests.length > 0 && (
+        <section className="mx-auto p-5 font-poppins relative">
+          <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
+            Paling Populer
+            {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
+            <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {popularTests.slice(populercurrentIndex, populercurrentIndex + populeritemsToShow).map((test) => (
+                <div key={test.testId} className="bg-abumuda shadow-lg relative group">
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -782,7 +814,7 @@ const berbayarprevSlide = () => {
                   </div>
 
                   <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                    <div className="text-8xl">
+                    <div className="text-4xl lg:text-8xl">
                       <SlBookOpen />
                     </div>
                   </div>
@@ -801,7 +833,6 @@ const berbayarprevSlide = () => {
 
                     <div className="flex justify-between space-x-2 leading-relaxed mt-1">
                       <div className="flex text-left space-x-1 lg:space-x-4">
-
                         {test.author.authorPhoto ? (
                           <img
                             src={test.author.authorPhoto}
@@ -811,24 +842,23 @@ const berbayarprevSlide = () => {
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
                         )}
-
-                      <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
+                        <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
                       </div>
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
                         {Number(test.price) === 0 ? 'Gratis' : (
-                            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
+                          <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
                         )}
                       </span>
                     </div>
                   </div>
 
                   <div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
-                    <a href= {`/tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+                    <a href={` /tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
                       Mulai
                     </a>
-                    <a href={`/user/topscore/${test.id}`}className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+                    <a href={`/user/topscore/${test.id}`} className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
                       <i className="fa-solid fa-medal"></i>
-                       <span className="ml-1">Top Score</span>
+                      <span className="ml-1">Top Score</span>
                     </a>
                     <button 
                       onClick={() => toggleLike(test.id)} 
@@ -837,28 +867,29 @@ const berbayarprevSlide = () => {
                       <i className={`fa${likedItems[test.id] ? "s" : "r"} fa-heart ${likedItems[test.id] ? "text-red-500" : "text-deepBlue"}`}></i>
                     </button>
                   </div>
+                  
+                </div>
+              ))}
+            </div>
 
-              </div>
-            ))}
+            {/* Tombol panah kiri */}
+            <button
+              onClick={populerprevSlide}
+              className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${populercurrentIndex === 0 ? 'hidden' : ''}`}
+            >
+              &#10094;
+            </button>
+
+            {/* Tombol panah kanan */}
+            <button
+              onClick={populernextSlide}
+              className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${populercurrentIndex >= popularTests.length - populeritemsToShow ? 'hidden' : ''}`}
+            >
+              &#10095;
+            </button>
           </div>
-
-          {/* Tombol panah kiri */}
-          <button
-            onClick={populerprevSlide}
-            className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${populercurrentIndex === 0 ? 'hidden' : ''}`}
-          >
-            &#10094;
-          </button>
-
-          {/* Tombol panah kanan */}
-          <button
-            onClick={populernextSlide}
-            className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${populercurrentIndex >= popularTests.length - populeritemsToShow ? 'hidden' : ''}`}
-          >
-            &#10095;
-          </button>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Bagian Berbayar */}
       <section className="block mx-auto p-5 font-poppins relative">
@@ -879,7 +910,7 @@ const berbayarprevSlide = () => {
                 </div>
 
                 <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="text-8xl">
+                  <div className="text-4xl lg:text-8xl">
                     <SlBookOpen />
                   </div>
                 </div>
@@ -975,7 +1006,7 @@ const berbayarprevSlide = () => {
                 </div>
 
                 <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="text-8xl">
+                  <div className="text-4xl lg:text-8xl">
                     <SlBookOpen />
                   </div>
                 </div>

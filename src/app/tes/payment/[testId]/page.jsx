@@ -6,17 +6,21 @@ import { useParams } from 'next/navigation';
 import { jwtDecode } from "jwt-decode";
 import { IoPersonCircle } from "react-icons/io5";
 import { SlBookOpen } from "react-icons/sl";
+import Link from 'next/link';
 
 import dotenv from 'dotenv';
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
-function App() {
+function TestPayment() {
   const { testId } = useParams();
   const [userId, setUserId] = useState(null);
   const [testTitle, setTestTitle] = useState('');
   const [testSimilarity, setTestSimilarity] = useState(null);
   const [testPrice, setTestPrice] = useState(null);
+  const [testCategory, setTestCategory] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -44,16 +48,17 @@ function App() {
   useEffect(() => {
     const fetchTestDetail = async () => {
       try {
-        const response = await fetch(`https://${URL}/api/tests/get-tests/${testId}`);
+        const response = await fetch(`https://${URL}/api/tests/get-test/${testId}`);
         if (!response.ok) {
           const errorMessage = await response.text();
           throw new Error(`Error: ${response.status} - ${errorMessage}`)
         }
         const data = await response.json();
         console.log('Data fetched:', data);
-        setTestTitle(data.title);
-        setTestSimilarity(data.similarity);
-        setTestPrice(data.price);
+        setTestCategory(data.data.category);
+        setTestTitle(data.data.title);
+        setTestSimilarity(data.data.similarity);
+        setTestPrice(data.data.price);
       } catch (error) {
         console.error('Failed to fetch test details:', error);
         setError('Terjadi kesalahan: ' + error.message);
@@ -61,7 +66,6 @@ function App() {
     };
       fetchTestDetail(); // Memanggil API ketika testId ada
   }, [testId]);
-
 
   const handlePayment = async () => {
     if (testId) {
@@ -106,53 +110,135 @@ function App() {
     } else {
       console.error('Test ID not found');
     }
-  };  
+  };
 
-// Navbar Component
-const Navbar = () => {
+  const handleLogout = async () => {
+    try {
+        const response = await fetch(`https://${URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Logout failed');
+        }
+
+        localStorage.clear();
+
+        window.location.href = '/auth/login';
+    } catch (error) {
+        console.error('Error during logout:', error);
+    }
+  };
+
+// Navbar Component (diganti dari kode awal Anda)
+const Navbar = ({testCategory}) => {
   return (
     <nav className="w-full bg-[#0B61AA] py-4 px-8 flex justify-between items-center">
-      {/* Membeli Paket (pojok kiri) */}
-      <div className="text-white text-lg font-bold">
-        Membeli paket
-      </div>
-      
-      {/* Vektor EtamTest dan Profile */}
-      <div className="flex items-center space-x-4">
-        {/* Vektor EtamTest */}
-        <img 
-          src="/img/Vector.png" 
-          alt="EtamTest Logo" 
-          className="h-8"  // Menyesuaikan ukuran dengan teks
+      {/* Logo EtamTest di kiri */}
+      <div className="flex items-center">
+        <img
+          src="/images/etamtest.png"
+          alt="EtamTest"
+          className="h-8"
         />
-        
-        {/* Profile */}
-        <div className="flex items-center space-x-4">
-          <div className="text-white text-sm">Profile</div>
-          {/* Profile Picture */}
-          <IoPersonCircle className="w-8 h-8 text-white" />
-        </div>
       </div>
+
+      <div className="relative flex inline-block items-center text-white">
+          <div className="mx-auto">
+              {/* Judul besar */}
+              <h5 className="text-sm lg:text-3xl font-bold font-bodoni lg:mr-8  text-white ">Membeli Paket</h5>
+                  {/* Breadcrumb di bawah h5 */}
+                  <nav className="hidden lg:block mt-2">
+                      <ol className="list-reset flex space-x-2 ">
+                      <li>
+                          <Link href="/user/dashboard" legacyBehavior>
+                          <a className="hover:text-orange font-poppins font-bold  text-white">Home</a>
+                          </Link>
+                      </li>
+                      <li>/</li>
+                      <li>
+                      <Link href={`/tes/category/${testCategory?.toLowerCase()}`} className="hover:text-orange font-poppins font-bold text-white">
+                        Try Out {testCategory}
+                      </Link>
+                      </li>
+                      <li>/</li>
+                      <li>
+                      <Link href={`/tes/payment/${testId}`} className="hover:text-orange font-poppins font-bold">
+                        Membeli Paket
+                      </Link>
+                      </li>
+                      </ol>
+                  </nav>
+          </div>
+             {/* Profile */}
+             <div className="relative inline-block">
+                {userData?.userPhoto ? (
+                  <img
+                    src={userData.userPhoto}
+                    alt="User Profile"
+                    className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
+                    onMouseEnter={() => setDropdownOpen(true)}
+                    onMouseLeave={() => setDropdownOpen(false)}
+                  />
+                ) : (
+                  <IoPersonCircle
+                    className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
+                    onMouseEnter={() => setDropdownOpen(true)}
+                    onMouseLeave={() => setDropdownOpen(false)}
+                  />
+                )}
+
+                {/* Dropdown */}
+                {isDropdownOpen && (
+                  <div
+                    className="absolute right-2 mt-0 w-37 bg-white rounded-lg shadow-lg z-10 p-1 
+                    before:content-[''] before:absolute before:-top-4 before:right-8 before:border-8
+                    before:border-transparent before:border-b-white"
+                    onMouseEnter={() => setDropdownOpen(true)}
+                    onMouseLeave={() => setDropdownOpen(false)}
+                  >
+                    <Link legacyBehavior href={`/user/edit-profile/${userId}`}>
+                      <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
+                        Ubah Profil
+                      </a>
+                    </Link>
+                    <Link legacyBehavior href="/auth/login">
+                      <a
+                        onClick={handleLogout}
+                        className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+                      >
+                        Logout
+                      </a>
+                    </Link>
+                  </div>
+                )}
+            </div>
+
+        </div>
+
     </nav>
   );
-}
+};
 
 // Box Content Component
-const PaymentBox = () => {
+const PaymentBox = ({ testTitle, testPrice, testSimilarity }) => {
   return (
     <div className="flex justify-center items-center flex-1">
       <div className="bg-[#F3F3F3] shadow-lg rounded-lg p-8 w-full max-w-md text-center relative">
         {/* Logo Buku */}
-        <SlBookOpen className="h-16 mx-auto mb-4 text-gray-500" />
+        <SlBookOpen className="text-[#0B61AA] h-[108px] w-[120px] mx-auto mb-4" />
 
         {/* Header */}
-        <h1 className="text-2xl font-bold mb-2">{testTitle}</h1>
+        <h1 className="text-[#0B61AA] text-2xl font-bold mb-2">{testTitle}</h1>
 
         {/* Sub-header */}
-        <h2 className="text-lg text-gray-500 mb-4">Prediksi Kemiripan: {testSimilarity}%</h2>
+        <h2 className="text-sm text-[#0B61AA] mb-4">Prediksi kemiripan {testSimilarity}%</h2>
 
         {/* Bullet List */}
-        <ul className="text-left text-gray-700 list-disc list-inside space-y-2 mb-6">
+        <ul className="list-disc list-inside text-justify text-black space-y-2 mb-6">
           <li>Memiliki 1x kesempatan mengerjakan soal</li>
           <li>Mendapatkan hasil Try Out secara langsung</li>
           <li>Mengetahui jawaban salah dan benar</li>
@@ -160,30 +246,35 @@ const PaymentBox = () => {
         </ul>
 
         {/* Harga */}
-        <div className="text-right text-2xl font-bold text-gray-800 mb-8">{testPrice}</div>
+        <div className="text-right text-2xl font-bold text-gray-800 mb-8">Rp.{testPrice},-</div>
 
         {/* Button Beli */}
         <button className="absolute bottom-4 right-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-        onClick={handlePayment}
-        >
+        onClick={handlePayment}>
           Beli
         </button>
       </div>
     </div>
   );
-}
+};
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navbar */}
-      <Navbar />
+      <Navbar 
+      testCategory={testCategory}
+      />
 
       {/* Content Box */}
       <div className="flex justify-center items-center flex-1">
-        <PaymentBox />
+        <PaymentBox 
+        testTitle={testTitle}
+        testPrice={testPrice}
+        testSimilarity={testSimilarity}
+        />
       </div>
     </div>
   );
-}
 
-export default App;
+}
+export default  TestPayment;
