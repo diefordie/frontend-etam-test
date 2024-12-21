@@ -18,7 +18,7 @@ const MengerjakanTes = () => {
     const { testId } = useParams(); // Ambil testId dari URL path
     const [questions, setQuestions] = useState([]);
     const [selectedOption, setSelectedOption] = useState(null);
-    const [markedReview, setMarkedReview] = useState([]);
+    const [markedReview, setMarkedReview] = useState(Array(questions.length).fill(false));
     const [showNav, setShowNav] = useState(false);
     const [resultId, setResultId] = useState(null);
     const [sessionId, setSessionId] = useState(null);
@@ -34,18 +34,24 @@ const MengerjakanTes = () => {
     const [answeredOptions, setAnsweredOptions] = useState(new Array(totalOptions).fill(false));
     const workTimeInterval = useRef(null);
     const [isClicked, setIsClicked] = useState(false);
+    const [doubtQuestions, setDoubtQuestions] = useState([]); // Array untuk melacak status ragu-ragu
     const router = useRouter();
     // Inisialisasi `currentOption` langsung dari localStorage
     const [activeQuestion, setActiveQuestion] = useState(1); // Default ke soal pertama
     
-    // State untuk opsi yang dipilih, dengan pengambilan dari localStorage
-    const [currentOption, setCurrentOption] = useState(() => {
-        const storedOption = localStorage.getItem('currentOption');
-        return storedOption ? Number(storedOption) : 1;
-    });
+     // State untuk opsi yang dipilih
+     const [currentOption, setCurrentOption] = useState(1);
 
-    // Contoh navigasi soal dengan penanda nomor
-const soalList = [1, 2, 3, 4, 5]; // Misalnya nomor soal
+     // Mengambil nilai dari localStorage setelah komponen dirender di sisi klien
+     useEffect(() => {
+         if (typeof window !== "undefined") { // Pastikan ini dijalankan di klien
+             const storedOption = localStorage.getItem('currentOption');
+             if (storedOption) {
+                 setCurrentOption(Number(storedOption));
+             }
+         }
+     }, []);
+    
 
 // Menambahkan indikator soal belum dikerjakan
 const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
@@ -71,7 +77,7 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
             event.preventDefault();
             event.returnValue = '';
         };
-    
+
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -159,9 +165,21 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
     }, [testId, token]);
 
      // Handler to toggle isClicked when the button is clicked
-     const handleClick = (i) => {
-        setActiveQuestion(i + 1); // Set soal yang aktif
-        setCurrentOption(i + 1); // Pindahkan ke soal yang dipilih
+     const handleClick = (index) => {
+        // Tambahkan logika untuk ragu-ragu di sini
+        if (doubtQuestions.includes(index + 1)) {
+            toggleDoubt(index + 1);
+        } else {
+            setCurrentOption(index + 1); // Atur pertanyaan yang sedang aktif
+        }
+    };
+    
+    const toggleDoubt = (questionIndex) => {
+        setDoubtQuestions((prev) => 
+            prev.includes(questionIndex) 
+                ? prev.filter((q) => q !== questionIndex) 
+                : [...prev, questionIndex]
+        );
     };
     
 
@@ -527,20 +545,19 @@ useEffect(() => {
     };
 
     const handlemarkreview = () => {
-
-        console.log("Button clicked");
-
-        const updatedMarkedReview = [...markedReview];
-        // Toggle status pada markedReview untuk currentOption
-        updatedMarkedReview[currentOption - 1] = !updatedMarkedReview[currentOption - 1];
-        setMarkedReview(updatedMarkedReview);
-        console.log("markedReview setelah diperbarui:", updatedMarkedReview);
-
-        // Tambahkan log di sini untuk memeriksa nilai setelah update
-        console.log("currentOption:", currentOption);
-        console.log("markedReview:", updatedMarkedReview);
-        console.log("answeredOptions:", answeredOptions);
+        setMarkedReview((prevState) => {
+            const updatedState = [...prevState];
+            updatedState[currentOption - 1] = !updatedState[currentOption - 1];
+            console.log('Updated markedReview:', updatedState);
+            return updatedState;
+        });
     };
+    
+    useEffect(() => {
+        console.log('Updated doubtQuestions:', doubtQuestions);
+    }, [doubtQuestions]);
+    
+    
 
     const handleAnswerInput = (optionIndex) => {
         setAnsweredOptions(prev => {
@@ -559,10 +576,7 @@ useEffect(() => {
 
 
     // Panggil `submitFinalAnswers` ketika tombol "Submit" diklik
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-    
-        // SweetAlert untuk konfirmasi sebelum mengirim
+    const handleSubmit = async () => {
         const confirmSubmit = await Swal.fire({
             title: 'Apakah Anda yakin?',
             text: "Anda tidak dapat mengubah jawaban setelah mengirim!",
@@ -571,132 +585,37 @@ useEffect(() => {
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
             confirmButtonText: 'Ya, kirim jawaban!',
-            cancelButtonText: 'Batal',
+            cancelButtonText: 'Batal'
         });
     
-        if (!confirmSubmit.isConfirmed) return;
+        if (confirmSubmit.isConfirmed) {
+            try {
+                // Bersihkan interval untuk workTime agar tidak terus bertambah
+                clearInterval(workTimeInterval);
     
-        try {
-            // Menampilkan loading indicator
-            Swal.fire({
-                title: 'Mengirim Jawaban...',
-                text: 'Harap tunggu beberapa saat.',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
+                // Hapus data workTime dari localStorage untuk memastikan tidak ada carry-over
+                localStorage.removeItem(`workTime_${resultId}`);
+                
+                await submitFinalAnswers();
     
-            // Proses upload gambar jika ada
-            let uploadedImageUrl = "";
-            if (questionPhoto) {
-                const imageRef = ref(storage, `question/${questionPhoto.name + v4()}`);
-                const snapshot = await uploadBytes(imageRef, questionPhoto);
-                uploadedImageUrl = await getDownloadURL(snapshot.ref);
-            }
+                // Bersihkan data dari localStorage setelah submit
+                localStorage.removeItem('answers');
+                localStorage.removeItem('resultId');
+                localStorage.removeItem(`remainingTime_${resultId}`);
+                
     
-            // Menyiapkan data pertanyaan
-            const questionData = {
-                pageName,
-                question: cleanHtml(question),
-                number: parseInt(number),
-                questionPhoto: uploadedImageUrl,
-                weight: parseFloat(weight),
-                discussion: cleanHtml(discussion),
-                options: options.map(option => ({
-                    ...option,
-                    optionDescription: option.optionDescription,
-                    isCorrect: option.isCorrect,
-                })),
-            };
+                // Redirect ke halaman hasil
+                router.push(`/tes/mengerjakan-tes/hasil-tes/${resultId}`);
+            } catch (error) {
+                console.error('Error submitting final answers:', error);
     
-            let response;
-            let result;
-    
-            if (multiplechoiceId !== "null") {
-                // UPDATE existing question
-                response = await fetch(`https://${URL}/api/multiplechoice/update-question/${multiplechoiceId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(questionData),
-                });
-    
-                if (response.ok) {
-                    result = await response.json();
-                    console.log('Update successful:', result);
-                    
-                    // Update localStorage
-                    const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
-                    const updatedPages = existingPages.map(page => 
-                        page.id === multiplechoiceId 
-                            ? { ...questionData, id: multiplechoiceId }
-                            : page
-                    );
-                    localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
-                }
-            } else {
-                // CREATE new question
-                response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        testId: testId,
-                        questions: [questionData],
-                    }),
-                });
-    
-                if (response.ok) {
-                    result = await response.json();
-                    console.log('Response dari API:', result);
-                    const newMultiplechoiceId = result.data[0].id;
-                    console.log('MultiplechoiceId:', newMultiplechoiceId);
-    
-                    // Update localStorage
-                    localStorage.setItem('pageName', pageName);
-                    const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
-                    const newQuestion = { 
-                        id: newMultiplechoiceId,
-                        ...questionData,
-                    };
-                    existingPages.push(newQuestion);
-                    localStorage.setItem(`pages_${testId}`, JSON.stringify(existingPages));
-                }
-            }
-    
-            if (response.ok) {
-                const encodedPageName = encodeURIComponent(pageName);
                 Swal.fire({
-                    title: '<strong>Berhasil!</strong>',
-                    html: '<p>Jawaban Anda telah berhasil dikirim.</p><p>Anda akan diarahkan ke halaman hasil.</p>',
-                    icon: 'success',
-                    confirmButtonText: '<i class="fa fa-check"></i> OK',
-                    showCloseButton: true,
-                    allowOutsideClick: false,
-                    customClass: {
-                        popup: 'swal2-popup-custom',
-                    },
-                }).then(() => {
-                    router.push(`/author/buatSoal?testId=${testId}&pageName=${encodedPageName}`);
+                    title: 'Terjadi Kesalahan!',
+                    text: 'Terjadi kesalahan saat mengirim jawaban. Silakan coba lagi.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
                 });
-            } else {
-                console.error('Failed to process request:', response.statusText);
             }
-    
-        } catch (error) {
-            console.error('Error:', error);
-    
-            // Menampilkan pesan error jika submit gagal
-            await Swal.fire({
-                title: 'Terjadi Kesalahan!',
-                text: 'Terjadi kesalahan saat mengirim jawaban. Silakan coba lagi.',
-                icon: 'error',
-                confirmButtonText: 'OK',
-            });
         }
     };
     
@@ -716,15 +635,15 @@ useEffect(() => {
     const currentQuestion = questions.length > 0 ? questions[currentOption - 1] : null;
 
     console.log("Render Check:");
-    console.log("currentOption:", currentOption);
-    console.log("markedReview:", markedReview);
+    console.log('MarkedReview State:', markedReview);
+    console.log('Current Option:', currentOption);
     console.log("answeredOptions:", answeredOptions);
 
     // UseEffect untuk melacak perubahan state
     useEffect(() => {
         console.log("State Updated:");
-        console.log("currentOption:", currentOption);
-        console.log("markedReview:", markedReview);
+        console.log('MarkedReview State:', markedReview);
+        console.log('Current Option:', currentOption);
         console.log("answeredOptions:", answeredOptions);
     }, [markedReview, answeredOptions, currentOption]);
 
@@ -759,6 +678,7 @@ useEffect(() => {
 
             {showNav && (
                 <div className="fixed inset-y-0 left-0 bg-white z-50 flex flex-col lg:hidden w-3/4 sm:w-2/3 md:w-1/2 transition-transform transform translate-x-0">
+                    {/* Header Navigation */}
                     <div className="p-6 flex justify-between items-center">
                         <button
                             className="text-black bg-[#F3F3F3] px-2 py-1 rounded"
@@ -767,7 +687,9 @@ useEffect(() => {
                             <PiListNumbers size={30} className="text-xl" />
                         </button>
                     </div>
-                    <div className="mt-2 bg-[#F3F3F3] rounded-[20px] shadow-lg p-2 mx-4">
+                    
+                    {/* Navigation Content */}
+                    <div className="mt-2 bg-[#F3F3F3] rounded-[40px] shadow-lg p-2 mx-4">
                         <div className="bg-[#0B61AA] p-2 rounded-[10px]" style={{ height: '50px' }}></div>
                         <div className="p-2 flex-grow">
                             <div className="grid grid-cols-5 gap-1 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
@@ -776,7 +698,9 @@ useEffect(() => {
                                         key={i + 1}
                                         className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 text-lg font-bold rounded border border-[#0B61AA] 
                                             ${currentOption === i + 1 ? 'bg-gray-600 text-white' : ''} 
-                                            ${answeredQuestions.includes(i + 1) && currentOption !== i + 1 ? 'bg-gray-400' : 'bg-gray-200'} 
+                                            ${answeredQuestions.includes(i + 1) && currentOption !== i + 1 ? 'bg-gray-400' : ''} 
+                                            ${doubtQuestions.includes(i + 1) ? 'bg-yellow-500 text-white' : ''} 
+                                            ${!answeredQuestions.includes(i + 1) && !doubtQuestions.includes(i + 1) && currentOption !== i + 1 ? 'bg-gray-200' : ''} 
                                             hover:bg-gray-300`}
                                         onClick={() => handleClick(i)}
                                     >
@@ -790,14 +714,13 @@ useEffect(() => {
             )}
 
 
-
             {/* Question and Timer section */}
             <div className="flex flex-col lg:flex-row mt-12 p-6 mx-4 lg:mx-48 lg:space-x-6 rounded-[15px]">
                 <div className="w-full lg:w-3/4 bg-[#0B61AA] p-6 sm:p-4 rounded-lg shadow-lg" style={{ maxWidth: '994px', height: 'auto' }}>
                     <div className="flex justify-between items-center mb-2 ml-1">
                         <h2 className="text-[12px] font-poppins sm:text-xs md:text-sm lg:text-lg font-bold text-white">{title}</h2>
                         <div className="flex items-center justify-center space-x-12 flex-grow">
-                            <p className="text-[12px] sm:text-xs md:text-sm lg:text-lg font-poppins font-bold text-white ml-6">
+                            <p className="text-[10px] sm:text-xs md:text-sm lg:text-lg font-poppins font-bold text-white ml-6">
                                 {currentOption}/{questions.length}
                             </p>
                         </div>
@@ -837,7 +760,7 @@ useEffect(() => {
                                 <div className="flex flex-row justify-center items-center w-full space-x-2 sm:space-x-4">
                                     {/* Tombol Soal Sebelumnya */}
                                     <button
-                                        className="bg-transparent sm:bg-deepBlue text-black sm:text-white px-4 py-2 rounded-[15px] w-full max-w-[200px] flex justify-center items-center"
+                                        className="bg-transparent sm:bg-deepBlue hover:bg-powderBlue text-black sm:text-white px-4 py-2 rounded-[15px] w-full max-w-[200px] flex justify-center items-center"
                                         style={{ height: '40px' }}
                                         onClick={handleprevquestion}
                                         disabled={currentOption === 1}>
@@ -851,16 +774,16 @@ useEffect(() => {
                                             ${markedReview[currentOption - 1] ? 'bg-yellow-500 hover:bg-yellow-600' : 
                                             answeredOptions[currentOption - 1] ? 'bg-[#F8B75B] hover:bg-yellow-500' : 
                                             'bg-[#F8B75B] hover:bg-yellow-500'}
-                                            text-xs sm:text-sm lg:text-lg flex justify-center items-center lg:bg-yellow-500`} // Add bg blue for desktop
-                                        style={{ height: '40px', whiteSpace: 'nowrap' }} // Prevent text wrapping
-                                        onClick={handlemarkreview}>
+                                            text-xs sm:text-xs lg:text-lg flex justify-center items-center lg:bg-yellow-500`} // Add bg blue for desktop
+                                        style={{ height: '40px'}} // Prevent text wrapping
+                                        onClick={() => toggleDoubt(currentOption)}> {/* Panggil toggleDoubt */}
                                         <span className="text-center font-poppins w-full">Ragu-Ragu</span>
                                     </button>
 
                                     {/* Tombol Submit / Soal Selanjutnya */}
                                     {currentOption === questions.length ? (
                                         <button
-                                        className="bg-[#0B61AA] font-poppins text-white px-4 py-1 rounded-[15px] hover:bg-blue-700  lg:mb-0 w-full max-w-[150px] 
+                                        className="bg-deepBlue font-poppins text-white px-4 py-1 rounded-[15px] hover:bg-blue-700  lg:mb-0 w-full max-w-[150px] 
                                         text-xs sm:text-sm md:text-base lg:text-lg"  // Adjust text size and padding for mobile
                                         style={{ height: '40px' }}
                                         onClick={handleSubmit}>
@@ -870,11 +793,11 @@ useEffect(() => {
                                     
                                     ) : (
                                         <button
-                                            className="bg-transparent sm:bg-deepBlue text-black sm:text-white px-4 py-2 rounded-[15px]  w-full max-w-[200px] flex justify-center items-center"
+                                            className="bg-transparent sm:bg-deepBlue hover:bg-powderBlue text-black sm:text-white px-4 py-2 rounded-[15px]  w-full max-w-[200px] flex justify-center items-center"
                                             style={{ height: '40px' }}
                                             onClick={handlenextquestion}>
                                             <span className="hidden font-poppins sm:block">Soal Selanjutnya</span>
-                                            <CgArrowRightR className="sm:hidden text-lg" />
+                                            <CgArrowRightR className="sm:hidden text-xs" />
                                         </button>
                                     )}
                                 </div>
@@ -888,14 +811,16 @@ useEffect(() => {
                 <div className="hidden lg:block lg:w-1/4 mt-6 lg:mt-0 bg-[#F3F3F3] rounded-[20px] shadow-lg">
                     <div className="bg-[#0B61AA] p-4 rounded-[10px]" style={{ height: '50px' }}></div>
                         <div className="p-6">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(50px, 1fr))' }}>
                                 {Array.from({ length: questions.length }, (_, i) => (
                                     <button
-                                    key={i + 1}
-                                    className={`w-10 h-10 text-lg font-poppins font-bold rounded border border-[#0B61AA] 
-                                        ${currentOption === i + 1 ? 'bg-gray-600 text-white' : ''}  {/* Tombol yang aktif */}
-                                        ${answeredQuestions.includes(i + 1) && currentOption !== i + 1 ? 'bg-gray-400' : 'bg-gray-200'}  {/* Soal yang sudah dijawab */}
-                                        hover:bg-gray-300`}
+                                        key={i + 1}
+                                        className={`w-10 h-10 text-lg font-poppins font-bold rounded border border-[#0B61AA] 
+                                            ${currentOption === i + 1 ? 'bg-gray-600 text-white' : ''} 
+                                            ${answeredQuestions.includes(i + 1) && currentOption !== i + 1 ? 'bg-gray-400' : ''} 
+                                            ${doubtQuestions.includes(i + 1) ? 'bg-yellow-500 text-white' : ''} 
+                                            ${!answeredQuestions.includes(i + 1) && !doubtQuestions.includes(i + 1) && currentOption !== i + 1 ? 'bg-gray-200' : ''} 
+                                            hover:bg-gray-300`}
                                         onClick={() => setCurrentOption(i + 1)}
                                     >
                                         {i + 1}
