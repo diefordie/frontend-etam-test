@@ -357,6 +357,7 @@ const berbayarprevSlide = () => {
     {href:'/user/dashboard', text: "Home"},
     {href:'/user/favorite', text: "Favorit"},
     {href:'/user/riwayat-transaksi', text: "Transaksi"},
+    {href:'/auth/login', text: "Logout" , className: "block md:hidden lg:hidden"},
   ]
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -379,14 +380,14 @@ const berbayarprevSlide = () => {
 
   // fungsi slider catagories
   const [catagoriescurrentIndex, catagoriessetCurrentIndex] = useState(0);
-  const [catagoriesitemsToShow, setCatagoriesItemsToShow] = useState(2); 
+  const [catagoriesitemsToShow, setCatagoriesItemsToShow] = useState(1); 
 
   useEffect(() => {
     const updateItemsToShow = () => {
       if (window.innerWidth >= 1024) {
         setCatagoriesItemsToShow(4); // Tampilkan 4 item di desktop
       } else {
-        setCatagoriesItemsToShow(2); // Tampilkan 2 item di mobile
+        setCatagoriesItemsToShow(1); // Tampilkan 2 item di mobile
       }
     };
 
@@ -539,7 +540,7 @@ const berbayarprevSlide = () => {
             <nav className="md:block lg:block flex">
               <ul className="flex lg:space-x-7 md:space-x-4">
                 {menus.map((menu, index) => (
-                  <li key={index}>
+                   <li key={index} className={menu.className || ''}>
                     <Link legacyBehavior href={menu.href}>
                       <a className="hidden hover:text-orange font-bold lg:block">{menu.text}</a>
                     </Link>
@@ -762,15 +763,17 @@ const berbayarprevSlide = () => {
             <div className="flex overflow-hidden w-full">
               {categories.slice(catagoriescurrentIndex, catagoriescurrentIndex + catagoriesitemsToShow).map((category, index) => (
                 <Link key={index} href={category.href} legacyBehavior>
-                  <a className="hover:text-gray-300 hover:animate-flyIn mx-2">
-                    <Image
-                      src={category.src}
-                      alt={category.alt}
-                      width={320}
-                      height={300}
-                      className="object-cover rounded-lg"
-                      priority
-                    />
+                  <a className="hover:text-gray-300 mx-2 relative w-full h-64">
+                   
+                      <Image
+                        src={category.src}
+                        alt={category.alt}
+                        layout="fill" // Gambar memenuhi elemen pembungkus
+                        objectFit="cover" // Menjaga gambar proporsional
+                        className="rounded-lg hover:scale-90 hover:shadow-lg hover:shadow-gray-400"
+                        priority
+                      />
+                   
                   </a>
                 </Link>
               ))}

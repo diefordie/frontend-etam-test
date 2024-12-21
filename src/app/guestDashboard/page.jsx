@@ -283,14 +283,14 @@ export default function GuestDashboard() {
 
   // fungsi slider catagories
   const [catagoriescurrentIndex, catagoriessetCurrentIndex] = useState(0);
-  const [catagoriesitemsToShow, setCatagoriesItemsToShow] = useState(2);
+  const [catagoriesitemsToShow, setCatagoriesItemsToShow] = useState(1);
 
   useEffect(() => {
     const updateItemsToShow = () => {
       if (window.innerWidth >= 1024) {
         setCatagoriesItemsToShow(4); // Tampilkan 4 item di desktop
       } else {
-        setCatagoriesItemsToShow(2); // Tampilkan 2 item di mobile
+        setCatagoriesItemsToShow(1); // Tampilkan 2 item di mobile
       }
     };
 
@@ -555,16 +555,16 @@ export default function GuestDashboard() {
                 )
                 .map((category, index) => (
                   <Link key={index} href={category.href} legacyBehavior>
-                    <a className="hover:text-gray-300 mx-2">
+                    <a className="hover:text-gray-300 mx-2 relative w-full h-64">          
                       <Image
                         src={category.src}
                         alt={category.alt}
-                        width={320}
-                        height={300}
-                        className="object-cover rounded-lg"
+                        layout="fill" // Gambar memenuhi elemen pembungkus
+                        objectFit="cover" // Menjaga gambar proporsional
+                        className="rounded-lg hover:scale-90 hover:shadow-lg hover:shadow-gray-400"
                         priority
                       />
-                    </a>
+                  </a>
                   </Link>
                 ))}
             </div>
