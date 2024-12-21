@@ -23,6 +23,7 @@ const Login = () => {
         setShowPassword(!showPassword);
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(''); // Reset error sebelum mencoba login
@@ -39,56 +40,85 @@ const Login = () => {
                 }),
             });
     
-            // Dapatkan data respons
             const data = await response.json();
     
-            // Periksa apakah respons tidak ok
             if (!response.ok) {
-                // Tangani kesalahan berdasarkan status
-                if (response.status === 400) {
-                    throw new Error(data.error || 'Data yang Anda masukkan tidak valid.');
-                } else if (response.status === 401) {
-                    throw new Error('Kredensial tidak valid. Silakan coba lagi.');
-                } else if (response.status === 403) {
-                    throw new Error('Akses sebagai Author ditolak. Anda tidak memiliki hak akses, pastikan anda telah mengirimkan persyaratan yang dibutuhkan, dan tunggu sampai admin memverifikasi.');
-                    router.push('/auth/syarat');
-                } else {
-                    throw new Error('Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.');
-                }
+                const userFriendlyError = getUserFriendlyErrorMessage(data.error || response.status.toString());
+                throw new Error(userFriendlyError);
             }
     
             console.log("Login berhasil:", data);
             localStorage.setItem('token', data.token);
             
-            // Redirect berdasarkan role
-            if (data.user.role === 'AUTHOR') {
-                router.push('/author/dashboard'); // Ganti dengan jalur dashboard author
-            } else {
-                router.push('/user/dashboard'); // Ganti dengan jalur dashboard user
-            }
+            Swal.fire({
+                icon: 'success',
+                title: 'Login Berhasil',
+                text: 'Anda berhasil masuk ke akun Anda.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                // Redirect berdasarkan role
+                if (data.user.role === 'AUTHOR') {
+                    router.push('/author/dashboard');
+                } else {
+                    router.push('/user/dashboard');
+                }
+            });
+    
         } catch (err) {
             console.error("Kesalahan login", err);
     
-            // Menampilkan pesan kesalahan sebagai popup
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: err.message, 
-            }).then(() => {
-                
+                title: 'Login Gagal',
+                text: err.message,
             });
     
-            setError(err.message); // Simpan pesan error di state (opsional, jika perlu)
+            setError(err.message);
+        }
+    };
+    
+    const getUserFriendlyErrorMessage = (errorCode) => {
+        switch (errorCode) {
+            case 'FIREBASE_ERROR: EMAIL_NOT_VERIFIED':
+                return 'Email Anda belum diverifikasi. Silakan periksa email Anda untuk link verifikasi.';
+            case 'FIREBASE_ERROR: USER_NOT_FOUND':
+                return 'Email tidak terdaftar. Silakan periksa kembali atau daftar akun baru.';
+            case 'FIREBASE_ERROR: WRONG_PASSWORD':
+                return 'Password salah. Silakan coba lagi.';
+            case 'FIREBASE_ERROR: INVALID_EMAIL':
+                return 'Format email tidak valid. Pastikan Anda memasukkan alamat email yang benar.';
+            case 'FIREBASE_ERROR: USER_DISABLED':
+                return 'Akun Anda telah dinonaktifkan. Silakan hubungi admin untuk bantuan.';
+            case '400':
+                return 'Data yang Anda masukkan tidak valid. Silakan periksa kembali.';
+            case '401':
+                return 'Kredensial tidak valid. Silakan coba lagi.';
+            case '403':
+                return 'Akses sebagai Author ditolak. Anda tidak memiliki hak akses, pastikan Anda telah mengirimkan persyaratan yang dibutuhkan, dan tunggu sampai admin memverifikasi.';
+            default:
+                return 'Terjadi kesalahan yang tidak diketahui. Silakan coba lagi nanti.';
         }
     };
 
     return (
-        <div className="relative min-h-screen flex items-center bg-white ">
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', padding: '20px' }}></div>
+        <div className="flex h-screen w-screen">
+            <img 
+                src="/images/ellipse.svg" 
+                alt="elips" 
+                className="absolute inset-y-0 right-0 hidden laptop:block laptop:h-full"
+            />
 
-            <div className="absolute lg:right-1/2  lg:top-1/2 transform lg:-translate-y-1/2 w-full  max-w-screen p-4 lg:max-w-sm lg:p-8 bg-powderBlue shadow-md rounded-3xl ml-0 lg:ml-20">
-                <h2 className="text-3xl font-bold mb-6 text-black text-center">Login</h2>
-                <form className="space-y-4" onSubmit={handleSubmit}>
+            <img 
+                src="/images/mobilelock.png" 
+                alt="mobile lock" 
+                className="w-48 h-44 mx-auto object-contain mt-5 laptop:mr-20 laptop:relative laptop:h-full laptop:w-1/4 tablet:hidden laptop:block"
+            />
+            
+            <div className="absolute inset-x-0 -bottom-4 p-1 laptop:max-w-96 laptop:p-7 bg-powderBlue shadow-md rounded-[25px] w-full h-3/4 tablet:w-3/4  tablet:inset-0 tablet:mx-auto tablet:my-auto laptop:ml-48 laptop:h-1/2">
+            
+                <h2 className="text-3xl font-bold mb-4 text-black text-center my-8 tablet:my-10 laptop:my-3">Login</h2>
+                <form className="space-y-4 mt-12 mobile:mx-4 tablet:mx-10 laptop:mb-5" onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor='email' className="block text-sm font-medium text-black">Alamat Email</label>
                         <input
@@ -124,7 +154,7 @@ const Login = () => {
                     <div className="flex justify-center">
                         <button
                             type="submit"
-                            className="bg-deepBlue text-putih py-2 px-10 rounded-2xl shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                            className="bg-deepBlue text-putih py-2 px-10 rounded-2xl shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black mt-20 laptop:mt-4">
                             Login
                         </button>
                     </div>
@@ -143,17 +173,8 @@ const Login = () => {
                 </div>
             )}
             {/* Img 2 - Kanan */}
-            <div className="hidden lg:block relative">
-            <img 
-                src="/images/ellipse.png" 
-                alt="elips" 
-                className="hidden lg:block lg:max-h-screen object-contain"
-            />
-            <img 
-                src="/images/mobilelock.png" 
-                alt="mobile lock" 
-                className="absolute lg:top-1/2 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:-translate-y-1/2 lg:max-h-screen object-contain top-[-10%] left-1/2 transform -translate-x-1/2 max-h-20 z-10"
-            />
+            <div className="lg:block relative">
+            
             </div>
         </div>
     );

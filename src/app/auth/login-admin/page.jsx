@@ -2,14 +2,18 @@
 import React, { useState } from "react"; 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Swal from 'sweetalert2'; 
+import { FaRegEye } from "react-icons/fa";
+import { FaRegEyeSlash } from "react-icons/fa";
 import dotenv from 'dotenv';
+
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
-const Login = () => {
+const LoginAdmin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(''); // Inisialisasi state error
     const [showPopup, setShowPopup] = useState(false); 
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false); 
@@ -20,53 +24,64 @@ const Login = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch(`https://${URL}/admin/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                }),
+        e.preventDefault(); // Mencegah form dari reload halaman
+    
+        // Email dan password yang sudah ditentukan
+        const adminEmail = "admin";
+        const adminPassword = "admin123";
+    
+        // Memeriksa apakah input sesuai dengan kredensial admin
+        if (email === adminEmail && password === adminPassword) {
+            try {
+                // Di sini Anda bisa menambahkan logika untuk menyimpan status login
+                // Misalnya, menggunakan localStorage atau state management seperti Redux
+                localStorage.setItem('isAdminLoggedIn', 'true');
+    
+                // Tampilkan pesan sukses
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Login Berhasil',
+                    text: 'Selamat datang, Admin!',
+                });
+    
+                // Redirect ke halaman admin
+                router.push('/admin/dashboard'); // Sesuaikan dengan route admin Anda
+            } catch (error) {
+                console.error("Error during login:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Terjadi kesalahan saat login. Silakan coba lagi.',
+                });
+            }
+        } else {
+            // Jika kredensial tidak sesuai
+            Swal.fire({
+                icon: 'error',
+                title: 'Login Gagal',
+                text: 'Email atau password salah. Silakan coba lagi.',
             });
-    
-            const data = await response.json();
-    
-            if (!response.ok) {
-                throw new Error(data.message || 'Terjadi kesalahan saat login. Silakan coba lagi.');
-            }
-    
-            console.log("Login berhasil");
-
-            // Simpan token di localStorage
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-            } else {
-                throw new Error('Token tidak ditemukan');
-            }
-    
-            setShowPopup(true);
-    
-            setTimeout(() => {
-                setShowPopup(false);
-                router.push('/admin/dashboard'); // Arahkan ke dashboard admin setelah login berhasil
-            }, 3000);
-        } catch (err) {
-            console.error("Kesalahan login", err);
-            alert(err.message);
         }
     };
-    
-    return (
-        <div className="relative min-h-screen flex items-center bg-white">
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', padding: '20px' }}></div>
 
-            <div className="absolute lg:right-1/2  lg:top-1/2 transform lg:-translate-y-1/2 w-full  max-w-screen p-4 lg:max-w-sm lg:p-8 bg-powderBlue shadow-md rounded-3xl ml-0 lg:ml-20">
-                <h2 className="text-3xl font-bold mb-6 text-black text-center">Login Admin</h2>
-                <form className="space-y-4" onSubmit={handleSubmit}>
+    return (
+        <div className="flex h-screen w-screen">
+            <img 
+                src="/images/ellipse.svg" 
+                alt="elips" 
+                className="absolute inset-y-0 right-0 hidden laptop:block laptop:h-full"
+            />
+
+            <img 
+                src="/images/mobilelock.png" 
+                alt="mobile lock" 
+                className="w-48 h-44 mx-auto object-contain mt-5 laptop:mr-20 laptop:relative laptop:h-full laptop:w-1/4 tablet:hidden laptop:block"
+            />
+            
+            <div className="absolute inset-x-0 -bottom-4 p-1 laptop:max-w-96 laptop:p-7 bg-powderBlue shadow-md rounded-[25px] w-full h-3/4 tablet:w-3/4  tablet:inset-0 tablet:mx-auto tablet:my-auto laptop:ml-48 laptop:h-1/2">
+            
+                <h2 className="text-3xl font-bold mb-4 text-black text-center my-8 tablet:my-10 laptop:my-3">Login Admin</h2>
+                <form className="space-y-4 mt-12 mobile:mx-4 tablet:mx-10 laptop:mb-5" onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor='email' className="block text-sm font-medium text-black">Alamat Email</label>
                         <input
@@ -89,26 +104,23 @@ const Login = () => {
                         />
                         <span
                             className="absolute inset-y-0 right-3 flex items-center text-gray-500 cursor-pointer"
-                            onClick={togglePasswordVisibility} // Event handler untuk toggle
+                            onClick={togglePasswordVisibility} // Menambahkan event handler untuk toggle
                         >
                             {showPassword ? (
-                                <FaEye className="w-5 h-5" />
-                            ) : (
-                                <FaEyeSlash className="w-5 h-5" />
-                            )}
+                        <FaRegEyeSlash className="w-5 h-5" />
+                    ) : (
+                        <FaRegEye className="w-5 h-5" />
+                    )}
                         </span>
                     </div>
                     </div>
                     <div className="flex justify-center">
                         <button
                             type="submit"
-                            className="bg-deepBlue text-putih py-2 px-10 rounded-2xl shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                            className="bg-deepBlue text-putih py-2 px-10 rounded-2xl shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black mt-20 laptop:mt-4">
                             Login
                         </button>
                     </div>
-                    <p className="text-center mt-4 text-sm">
-                        Belum memiliki akun? <Link href="/auth/registrasi" className="text-white font-bold hover:underline">Daftar</Link>
-                    </p>
                 </form>
             </div>
 
@@ -120,20 +132,12 @@ const Login = () => {
                     </div>
                 </div>
             )}
-            <div className="hidden lg:block relative">
-                <img 
-                    src="/images/ellipse.png" 
-                    alt="elips" 
-                    className="hidden lg:block lg:max-h-screen object-contain"
-                />
-                <img 
-                    src="/images/mobilelock.png" 
-                    alt="mobile lock" 
-                    className="absolute lg:top-1/2 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:-translate-y-1/2 lg:max-h-screen object-contain top-[-10%] left-1/2 transform -translate-x-1/2 max-h-20 z-10"
-                />
+            {/* Img 2 - Kanan */}
+            <div className="lg:block relative">
+            
             </div>
         </div>
     );
 };
 
-export default Login; // Pastikan ini adalah ekspor default
+export default LoginAdmin;

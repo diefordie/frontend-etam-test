@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import dotenv from 'dotenv';
+import Swal from 'sweetalert2'; 
+import { data } from "autoprefixer";
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -17,11 +19,23 @@ const Registrasi = () => {
     const [showPopup, setShowPopup] = useState(); 
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false); 
+    const [dropdownVisible, setDropdownVisible] = useState(false);    
+
 
     // Fungsi untuk toggle tampilan sandi
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
+
+    const toggleDropdown = () => {
+        setDropdownVisible(!dropdownVisible);
+    };
+
+    const handleSelectRole = (selectedRole) => {
+        setRole(selectedRole);
+        setDropdownVisible(false);
+    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -42,25 +56,24 @@ const Registrasi = () => {
             const data = await response.json();
     
             if (!response.ok) {
-                if (response.status === 400) {
-                    throw new Error(data.message || 'Data yang Anda masukkan tidak valid. Silakan periksa kembali.');
-                } else if (response.status === 401) {
-                    throw new Error('Anda tidak memiliki hak akses. Silakan login kembali.');
-                } else if (response.status === 409) {
-                    throw new Error('Email anda telah terdaftar. Gunakan email lain.');
-                } else if (response.status === 500) {
-                    throw new Error('Terjadi kesalahan pada server. Silakan coba lagi nanti.');
-                } else {
-                    throw new Error('Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.');
-                }
+                const userFriendlyMessage = getUserFriendlyErrorMessage(data.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: userFriendlyMessage,
+                });
+                return;
             }
     
-            console.log("Akun berhasil didaftarkan");
-
-            setShowPopup(true);
-
+            
+    
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: 'Akun anda berhasil didaftarkan. Silakan periksa email anda untuk verifikasi',
+            });
+    
             setTimeout(() => {
-                setShowPopup(false);
                 if (role === 'AUTHOR') {
                     router.push('/auth/syarat');
                 } else {
@@ -69,22 +82,46 @@ const Registrasi = () => {
             }, 3000);
         } catch (err) {
             console.error("Kesalahan registrasi", err);
-            alert(err.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Terjadi kesalahan saat mendaftarkan akun. Silakan coba lagi nanti.',
+            });
+        }
+    };
+    
+    // Function to translate backend error messages to user-friendly messages
+    const getUserFriendlyErrorMessage = (backendMessage) => {
+        switch (backendMessage) {
+            case 'FIREBASE_ERROR: EMAIL_ALREADY_REGISTERED_IN_FIREBASE':
+                return 'Email ini sudah terdaftar. Silakan gunakan email lain atau coba login.';
+            case 'INVALID_EMAIL_FORMAT':
+                return 'Format email tidak valid. Pastikan Anda memasukkan alamat email yang benar.';
+            case 'PASSWORD_TOO_WEAK':
+                return 'Password terlalu lemah. Gunakan kombinasi huruf, angka, dan karakter khusus.';
+            case 'MISSING_REQUIRED_FIELDS':
+                return 'Mohon lengkapi semua field yang diperlukan.';
+            default:
+                return 'Terjadi kesalahan saat mendaftarkan akun. Silakan coba lagi nanti.';
         }
     };
     
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen w-screen">
             <img 
                 src="/images/polygon.png" 
                 alt="Img 1" 
-                className="w-full md:w-auto lg:w-auto h-screen object-contain object-left"
+                className="w-full md:w-auto h-screen object-contain object-left mobile:hidden tablet:block laptop:w-1/2"
             />
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', padding: '20px' }}></div>
 
-            <div className="absolute lg:right-1/2  lg:top-1/2 transform lg:-translate-y-1/2 w-full  max-w-screen p-4 lg:max-w-sm lg:p-7 bg-powderBlue shadow-md rounded-3xl ml-0 lg:ml-20">
-                <h2 className="text-3xl font-bold mb-6 text-black text-center">Daftar</h2>
-                <form className="space-y-4" onSubmit={handleSubmit}>
+            <img 
+                src="/images/mobilepassword.png" 
+                alt="Img 2" 
+                className="w-full max-w-xs h-auto object-contain mx-10 mt-5 mobile:absolute tablet:hidden laptop:block laptop:mr-0 laptop:my-48 laptop:relative laptop:max-h-full laptop:max-w-full"
+            />
+            <div className="absolute inset-x-0 -bottom-4 p-1 laptop:max-w-96 laptop:p-7 bg-powderBlue shadow-md rounded-[25px] w-full h-3/4 tablet:w-3/4  tablet:inset-0 tablet:mx-auto tablet:my-auto laptop:ml-48 ">
+                <h2 className="text-3xl font-bold mb-6 text-black text-center my-8 tablet:my-10 laptop:my-5">Daftar</h2>
+                <form className="space-y-4 mobile:mx-4 tablet:mx-10 laptop:mb-5" onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor='name' className="block text-sm font-medium text-black">Nama:</label>
                         <input
@@ -92,6 +129,7 @@ const Registrasi = () => {
                             id="name"
                             name="name"
                             onChange={(e) => setName(e.target.value)}
+                            placeholder="Contoh: John Doe"
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                         />
                     </div>
@@ -102,6 +140,7 @@ const Registrasi = () => {
                             id="email"
                             name="email"
                             onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Contoh: JohnDoe@example.com"
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                         />
                     </div>
@@ -112,6 +151,7 @@ const Registrasi = () => {
                             type={showPassword ? "text" : "password"}
                             id="password"
                             name="password"
+                            placeholder="Contoh: 1234"
                             onChange={(e) => setPassword(e.target.value)}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                         />
@@ -124,20 +164,39 @@ const Registrasi = () => {
                     </div>
                     </div>
                     <div className="relative">
-                        <select
-                            id="role"
-                            name="role"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-2xl shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                        >
-                            <option value="AUTHOR">Author</option>
-                            <option value="USER">User</option>
-                        </select>
-                        <span className="absolute inset-y-0 right-3 flex items-center text-gray-500 pointer-events-none">
-                            <MdOutlineKeyboardArrowDown size={20} />
-                        </span>
+                        <label htmlFor="role" className="block text-sm font-medium text-black">Role</label>
+                        <div className="relative">
+                            {/* Form input dengan warna putih */}
+                            <div
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-2xl shadow-sm bg-white cursor-pointer focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                                onClick={toggleDropdown} // Men-toggle dropdown saat diklik
+                            >
+                                {role ? role : 'Pilih Role'} {/* Menampilkan role yang dipilih atau teks default */}
+                                <span className="absolute inset-y-0 right-3 flex items-center text-gray-500 pointer-events-none">
+                                    <MdOutlineKeyboardArrowDown size={20} />
+                                </span>
+                            </div>
+                        </div>
                     </div>
+
+                     {/* Menampilkan pilihan role setelah dropdown visible */}
+                        {dropdownVisible && (
+                            <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-2xl shadow-lg mt-1">
+                                <div
+                                    className="cursor-pointer px-3 py-2 hover:bg-gray-200"
+                                    onClick={() => handleSelectRole('AUTHOR')}
+                                >
+                                    Author
+                                </div>
+                                <div
+                                    className="cursor-pointer px-3 py-2 hover:bg-gray-200"
+                                    onClick={() => handleSelectRole('USER')}
+                                >
+                                    User
+                                </div>
+                            </div>
+                        )}
+
                     <div className="flex justify-center">
                         <button
                             type="submit"
@@ -155,16 +214,12 @@ const Registrasi = () => {
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg">
                         <h3 className="text-xl font-bold">Akun Anda Berhasil Didaftarkan!</h3>
-                        <p className="mt-2">Selamat! Akun Anda telah berhasil didaftarkan.</p>
+                        <p className="mt-2">Silahkan Cek Email Yang Kamu Daftarkan Untuk Melakukan Verifikasi!.</p>
                     </div>
                 </div>
             )}
             
-           <img 
-                src="/images/mobilepassword.png" 
-                alt="Img 2" 
-                className="w-full max-w-xs md:max-w-sm lg:max-w-md h-auto object-contain"
-            />
+           
          </div>
     );
 };

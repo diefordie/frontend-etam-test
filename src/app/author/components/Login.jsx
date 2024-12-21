@@ -22,7 +22,6 @@ const Login = () => {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            console.log("Login successful", user);
 
             router.push('/dashboard'); // Redirect to a logged-in page
         } catch (err) {
@@ -39,7 +38,7 @@ const Login = () => {
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '350px auto',
                 }}
-                className="absolute inset-0 bg-cover bg-no-repeat"
+                className="absolute inset-0 bg-cover bg-no-repeat mobile:block"
             />
             <div
                 style={{
