@@ -132,7 +132,7 @@ const DetailSoal = () => {
 
       try {
         setLoadingUser(true);
-        const response = await fetch(`http://${URL}/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -328,6 +328,27 @@ const handleStartTryOut = async () => {
       document.body.classList.add('overflow-hidden');
     } else {
       document.body.classList.remove('overflow-hidden');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+        const response = await fetch(`https://${URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Logout failed');
+        }
+
+        localStorage.clear();
+
+        window.location.href = '/auth/login';
+    } catch (error) {
+        console.error('Error during logout:', error);
     }
   };
   

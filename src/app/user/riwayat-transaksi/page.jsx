@@ -61,7 +61,7 @@ export default function RiwayatTransaksiHeader() {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch(`http://localhost:2000/user/profile`, {
+      const response = await fetch(`https://${URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

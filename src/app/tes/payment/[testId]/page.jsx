@@ -22,6 +22,8 @@ function TestPayment() {
   const [userData, setUserData] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [errorUser, setErrorUser] = useState(null);
 
   useEffect(() => {
     const snapScript = "https://app.sandbox.midtrans.com/snap/snap.js"
@@ -44,6 +46,57 @@ function TestPayment() {
       document.body.removeChild(script)
     }
   }, []);
+
+  useEffect(() => {
+      const fetchUserData = async () => {
+        let token;
+        if (typeof window !== 'undefined') {
+          token = localStorage.getItem('token');
+        }
+        
+        if (!token) {
+          setErrorUser('Token tidak ditemukan');
+          setLoadingUser(false);
+          return;
+        }
+  
+        try {
+          setLoadingUser(true);
+          const response = await fetch(`https://${URL}/user/profile`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+  
+          if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+          }
+  
+          const data = await response.json();
+          if (data) {
+            setUserData(data);
+          } else {
+            throw new Error('Data pengguna tidak ditemukan');
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          setErrorUser('Gagal mengambil data pengguna');
+          if (error.message === 'Failed to fetch user data') {
+            // Token mungkin tidak valid atau kadaluarsa
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('token');
+            }
+            router.push('/login');
+          }
+        } finally {
+          setLoadingUser(false);
+        }
+      };
+  
+      fetchUserData();
+    }, []);
 
   useEffect(() => {
     const fetchTestDetail = async () => {
@@ -146,12 +199,12 @@ const Navbar = ({testCategory}) => {
         />
       </div>
 
-      <div className="relative flex inline-block items-center text-white">
+      <div className="relative flex  items-center text-white">
           <div className="mx-auto">
               {/* Judul besar */}
-              <h5 className="text-sm lg:text-3xl font-bold font-bodoni lg:mr-8  text-white ">Membeli Paket</h5>
+              <h5 className="text-sm lg:text-3xl font-bold font-poppins lg:mr-8  text-white mr-5 ">Membeli Paket</h5>
                   {/* Breadcrumb di bawah h5 */}
-                  <nav className="hidden lg:block mt-2">
+                  <nav className="hidden lg:block mt-2 mr-5">
                       <ol className="list-reset flex space-x-2 ">
                       <li>
                           <Link href="/user/dashboard" legacyBehavior>
@@ -179,7 +232,7 @@ const Navbar = ({testCategory}) => {
                   <img
                     src={userData.userPhoto}
                     alt="User Profile"
-                    className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
+                    className="h-14 w-14 rounded-full cursor-pointer object-cover"
                     onMouseEnter={() => setDropdownOpen(true)}
                     onMouseLeave={() => setDropdownOpen(false)}
                   />
@@ -201,14 +254,14 @@ const Navbar = ({testCategory}) => {
                     onMouseLeave={() => setDropdownOpen(false)}
                   >
                     <Link legacyBehavior href={`/user/edit-profile/${userId}`}>
-                      <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
+                      <a className="block px-4 py-1 text-deepBlue text-sm hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
                         Ubah Profil
                       </a>
                     </Link>
                     <Link legacyBehavior href="/auth/login">
                       <a
                         onClick={handleLogout}
-                        className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+                        className="block px-4 py-1 text-deepBlue text-sm hover:bg-deepBlue hover:text-white rounded-md"
                       >
                         Logout
                       </a>
@@ -227,7 +280,7 @@ const Navbar = ({testCategory}) => {
 const PaymentBox = ({ testTitle, testPrice, testSimilarity }) => {
   return (
     <div className="flex justify-center items-center flex-1">
-      <div className="bg-[#F3F3F3] shadow-lg rounded-lg p-8 w-full max-w-md text-center relative">
+      <div className="bg-[#F3F3F3] shadow-lg rounded-lg p-8 w-5/6 max-w-md text-center relative ">
         {/* Logo Buku */}
         <SlBookOpen className="text-[#0B61AA] h-[108px] w-[120px] mx-auto mb-4" />
 
@@ -238,7 +291,7 @@ const PaymentBox = ({ testTitle, testPrice, testSimilarity }) => {
         <h2 className="text-sm text-[#0B61AA] mb-4">Prediksi kemiripan {testSimilarity}%</h2>
 
         {/* Bullet List */}
-        <ul className="list-disc list-inside text-justify text-black space-y-2 mb-6">
+        <ul className="list-disc list-inside text-justify text-black space-y-2 mb-6 text-sm tablet:text-base">
           <li>Memiliki 1x kesempatan mengerjakan soal</li>
           <li>Mendapatkan hasil Try Out secara langsung</li>
           <li>Mengetahui jawaban salah dan benar</li>
