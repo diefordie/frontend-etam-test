@@ -138,7 +138,6 @@ const KotakNomor = () => {
 
   const addQuestion = async (pageIndex) => {
     try {
-      // Dapatkan nomor terbesar di halaman saat ini
       const maxQuestionNumber = getMaxQuestionNumberInPage(pages[pageIndex]);
   
       // Cek apakah nomor sebelumnya sudah ada di database

@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import { useEffect } from 'react';
-import sanitizeHtml from 'sanitize-html';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { storage } from "../../../firebase/config";
@@ -10,10 +9,10 @@ import { v4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import dynamic from 'next/dynamic';
 import { AiOutlineCloseSquare } from 'react-icons/ai';
-import dotenv from 'dotenv';
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false 
 });
+import dotenv from 'dotenv';
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -21,29 +20,30 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 const MembuatSoal = () => {
   const router = useRouter();
   const [testId, setTestId] = useState('');
+  const [category, setCategory] = useState('');
   const [multiplechoiceId, setMultiplechoiceId] = useState('');
-  const [id, setId] = useState('');
   const [pageName, setPageName] = useState('');
   const [question, setQuestion] = useState('');
   const [number, setNumber] = useState('');
   const [questionPhoto, setQuestionPhoto] = useState(null);
   const [weight, setWeight] = useState();
   const [discussion, setDiscussion] = useState('');
-  const [options, setOptions] = useState([{ optionDescription: '', isCorrect: false, weight:'' }]);
+  const [options, setOptions] = useState([{ optionDescription: '', isCorrect: false }]);
+  const [isOptionWeighted, setIsOptionWeighted] = useState(false);
   const [pages, setPages] = useState([{ questions: [] }]);
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('buatSoal');
-  const [labelCount, setLabelCount] = useState(0); 
+  const [activeTab, setActiveTab] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const testIdFromUrl = params.get("testId");
+    const categoryFromUrl = params.get("category");
     const multiplechoiceIdFromUrl = params.get("multiplechoiceId");
     const pageNameFromUrl = params.get("pageName");
     const numberFromUrl = params.get("nomor");
 
     console.log("Fetched testId:", testIdFromUrl); 
+    console.log("Fetched category:", categoryFromUrl);
     console.log("Fetched multiplechoiceId:", multiplechoiceIdFromUrl); 
     console.log("Raw pageName from URL:", pageNameFromUrl);
 
@@ -55,6 +55,9 @@ const MembuatSoal = () => {
     if (testIdFromUrl) {
       setTestId(testIdFromUrl);
     }
+    if (categoryFromUrl) {
+      setCategory(categoryFromUrl);
+    }
     if (multiplechoiceIdFromUrl) {
       setMultiplechoiceId(multiplechoiceIdFromUrl); 
     }
@@ -65,7 +68,7 @@ const MembuatSoal = () => {
     if (!multiplechoiceId) return;
     const fetchData = async () => {
       try {
-        const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`);
+        const response = await fetch(`http://localhost:2000/api/multiplechoice/question/${multiplechoiceId}`);
         if (!response.ok) {
           const errorMessage = await response.text(); 
           throw new Error(`Error: ${response.status} - ${errorMessage}`);
@@ -77,8 +80,8 @@ const MembuatSoal = () => {
         setNumber(data.number);
         setQuestion(data.question);
         setOptions(data.option);
+        setIsOptionWeighted(data.isWeighted);
         setDiscussion(data.discussion);
-        setIsCPNS(data.isCPNS);
         if (data.questionPhoto) {
           setQuestionPhoto(data.questionPhoto);
         }
@@ -87,10 +90,10 @@ const MembuatSoal = () => {
           setOptions(data.option.map(opt => ({
             id: opt.id,
             optionDescription: opt.optionDescription,
-            isCorrect: opt.isCorrect
+            points: parseFloat(opt.points), 
+            isCorrect: opt.isCorrect,
           })));
         }
-        
       } catch (error) {
         console.error('Error fetching question:', error);
         setError('Terjadi kesalahan saat memuat data: ' + error.message);
@@ -101,10 +104,9 @@ const MembuatSoal = () => {
   }, [multiplechoiceId]);
   
   const addOption = () => {
-    setOptions([...options, { optionDescription: '', isCorrect: false, weight:'' }]);
+    setOptions([...options, { optionDescription: '',  points:'' }]);
   };
 
-  // Fungsi untuk mengubah text opsi
   const handleOptionChange = (index, field, value) => {
     const newOptions = options.map((option, i) => 
       i === index ? { ...option, [field]: value } : option
@@ -115,16 +117,9 @@ const MembuatSoal = () => {
   const handleCorrectOptionChange = (index) => {
     const newOptions = options.map((option, i) => ({
       ...option,
-      isCorrect: i === index,  // Setel hanya opsi yang dipilih ke true
+      isCorrect: i === index,  
     }));
     setOptions(newOptions);
-  };
-
-  const cleanHtml = (html) => {
-    return sanitizeHtml(html, {
-      allowedTags: [], 
-      allowedAttributes: {},
-    });
   };
 
   const handleWeightChange = (e) => {
@@ -154,13 +149,10 @@ const MembuatSoal = () => {
   const handleDelete = async () => {
     if (confirm("Apakah Anda yakin ingin menghapus soal ini?")) {
       try {
-        // Ambil key localStorage yang benar
         const localStorageKey = `pages-${testId}`;
         
-        // Cek apakah multiplechoiceId ada
         if (multiplechoiceId) {
-          // 1. Hapus data dari database
-          const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
+          const response = await fetch(`http://localhost:2000/api/multiplechoice/question/${multiplechoiceId}`, {
             method: 'DELETE',
           });
   
@@ -168,39 +160,31 @@ const MembuatSoal = () => {
             throw new Error('Gagal menghapus soal dari database');
           }
         }
-  
-        // 2. Ambil data pages dari localStorage
+
         const savedPages = localStorage.getItem(localStorageKey);
-        console.log('Data sebelum dihapus:', savedPages); // Debug
+        console.log('Data sebelum dihapus:', savedPages);
   
         if (savedPages) {
           let pages = JSON.parse(savedPages);
-          
-          // 3. Temukan dan hapus nomor soal dari pages
           let deletedNumber = null;
           let deletedPageIndex = -1;
-          
-          // Cari nomor yang akan dihapus
+
           pages.forEach((page, pageIndex) => {
             const questionIndex = page.questions.indexOf(parseInt(number));
             if (questionIndex !== -1) {
               deletedNumber = parseInt(number);
               deletedPageIndex = pageIndex;
-              // Hapus nomor dari array questions
               page.questions.splice(questionIndex, 1);
             }
           });
   
-          console.log('Nomor yang dihapus:', deletedNumber); // Debug
-          console.log('Data setelah splice:', pages); // Debug
-  
-          // 4. Reorder semua nomor setelah penghapusan
+          console.log('Nomor yang dihapus:', deletedNumber); 
+          console.log('Data setelah splice:', pages); 
+
           if (deletedNumber !== null) {
-            // Flatkan semua nomor dari semua halaman
             const allNumbers = pages.reduce((acc, page) => [...acc, ...page.questions], []);
-            console.log('Semua nomor setelah flatten:', allNumbers); // Debug
-            
-            // Update nomor-nomor yang lebih besar dari nomor yang dihapus
+            console.log('Semua nomor setelah flatten:', allNumbers); 
+
             pages = pages.map(page => ({
               ...page,
               questions: page.questions.map(num => 
@@ -208,19 +192,13 @@ const MembuatSoal = () => {
               ).sort((a, b) => a - b)
             }));
   
-            console.log('Data setelah reorder:', pages); // Debug
-  
-            // 5. Hapus page jika tidak ada soal tersisa
+            console.log('Data setelah reorder:', pages); 
             pages = pages.filter(page => page.questions.length > 0);
-            
-            // 6. Update localStorage dengan key yang benar
-            localStorage.setItem(localStorageKey, JSON.stringify(pages));
-            
+            localStorage.setItem(localStorageKey, JSON.stringify(pages));   
             console.log('Data final yang disimpan:', pages); // Debug
           }
         }
-  
-        // 7. Redirect kembali ke halaman luar
+
         router.push(`/author/buatSoal?testId=${testId}`);
         
       } catch (error) {
@@ -236,7 +214,7 @@ const MembuatSoal = () => {
 
     try {
       if (optionId) {
-        const response = await fetch(`https://${URL}/api/multiplechoice/option/${optionId}`, {
+        const response = await fetch(`http://localhost:2000/api/multiplechoice/option/${optionId}`, {
             method: 'DELETE',
         });
         
@@ -251,53 +229,41 @@ const MembuatSoal = () => {
     }
   };
 
-  const [jawabanBenar, setJawabanBenar] = useState(null);
-
-  const handleJawabanBenarChange = (index) => {
-    setJawabanBenar(index);
-  };
-
-  // const uploadImage = () => {
-  //   if (questionPhoto == null) return;
-  //     const imageRef = ref(storage, `question/${questionPhoto.name + v4()}`)
-  //     uploadBytes(imageRef, questionPhoto).then(() => {
-  //       alert("image uploaded");
-  //     })
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
   
     try {
-      // Handle image upload if exists
       let uploadedImageUrl = "";
       if (questionPhoto) {
         const imageRef = ref(storage, `question/${questionPhoto.name + v4()}`);
         const snapshot = await uploadBytes(imageRef, questionPhoto);
         uploadedImageUrl = await getDownloadURL(snapshot.ref); // Mendapatkan URL download gambar
       }
-  
-      // Prepare common data structure
+
+      const formattedOptions = options.map(option => ({
+        optionDescription: option.optionDescription,
+        points: parseFloat(option.points) || 0,
+        isCorrect: null,
+      }));
+      
       const questionData = {
         pageName,
-        question: cleanHtml(question),
+        question: question,
         number: parseInt(number),
-        questionPhoto: uploadedImageUrl,
-        weight: parseFloat(weight),
-        discussion: cleanHtml(discussion),
-        options: options.map(option => ({
-          ...option,
-          optionDescription: option.optionDescription,
-          isCorrect: option.isCorrect,
-        })),
+        questionPhoto: uploadedImageUrl || null,
+        weight: null,
+        discussion: discussion,
+        isWeighted: true,
+        options: formattedOptions
       };
-  
+
+      console.log("opt:", options);
+
       let response;
       let result;
 
       if (multiplechoiceId !== "null") {
-        // UPDATE existing question
-        response = await fetch(`https://${URL}/api/multiplechoice/update-question/${multiplechoiceId}`, {
+        response = await fetch(`http://localhost:2000/api/multiplechoice/update-question/${multiplechoiceId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -308,8 +274,7 @@ const MembuatSoal = () => {
         if (response.ok) {
           result = await response.json();
           console.log('Update successful:', result);
-          
-          // Update localStorage
+
           const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
           const updatedPages = existingPages.map(page => 
             page.id === multiplechoiceId 
@@ -319,8 +284,7 @@ const MembuatSoal = () => {
           localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
         }
       } else {
-        // CREATE new question
-        response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
+        response = await fetch('http://localhost:2000/api/multiplechoice/add-questions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -336,8 +300,7 @@ const MembuatSoal = () => {
           console.log('Response dari API:', result);
           const newMultiplechoiceId = result.data[0].id;
           console.log('MultiplechoiceId:', newMultiplechoiceId);
-  
-          // Update localStorage
+ 
           localStorage.setItem('pageName', pageName);
           const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
           const newQuestion = { 
@@ -366,31 +329,31 @@ const MembuatSoal = () => {
       <header className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins" style={{ maxWidth: '1440px', height: '108px' }}>
         <div className="container mx-auto flex justify-start items-center">
           <Link href="/">
-            <img src="/images/etamtest.png" alt="Etamtest" className="h-[50px]" style={{ maxWidth: '179px' }} />
+            <img src="/img/Vector.png" alt="Vector" className="h-[50px]" style={{ maxWidth: '179px' }} />
           </Link>
         </div>
       </header>
   
-      <nav className="bg-[#FFFFFF] text-black p-4">
-          <ul className="grid grid-cols-2 flex justify-start sm:flex sm:justify-around gap-4 sm:gap-10">
-            <li>
-              <button
-                className={`w-[140px] sm:w-[180px] px-4 sm:px-8 py-2 sm:py-4 rounded-full shadow-xl font-bold font-poppins ${activeTab === 'buatSoal' ? 'bg-[#78AED6]' : ''}`}
-                onClick={() => setActiveTab('buatSoal')}
+      <nav className="bg-[#FFFF] text-black p-4 sm:p-6">
+        <ul className="flex space-x-6 sm:space-x-20">
+          <li>
+            <button
+              className={`w-[120px] sm:w-[220px] h-[48px] rounded-[20px] shadow-md font-bold font-poppins ${activeTab === 'buatTes' ? 'bg-[#78AED6]' : ''}`}
+              onClick={() => setActiveTab('buatTes')}
               >
-                Buat Soal
-              </button>
-            </li>
-            <li>
-              <button
-                className={`w-[140px] sm:w-[180px] px-4 sm:px-8 py-2 sm:py-4 rounded-full shadow-xl font-bold font-poppins ${activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''}`}
-                onClick={() => setActiveTab('publikasi')}
+              Buat Soal
+            </button>
+          </li> 
+          <li>
+            <button
+              className={`w-[120px] sm:w-[220px] h-[48px] rounded-[20px] shadow-md font-bold font-poppins ${activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''}`}
+              onClick={() => setActiveTab('publikasi')}
               >
-                Publikasi
-              </button>
-            </li>
-          </ul>
-        </nav>
+              Publikasi
+            </button>
+          </li>
+        </ul>
+      </nav>
   
       <div className="container mx-auto lg: p-2 p-4 w-full" style={{ maxWidth: '1309px' }}>
         <header className='bg-[#0B61AA] font-bold font-poppins text-white p-4'>
@@ -415,19 +378,6 @@ const MembuatSoal = () => {
                 <div className='p-4 flex justify-between items-center mb-0.5 w-full'>
                   <div className='flex items-center'>
                     <label className="block mb-2">Soal Pilihan Ganda</label>
-                  </div>
-                  <div className='flex items-center'>
-                    <label className="font-medium-bold mr-2">Bobot</label>
-                    <input
-                      type="text"
-                      step="0.01"
-                      min="0"
-                      id="weight"
-                      value={weight}
-                      onChange={handleWeightChange}
-                      className="border p-2 w-full"
-                      required
-                    />
                   </div>
                 </div>
                 <ReactQuill 
@@ -474,36 +424,35 @@ const MembuatSoal = () => {
             </div>
   
             <div>
-            <h2 className="text-lg font-semi-bold mb-2">Jawaban</h2>
-            {options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={option.optionDescription}
-                  onChange={(e) => handleOptionChange(index, 'optionDescription', e.target.value)}
-                  placeholder="Tulis jawaban untuk opsi"
-                  className="p-2 w-full"
-                  theme='snow'
-                  required
-                />
-                <div className="flex items-center justify-between px-2 space-x-50 border border-black rounded-[10px]">
-                <label className="font-medium-bold mr-4">Bobot</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        id="weight"
-                        value={option.weight}
-                        onChange={(e) => handleOptionChange(index, 'weight', e.target.value)}
-                        className="border p-2 w-[100px]"
+              <h2 className="text-lg font-semi-bold mb-2">Jawaban</h2>
+              {options.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2 mb-2">
+                    <input
+                        type="text"
+                        value={option.optionDescription}
+                        onChange={(e) => handleOptionChange(index, 'optionDescription', e.target.value)}
+                        placeholder="Tulis jawaban untuk opsi"
+                        className="p-2 w-full"
+                        theme='snow'
                         required
-                      />
+                    />
+                    <div className="flex items-center justify-between px-2 space-x-50 border border-black rounded-[10px]">
+                    <label className="font-medium-bold mr-4">Bobot</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            id="weight"
+                            value={option.points}
+                            onChange={(e) => handleOptionChange(index, 'points', e.target.value)}
+                            className="border p-2 w-[100px]"
+                            required
+                        />
                     <button
-                      type="button"
-                      onClick={() => handleDeleteJawaban(index, option.id)}
-                      className="ml-4"
+                        type="button"
+                        onClick={() => handleDeleteJawaban(index, option.id)}
+                        className="ml-4"
                     >
-                      {/* Ganti gambar dengan ikon React */}
                       <AiOutlineCloseSquare className="w-6 h-6" />
                     </button>
                   </div>
@@ -559,6 +508,7 @@ const MembuatSoal = () => {
                 </button>
               </div>
           </div>
+
         </div>
       </div>
     </div>
