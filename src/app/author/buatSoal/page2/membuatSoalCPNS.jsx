@@ -68,7 +68,7 @@ const MembuatSoal = () => {
     if (!multiplechoiceId) return;
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:2000/api/multiplechoice/question/${multiplechoiceId}`);
+        const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`);
         if (!response.ok) {
           const errorMessage = await response.text(); 
           throw new Error(`Error: ${response.status} - ${errorMessage}`);
@@ -152,7 +152,7 @@ const MembuatSoal = () => {
         const localStorageKey = `pages-${testId}`;
         
         if (multiplechoiceId) {
-          const response = await fetch(`http://localhost:2000/api/multiplechoice/question/${multiplechoiceId}`, {
+          const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
             method: 'DELETE',
           });
   
@@ -214,7 +214,7 @@ const MembuatSoal = () => {
 
     try {
       if (optionId) {
-        const response = await fetch(`http://localhost:2000/api/multiplechoice/option/${optionId}`, {
+        const response = await fetch(`https://${URL}/api/multiplechoice/option/${optionId}`, {
             method: 'DELETE',
         });
         
@@ -228,6 +228,10 @@ const MembuatSoal = () => {
         console.error('Error deleting option:', error);
     }
   };
+
+  const handleBack = () => {
+    router.push('/author/buatSoal');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -263,7 +267,7 @@ const MembuatSoal = () => {
       let result;
 
       if (multiplechoiceId !== "null") {
-        response = await fetch(`http://localhost:2000/api/multiplechoice/update-question/${multiplechoiceId}`, {
+        response = await fetch(`https://${URL}/api/multiplechoice/update-question/${multiplechoiceId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -284,7 +288,7 @@ const MembuatSoal = () => {
           localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
         }
       } else {
-        response = await fetch('http://localhost:2000/api/multiplechoice/add-questions', {
+        response = await fetch('https://${URL}/api/multiplechoice/add-questions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -501,7 +505,7 @@ const MembuatSoal = () => {
               <div className="flex justify-end space-x-2">
                 <button type="button" onClick={handleSubmit} className="bg-[#E8F4FF] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]">Simpan</button>
                 <button
-                  onClick={handleSubmit}
+                  onClick={handleBack}
                   className="bg-[#A6D0F7] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
                 >
                   Kembali

@@ -89,7 +89,7 @@ const BuatTes = () => {
       if (response.ok) {
         console.log('Tes berhasil disimpan!');
         const result = await response.json();
-        const testId = result.id;  // Menggunakan 'id' dari respons
+        const testId = result.id;  
         const testCategory = result.category;
         if (testId && testCategory) {
           router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}`);
