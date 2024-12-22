@@ -524,10 +524,27 @@ useEffect(() => {
             // Parsing response jika sukses
             const data = await response.json();
             console.log('Jawaban final berhasil disimpan:', data);
-            
+    
+            // SweetAlert untuk sukses
+            Swal.fire({
+                icon: 'success', // Ikon sukses
+                title: 'Berhasil!',
+                text: 'Jawaban final berhasil disimpan!',
+                confirmButtonText: 'OK',
+                timer: 3000, // Durasi alert (opsional)
+                timerProgressBar: true, // Bar progres (opsional)
+            });
+    
         } catch (error) {
             console.error('Error saat mengirim jawaban final:', error);
-            alert('Terjadi kesalahan saat mengirim jawaban final: ' + error.message);
+    
+            // SweetAlert untuk error
+            Swal.fire({
+                icon: 'error', // Ikon error
+                title: 'Gagal!',
+                text: `Terjadi kesalahan saat mengirim jawaban final: ${error.message}`,
+                confirmButtonText: 'Coba Lagi',
+            });
         }
     };
 

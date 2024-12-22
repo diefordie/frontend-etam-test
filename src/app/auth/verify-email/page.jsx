@@ -1,24 +1,21 @@
 'use client';
-'use client';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { RiVerifiedBadgeFill } from "react-icons/ri";
-import { useEffect, useState } from 'react';
-import { getAuth, applyActionCode } from "firebase/auth";
-import { initializeApp } from "firebase/app";
-import firebaseConfig from '@/app/firebase/config'; // Sesuaikan path ini
 
-const EmailVerification = () => {
+import { useRouter } from 'next/navigation';
+import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { useEffect, useState, Suspense } from 'react';
+import { auth } from '@/app/firebase/config';
+import { applyActionCode } from "firebase/auth";
+import { useSearchParams } from 'next/navigation';
+
+function EmailVerificationContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [verificationStatus, setVerificationStatus] = useState('pending');
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
     useEffect(() => {
         const verifyEmail = async () => {
             const oobCode = searchParams.get('oobCode');
-            if (oobCode && oobCode !== 'code'){
+            if (oobCode && oobCode !== 'code') {
                 try {
                     await applyActionCode(auth, oobCode);
                     setVerificationStatus('success');
@@ -32,26 +29,20 @@ const EmailVerification = () => {
         };
     
         verifyEmail();
-    }, [auth, searchParams]);
+    }, [searchParams]);
 
     const handleButtonClick = () => {
-        try {
-            router.push('/auth/login');
-        } catch (error) {
-            console.error("Failed to navigate:", error);
-        }
+        router.push('/auth/login');
     };
 
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
-            {/* Gambar Latar */}
             <img 
                 src="/images/polygon.png" 
                 alt="Polygon Background" 
                 className="absolute inset-0 w-full h-full object-cover lg:object-contain lg:object-left"
             />
     
-            {/* Konten */}
             <div className="relative w-full max-w-sm bg-powderBlue shadow-md rounded-3xl p-6 sm:p-8 mt-24 md:mt-0 mobile:mt-12 mobile:w-3/4">
                 {verificationStatus === 'pending' && (
                     <p className="text-sm sm:text-base mt-4 text-center">Memverifikasi email Anda...</p>
@@ -92,6 +83,12 @@ const EmailVerification = () => {
             </div>
         </div>
     );
-};
+}
 
-export default EmailVerification;
+export default function VerifyEmailPage() {
+    return (
+        <Suspense fallback={<div className="text-center">Loading...</div>}>
+            <EmailVerificationContent />
+        </Suspense>
+    );
+}

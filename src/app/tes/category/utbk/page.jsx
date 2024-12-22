@@ -23,7 +23,7 @@ export default function UTBK() {
   const [freeTestsByCategory, setFreeTestsByCategory] = useState([]);
   const [berbayarTests, setBerbayarTests] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [searchQuery, setSearchQuery] = useState ('');
+  const [searchQuery, setSearchQuery] = useState (['']);
   const [loading, setLoading] = useState([true]);
   const [error, setError] = useState([null]);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -181,38 +181,22 @@ export default function UTBK() {
     fetchFreeTestsByCategory();
   }, []);
 
-  const debounce = (func, delay) => {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => func(...args), delay);
-    };
-  };
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery) return;
 
-  const handleSearch = debounce(async (query) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    setLoading(true);
     try {
       const response = await fetch(`https://${URL}/dashboard/search-tests-by-category?title=${encodeURIComponent(searchQuery)}&category=UTBK`);
-      if (!response.ok) throw new Error("Failed to search tests");
+      if (!response.ok) {
+        throw new Error('Failed to search tests');
+      }
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
-      console.error("Error searching tests:", error);
+      console.error('Error searching tests:', error);
       setError(error.message);
-    } finally {
-      setLoading(false);
     }
-  }, 500); 
-
-  const handleInputChange = (e) => {
-    const value = e.target.value || ''; 
-    setSearchQuery(value);
-    handleSearch(value);
-  }; 
+  };
 
   if (loading && !error) {
     return <div className="text-center mt-20">Loading...</div>;
@@ -479,7 +463,7 @@ export default function UTBK() {
         <div className="relative flex inline-block items-center ">
           <div className="mx-auto">
               {/* Judul besar */}
-              <h5 className="text-sm lg:text-3xl font-bold font-bodoni lg:mr-8">Latihan Soal Tes UTBK</h5>
+              <h5 className="text-sm lg:text-3xl font-bold font-bodoni mr-2 sm:mr-8">Latihan Soal Tes UTBK</h5>
                   {/* Breadcrumb di bawah h5 */}
                   <nav className="hidden lg:block mt-2">
                       <ol className="list-reset flex space-x-2 ">
@@ -553,12 +537,12 @@ export default function UTBK() {
           className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins sm:max-w-[400px] lg:max-w-[610px] justify-between"
         >
           <input
-              type="text"
-              placeholder="Cari Tes Soal"
-              className="flex-grow p-1 lg:p-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
-              value={searchQuery}
-              onChange={handleInputChange}
-            />
+            type="text"
+            placeholder="Cari Tes Soal"
+            className="flex-grow p-1 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins w-full sm:max-w-[400px] md:max-w-[300px] lg:max-w-[400px]"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <button
             type="submit"
             className="p-1 sm:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins flex items-center justify-end"
@@ -571,7 +555,7 @@ export default function UTBK() {
 
     
     {/* Bagian search bar */}
-    {!loading && searchQuery.trim() && searchResults.length > 0 && (
+    {searchResults.length > 0 && (
         <section className="block mx-auto p-5 font-poppins relative">
         <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
             Hasil Pencarian
@@ -579,95 +563,93 @@ export default function UTBK() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
             {searchResults.slice(searchcurrentIndex, searchcurrentIndex + searchitemsToShow).map((test) => (
               <div key={test.testId} className="bg-abumuda shadow-lg p-1 relative group">
-                {/* Overlay background abu-abu yang muncul saat hover */}
-                <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
+                                {/* Overlay background abu-abu yang muncul saat hover */}
+                                <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
-                <div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
-                  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
-                    <FaEye />
-                    <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
-                  </div>
-                </div>
+<div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
+  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
+    <FaEye />
+    <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
+  </div>
+</div>
 
-                <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="text-8xl">
-                    <SlBookOpen />
-                  </div>
-                </div>
+<div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
+  <div className="text-4xl lg:text-8xl">
+      <SlBookOpen />
+  </div>
+</div>
 
-                <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">{test.category}</h3>
-                </div>
+<div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 group-hover:blur-[2px] transition duration-300">
+  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">{test.category}</h3>
+</div>
 
-                <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="flex items-center space-x-2 justify-between">
-                    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">{test.title}</h3>
-                  </div>
+<div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
+  <div className="flex items-center space-x-2 justify-between">
+    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">{test.title}</h3>
+  </div>
 
-                  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">Prediksi kemiripan {test.similarity}%</p>
-                  <p className="text-[0.4rem] lg:text-xs leading-relaxed">Dibuat Oleh:</p>
+  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">Prediksi kemiripan {test.similarity}%</p>
+  <p className="text-[0.4rem] lg:text-xs leading-relaxed">Dibuat Oleh:</p>
 
-                  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
-                    <div className="flex text-left space-x-1 lg:space-x-4">
-                        {test.author.authorPhoto ? (
-                          <img
-                            src={test.author.authorPhoto}
-                            alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
-                          />
-                        ) : (
-                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
-                        )}
-                          <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
-                    </div>
-                    
-                      <span className="text-[0.375rem] lg:text-sm font-semibold">
-                        {Number(test.price) === 0 ? 'Gratis' : (
-                            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
-                        )}
-                      </span>
-                      
-                  </div>
-                </div>
+  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
+      <div className="flex text-left space-x-1 lg:space-x-4">
 
-                <div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
-                    <a href= {`/tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
-                      Mulai
-                    </a>
-                    <a href={`/user/topscore/${test.id}`}className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
-                      <i className="fa-solid fa-medal"></i>
-                       <span className="ml-1">Top Score</span>
-                    </a>
-                    <button 
-                      onClick={() => toggleLike(test.id)} 
-                      className="lg:block text-center bg-paleBlue text-deepBlue inline-block px-3 py-2 rounded-full hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0"
-                    >
-                      <i className={`fa${likedItems[test.id] ? "s" : "r"} fa-heart ${likedItems[test.id] ? "text-red-500" : "text-deepBlue"}`}></i>
-                    </button>
-                </div>
+        {test.author.authorPhoto ? (
+          <img
+            src={test.author.authorPhoto}
+            alt={test.category}
+            className="h-3 lg:h-6 object-contain"
+          />
+        ) : (
+          <IoPersonCircle className="h-3 lg:h-6 text-white" />
+        )}
 
+      <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
+      </div>
+      <span className="text-[0.375rem] lg:text-sm font-semibold">
+        {Number(test.price) === 0 ? 'Gratis' : (
+            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
+        )}
+      </span>
+    </div>
+</div>
 
-              </div>
-            ))}
-          </div>
+<div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
+    <a href={`/tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+      Mulai
+    </a>
+    <a href={`/user/topscore/${test.id}`} className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+      <i className="fa-solid fa-medal"></i>
+      <span className="ml-1">Top Score</span>
+    </a>
+    <button 
+      onClick={() => toggleLike(test.id)} 
+      className="lg:block text-center bg-paleBlue text-deepBlue inline-block px-3 py-2 rounded-full hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0"
+    >
+      <i className={`fa${likedItems[test.id] ? "s" : "r"} fa-heart ${likedItems[test.id] ? "text-red-500" : "text-deepBlue"}`}></i>
+    </button>
+</div>
+</div>
+))}
+</div>
 
-          {/* Tombol panah kiri */}
-          <button 
-              onClick={searchprevSlide} 
-              className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${searchcurrentIndex === 0 ? 'hidden' : ''}`}
-            >
-              &#10094; {/* Simbol panah kiri */}
-            </button>
-            {/* Tombol panah kanan */}
-            <button 
-              onClick={searchnextSlide} 
-              className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${searchcurrentIndex >= searchResults.length - searchitemsToShow? 'hidden' : ''}`}
-            >
-              &#10095; {/* Simbol panah kanan */}
-            </button>
-        </div>
-      </section>
-      )}
+{/* Tombol panah kiri */}
+<button 
+onClick={searchprevSlide} 
+className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${searchcurrentIndex === 0 ? 'hidden' : ''}`}
+>
+&#10094; {/* Simbol panah kiri */}
+</button>
+{/* Tombol panah kanan */}
+<button 
+onClick={searchnextSlide} 
+className={`absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow hover:bg-gray-200 ${searchcurrentIndex >= searchResults.length - searchitemsToShow? 'hidden' : ''}`}
+>
+&#10095; {/* Simbol panah kanan */}
+</button>
+</div>
+</section>      
+)}
 
     {/* Bagian Paling Populer */}
     {popularTestsByCategory && popularTestsByCategory.length > 0 && (
@@ -682,33 +664,33 @@ export default function UTBK() {
                 {/* Overlay background abu-abu yang muncul saat hover */}
                 <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
-                <div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
-                  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
-                    <FaEye />
-                    <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
-                  </div>
-                </div>
+<div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
+  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
+    <FaEye />
+    <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
+  </div>
+</div>
 
-                <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="text-8xl">
-                    <SlBookOpen />
-                  </div>
-                </div>
+<div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
+  <div className="text-4xl lg:text-8xl">
+    <SlBookOpen />
+  </div>
+</div>
 
-                <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">{test.category}</h3>
-                </div>
-
-                <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="flex items-center space-x-2 justify-between">
-                    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">{test.title}</h3>
+<div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 group-hover:blur-[2px] transition duration-300">
+                    <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">{test.category}</h3>
                   </div>
 
-                  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">Prediksi kemiripan {test.similarity}%</p>
-                  <p className="text-[0.4rem] lg:text-xs leading-relaxed">Dibuat Oleh:</p>
+                  <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
+                    <div className="flex items-center space-x-2 justify-between">
+                      <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">{test.title}</h3>
+                    </div>
 
-                  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
-                    <div className="flex text-left space-x-1 lg:space-x-4">
+                    <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">Prediksi kemiripan {test.similarity}%</p>
+                    <p className="text-[0.4rem] lg:text-xs leading-relaxed">Dibuat Oleh:</p>
+
+                    <div className="flex justify-between space-x-2 leading-relaxed mt-1">
+                      <div className="flex text-left space-x-1 lg:space-x-4">
                         {test.author.authorPhoto ? (
                           <img
                             src={test.author.authorPhoto}
@@ -718,25 +700,23 @@ export default function UTBK() {
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
                         )}
-                          <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
-                    </div>
-                    
+                        <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
+                      </div>
                       <span className="text-[0.375rem] lg:text-sm font-semibold">
                         {Number(test.price) === 0 ? 'Gratis' : (
-                            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
+                          <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
                         )}
                       </span>
-                      
+                    </div>
                   </div>
-                </div>
 
-                <div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
-                    <a href= {`/tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+                  <div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
+                    <a href={` /tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
                       Mulai
                     </a>
-                    <a href={`/user/topscore/${test.id}`}className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+                    <a href={`/user/topscore/${test.id}`} className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
                       <i className="fa-solid fa-medal"></i>
-                       <span className="ml-1">Top Score</span>
+                      <span className="ml-1">Top Score</span>
                     </a>
                     <button 
                       onClick={() => toggleLike(test.id)} 
@@ -744,9 +724,9 @@ export default function UTBK() {
                     >
                       <i className={`fa${likedItems[test.id] ? "s" : "r"} fa-heart ${likedItems[test.id] ? "text-red-500" : "text-deepBlue"}`}></i>
                     </button>
+                  </div>
+                  
                 </div>
-
-              </div>
             ))}
           </div>
 
@@ -777,75 +757,75 @@ export default function UTBK() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
             {berbayarTests.slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow).map((test) => (
               <div key={test.testId} className="bg-abumuda shadow-lg p-1 relative group">
-                {/* Overlay background abu-abu yang muncul saat hover */}
-                <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
+                                {/* Overlay background abu-abu yang muncul saat hover */}
+                                <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
-                <div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
-                  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
-                    <FaEye />
-                    <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
-                  </div>
-                </div>
+<div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
+  <div className="flex items-center space-x-2 font-bold text-deepBlue p-2">
+    <FaEye />
+    <span className="text-[0.6rem] lg:text-sm font-poppins">{test.accessCount}</span>
+  </div>
+</div>
 
-                <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="text-8xl">
-                    <SlBookOpen />
-                  </div>
-                </div>
+<div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
+  <div className="text-4xl lg:text-8xl">
+    <SlBookOpen />
+  </div>
+</div>
 
-                <div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">{test.category}</h3>
-                </div>
+<div className="flex justify-center mt-2 lg:mt-4 text-deepBlue relative z-20 group-hover:blur-[2px] transition duration-300">
+  <h3 className="text-center text-[0.8rem] lg:text-lg font-bold mt-0 lg:mt-2 font-poppins">{test.category}</h3>
+</div>
 
-                <div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="flex items-center space-x-2 justify-between">
-                    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">{test.title}</h3>
-                  </div>
+<div className="bg-deepBlue text-white p-1 lg:p-2  mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
+  <div className="flex items-center space-x-2 justify-between">
+    <h3 className="text-left text-[0.625rem] lg:text-base font-bold mt-2">{test.title}</h3>
+  </div>
 
-                  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">Prediksi kemiripan {test.similarity}%</p>
-                  <p className="text-[0.4rem] lg:text-xs leading-relaxed">Dibuat Oleh:</p>
+  <p className="text-left text-[0.5rem] lg:text-sm leading-relaxed">Prediksi kemiripan {test.similarity}%</p>
+  <p className="text-[0.4rem] lg:text-xs leading-relaxed">Dibuat Oleh:</p>
 
-                  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
-                    <div className="flex text-left space-x-1 lg:space-x-4">
-                        {test.author.authorPhoto ? (
-                          <img
-                            src={test.author.authorPhoto}
-                            alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
-                          />
-                        ) : (
-                          <IoPersonCircle className="h-3 lg:h-6 text-white" />
-                        )}
-                          <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
-                    </div>
-                    
-                      <span className="text-[0.375rem] lg:text-sm font-semibold">
-                        {Number(test.price) === 0 ? 'Gratis' : (
-                            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
-                        )}
-                      </span>
-                      
-                  </div>
-                </div>
+  <div className="flex justify-between space-x-2 leading-relaxed mt-1">
+    <div className="flex text-left space-x-1 lg:space-x-4">
+        {test.author.authorPhoto ? (
+          <img
+            src={test.author.authorPhoto}
+            alt={test.category}
+            className="h-3 lg:h-6 object-contain"
+          />
+        ) : (
+          <IoPersonCircle className="h-3 lg:h-6 text-white" />
+        )}
+          <span className="text-[0.375rem] lg:text-sm font-semibold">{test.author.name}</span>
+    </div>
+    
+      <span className="text-[0.375rem] lg:text-sm font-semibold">
+        {Number(test.price) === 0 ? 'Gratis' : (
+            <IoIosLock className="h-2 lg:h-4 inline-block text-current object-contain text-white" alt="Berbayar" />
+        )}
+      </span>
+      
+  </div>
+</div>
 
-                <div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
-                    <a href= {`/tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
-                      Mulai
-                    </a>
-                    <a href={`/user/topscore/${test.id}`}className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
-                      <i className="fa-solid fa-medal"></i>
-                       <span className="ml-1">Top Score</span>
-                    </a>
-                    <button 
-                      onClick={() => toggleLike(test.id)} 
-                      className="lg:block text-center bg-paleBlue text-deepBlue inline-block px-3 py-2 rounded-full hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0"
-                    >
-                      <i className={`fa${likedItems[test.id] ? "s" : "r"} fa-heart ${likedItems[test.id] ? "text-red-500" : "text-deepBlue"}`}></i>
-                    </button>
-                </div>
-              </div>
-            ))}
-          </div>
+<div className="absolute gap-1 bottom-5 left-0 right-0 flex justify-center items-center lg:justify-center lg:space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30 p-1 w-full">
+    <a href= {`/tes/detailsoal/${test.id}`} className="w-3/4 lg:w-1/4 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-3 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+      Mulai
+    </a>
+    <a href={`/user/topscore/${test.id}`}className="w-3/4 lg:w-2/5 text-xs lg:text-base text-center bg-paleBlue text-deepBlue py-1 lg:py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0">
+      <i className="fa-solid fa-medal"></i>
+       <span className="ml-1">Top Score</span>
+    </a>
+    <button 
+      onClick={() => toggleLike(test.id)} 
+      className="lg:block text-center bg-paleBlue text-deepBlue inline-block px-3 py-2 rounded-full hover:bg-orange hover:text-deepBlue mb-2 lg:mb-0"
+    >
+      <i className={`fa${likedItems[test.id] ? "s" : "r"} fa-heart ${likedItems[test.id] ? "text-red-500" : "text-deepBlue"}`}></i>
+    </button>
+</div>
+</div>
+))}
+</div>
 
           {/* Tombol panah kiri */}
           <button
@@ -884,7 +864,7 @@ export default function UTBK() {
                 </div>
 
                 <div className="flex justify-center mt-2 lg:mt-4 relative z-20 group-hover:blur-[2px] transition duration-300">
-                  <div className="text-8xl">
+                  <div className="text-4xl lg:text-8xl">
                     <SlBookOpen />
                   </div>
                 </div>
@@ -942,6 +922,7 @@ export default function UTBK() {
               </div>
             ))}
           </div>
+
 
           {/* Tombol panah kiri */}
           <button
