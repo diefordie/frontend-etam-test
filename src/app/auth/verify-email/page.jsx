@@ -18,7 +18,7 @@ const EmailVerification = () => {
     useEffect(() => {
         const verifyEmail = async () => {
             const oobCode = searchParams.get('oobCode');
-            if (oobCode) {
+            if (oobCode && oobCode !== 'code'){
                 try {
                     await applyActionCode(auth, oobCode);
                     setVerificationStatus('success');
@@ -53,6 +53,9 @@ const EmailVerification = () => {
     
             {/* Konten */}
             <div className="relative w-full max-w-sm bg-powderBlue shadow-md rounded-3xl p-6 sm:p-8 mt-24 md:mt-0 mobile:mt-12 mobile:w-3/4">
+                {verificationStatus === 'pending' && (
+                    <p className="text-sm sm:text-base mt-4 text-center">Memverifikasi email Anda...</p>
+                )}
                 {verificationStatus === 'success' && (
                     <>
                         <RiVerifiedBadgeFill className="laptop:text-9xl text-6xl text-deepBlue mx-auto mb-4" />
@@ -82,12 +85,9 @@ const EmailVerification = () => {
                     <>
                         <h2 className="text-2xl font-bold text-center text-black mb-4">Kode Verifikasi Tidak Ditemukan</h2>
                         <p className="text-sm sm:text-base mt-4 text-center">
-                            Tidak ada kode verifikasi yang ditemukan. Pastikan Anda menggunakan link yang benar.
+                            Tidak ada kode verifikasi yang valid ditemukan. Pastikan Anda menggunakan link yang benar.
                         </p>
                     </>
-                )}
-                {verificationStatus === 'pending' && (
-                    <p className="text-sm sm:text-base mt-4 text-center">Memverifikasi email Anda...</p>
                 )}
             </div>
         </div>
