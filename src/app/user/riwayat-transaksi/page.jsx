@@ -6,6 +6,7 @@ import { IoMenu } from 'react-icons/io5';
 import { TbFileSad } from "react-icons/tb";
 import { IoPersonCircle } from "react-icons/io5";
 import { useParams } from 'next/navigation';
+import { SlBookOpen } from "react-icons/sl";
 import { FiClipboard } from 'react-icons/fi';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -87,7 +88,7 @@ export default function RiwayatTransaksiHeader() {
     }
 
     try {
-      const response = await fetch(`http://localhost:2000/api/riwayat-transaksi`, {
+      const response = await fetch(`https://${URL}/api/riwayat-transaksi`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ export default function RiwayatTransaksiHeader() {
   // Logout function
 const handleLogout = async () => {
   try {
-      const response = await fetch(`http://localhost:2000/auth/logout`, {
+      const response = await fetch(`https://${URL}/auth/logout`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -308,13 +309,14 @@ const handleLogout = async () => {
             <FiEye className="w-4 h-4 text-gray-500" />
             <span>{item.historyCount}</span>
           </div>
-          <img
-            src={item.image || '/images/tes.png'}
-            alt={item.test.title}
-            className="w-[70px] h-[80px] sm:w-[100px] sm:h-[120px] object-contain"
-          />
-          <div className="text-center mt-2 text-sm font-semibold text-[#0B61AA]">
-            Try Out {item.test.category}
+          <div className="flex items-center justify-center">
+            <SlBookOpen className="w-16 h-20 sm:w-20 sm:h-24 md:w-24 md:h-32 text-deepBlue mt-3" />
+          </div>
+
+          <div className="flex justify-center">
+            <div className="text-center text-sm font-semibold text-[#0B61AA]">
+              Try Out {item.test.category}
+            </div>
           </div>
         </div>
         <div className="ml-4 flex-1">

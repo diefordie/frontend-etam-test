@@ -119,9 +119,9 @@ const Registrasi = () => {
                 alt="Img 2" 
                 className="w-full max-w-xs h-auto object-contain mx-10 mt-5 mobile:absolute tablet:hidden laptop:block laptop:mr-0 laptop:my-48 laptop:relative laptop:max-h-full laptop:max-w-full"
             />
-            <div className="absolute inset-x-0 -bottom-4 p-1 laptop:max-w-96 laptop:p-7 bg-powderBlue shadow-md rounded-[25px] w-full h-3/4 tablet:w-3/4  tablet:inset-0 tablet:mx-auto tablet:my-auto laptop:ml-48 ">
+            <div className="absolute inset-x-0 -bottom-4 p-1 laptop:max-w-96 laptop:p-7 bg-powderBlue shadow-md rounded-[25px] w-full h-3/4 tablet:w-3/4  tablet:inset-0 tablet:mx-auto tablet:my-auto laptop:ml-48 laptop:h-[580px]">
                 <h2 className="text-3xl font-bold mb-6 text-black text-center my-8 tablet:my-10 laptop:my-5">Daftar</h2>
-                <form className="space-y-4 mobile:mx-4 tablet:mx-10 laptop:mb-5" onSubmit={handleSubmit}>
+                <form className="space-y-4 mobile:mx-4 tablet:mx-10 laptop:mb-5 laptop:mx-3" onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor='name' className="block text-sm font-medium text-black">Nama:</label>
                         <input

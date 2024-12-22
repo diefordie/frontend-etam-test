@@ -598,31 +598,49 @@ const berbayarprevSlide = () => {
       </header>
 
       {/* Sidebar ketika tampilan mobile */}
-      <aside className={`fixed top-16 pt-6 left-0 w-64 bg-white h-full transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden z-40`}>
-        <ul className="p-4 space-y-4 text-deepblue round-lg">
-        <div className="flex flex-col items-center">
-          <li>
-            {userData?.userPhoto ? (
+<aside
+  className={`fixed top-16 pt-6 left-0 w-64 bg-white h-full transition-transform transform ${
+    isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+  } lg:hidden z-40`}
+>
+  <ul className="p-4 space-y-4 text-deepblue round-lg">
+    <div className="flex flex-col items-center">
+      <li>
+        {userData?.userPhoto ? (
+          <Link legacyBehavior href={`/user/edit-profile/${userId}`}>
+            <a>
               <img
                 src={userData.userPhoto}
                 alt="profile"
                 className="h-14 w-14 cursor-pointer mb-2 rounded-full object-cover"
               />
-            ) : (
+            </a>
+          </Link>
+        ) : (
+          <Link legacyBehavior href={`/user/edit-profile/${userId}`}>
+            <a>
               <IoPersonCircle className="h-14 w-14 cursor-pointer mb-2 text-black" />
-            )}
-          </li>
-          <p className="font-bold">{userData?.name || "Guest"}</p>
-        </div>
-          {menus.map((menu, index) => (
-            <li key={index}>
-              <Link legacyBehavior href={menu.href}>
-                <a className="block hover:text-deepBlue hover:bg-paleBlue font-bold p-2">{menu.text}</a>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </aside>
+            </a>
+          </Link>
+        )}
+      </li>
+      <p className="font-bold">{userData?.name || "Guest"}</p>
+    </div>
+
+    {/* Menu Links */}
+    {menus.map((menu, index) => (
+      <li key={index}>
+        <Link legacyBehavior href={menu.href}>
+          <a className="block hover:text-deepBlue hover:bg-paleBlue font-bold p-2">
+            {menu.text}
+          </a>
+        </Link>
+      </li>
+    ))}
+  </ul>
+</aside>
+
+
 
       {/* Overlay untuk menutup sidebar */}
       {isSidebarOpen && (

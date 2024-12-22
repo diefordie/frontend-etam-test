@@ -7,6 +7,7 @@ import { AiTwotoneCamera } from 'react-icons/ai';
 import { BsTrash3 } from "react-icons/bs";
 import { BsDoorOpen } from 'react-icons/bs';
 import { AiOutlineForm } from 'react-icons/ai';
+import Swal from 'sweetalert2';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -17,54 +18,99 @@ export default function EditProfile({ params }) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    handphoneNum: '', 
     email: '',
     currentPassword: '',
     newPassword: '',
-    profileImage: '', // Menyimpan URL gambar profil
+    profileImage: '',
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [handphoneNum, setHandphoneNum] = useState('');
   const router = useRouter();
 
-  // Fungsi untuk mengambil data profil pengguna dari backend
-  const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('Token tidak tersedia');
-        return;
-      }
-
-      const response = await fetch(`https://${URL}/user/profile`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const [firstName, lastName] = data.name ? data.name.split(' ') : ["", ""];
-        setFormData({
-          firstName,
-          lastName,
-          email: data.email || '',
-          profileImage: data.userPhoto || '', // URL dari backend
-        });
-      } else {
-        console.error('Failed to fetch user data');
-        setError('Gagal mengambil data profil');
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      setError('Terjadi kesalahan saat mengambil data');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!userId) {
+      setError("User ID is not available");
+      return;
     }
-  };
+
+    const fetchHandphoneNum = async () => {
+      try {
+        const token = localStorage.getItem('token'); // Ambil token dari localStorage
+        if (!token) {
+          console.error('Token tidak tersedia');
+          setError('Autentikasi gagal. Silakan login kembali.');
+          return;
+        }
+    
+        const response = await fetch(`https://${URL}/user/profile/handphoneNum/${userId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+    
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch handphone number');
+        }
+    
+        const data = await response.json();
+        setFormData((prevState) => ({
+          ...prevState,
+          handphoneNum: data.handphoneNum || '', 
+        }));
+      } catch (err) {
+        console.error('Error fetching handphoneNum:', err);
+        setError(err.message || 'Terjadi kesalahan saat mengambil nomor handphone.');
+      }
+    };
+
+    fetchHandphoneNum();
+  }, [userId]); 
 
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('Token tidak tersedia');
+          return;
+        }
+
+        const response = await fetch(`https://${URL}/user/profile`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const [firstName, lastName] = data.name ? data.name.split(' ') : ["", ""];
+          setFormData({
+            firstName,
+            lastName,
+            email: data.email || '',
+            profileImage: data.userPhoto || '',
+          });
+        } else {
+          console.error('Failed to fetch user data');
+          setError('Gagal mengambil data profil');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setError('Terjadi kesalahan saat mengambil data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchUserData();
   }, []);
 
@@ -72,30 +118,35 @@ export default function EditProfile({ params }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, profileImage: file });
-    }
-  };
-
   const handleDeleteProfileImage = () => {
     setFormData({ ...formData, profileImage: '' });
   };
 
   const handleEdit = () => {
-    // Logika untuk menangani klik pada ikon edit
     console.log("Edit clicked");
   };
-  
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prevState) => ({
+          ...prevState,
+          profileImage: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async (event) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
 
     try {
-      // Perbarui Nama
-      await fetch(`https://${URL}/user/profile/name`, {
+      await fetch(`https://${URL}/user/profile/author/name`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +155,17 @@ export default function EditProfile({ params }) {
         body: JSON.stringify({ name: `${formData.firstName} ${formData.lastName}` }),
       });
 
-      // Perbarui Email
+      await fetch(`https://${URL}/user/profile/author/handphone`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          handphoneNum: formData.handphoneNum,
+        }),
+      });
+
       await fetch(`https://${URL}/user/profile/email`, {
         method: "PATCH",
         headers: {
@@ -114,13 +175,12 @@ export default function EditProfile({ params }) {
         body: JSON.stringify({ email: formData.email }),
       });
 
-      // Perbarui Foto Profil jika gambar diubah
-      if (formData.profileImage instanceof File) {
+      if (selectedFile) {
         const profileImageData = new FormData();
-        profileImageData.append("profileImage", formData.profileImage);
+        profileImageData.append("profileImage", selectedFile);
 
-        await fetch(`https://${URL}/user/profile/photo`, {
-          method: formData.profileImage ? "PATCH" : "POST",
+        await fetch(`https://${URL}/user/profile/author/photo`, {
+          method: "PATCH",
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -128,7 +188,6 @@ export default function EditProfile({ params }) {
         });
       }
 
-      // Perbarui Password jika `currentPassword` dan `newPassword` diisi
       if (formData.currentPassword && formData.newPassword) {
         const passwordResponse = await fetch(`https://${URL}/user/profile/password`, {
           method: "PATCH",
@@ -148,11 +207,21 @@ export default function EditProfile({ params }) {
         }
       }
 
-      alert("Profil berhasil diperbarui!");
-      router.push('/author/dashboard');
+      Swal.fire({
+        title: 'Berhasil!',
+        text: 'Profil berhasil diperbarui!',
+        icon: 'success',
+        confirmButtonText: 'OK',
+      });
+
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Gagal memperbarui profil.");
+      Swal.fire({
+        title: 'Gagal!',
+        text: 'Gagal memperbarui profil!',
+        icon: 'error',
+        confirmButtonText: 'Coba ',
+      });
     }
   };
 
@@ -166,7 +235,7 @@ export default function EditProfile({ params }) {
 
   if (error) {
     return <p>{error}</p>;
-  }
+  }  
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col p-0 md:px-0" >
@@ -266,6 +335,21 @@ export default function EditProfile({ params }) {
             </div>
 
             <div className="relative">
+              <label className="block text-gray-700 font-poppins">Nomor Handphone</label>
+              <input
+                type="text"
+                name="handphoneNum"
+                value={formData.handphoneNum}
+                onChange={handleChange}
+                className="w-full p-2 border border-black rounded-[15px] mt-1 pr-10 font-poppins"
+              />
+              <AiOutlineForm 
+              className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 cursor-pointer mt-3"
+              onClick={handleEdit} 
+            />
+            </div>
+
+            <div className="relative">
               <label className="block text-gray-700 font-poppins">Email</label>
               <input
                 type="text"
@@ -280,20 +364,28 @@ export default function EditProfile({ params }) {
             />
             </div>
 
-            <div className="relative">
-              <label className="block text-gray-700 font-poppins">Ubah Kata Sandi</label>
+            <div>
+              <label htmlFor="currentPassword" className="block text-gray-700 font-poppins">Kata Sandi Saat Ini</label>
               <input
                 type="password"
+                id="currentPassword"
                 name="currentPassword"
                 value={formData.currentPassword}
                 onChange={handleChange}
-                className="w-full p-2 border border-black rounded-[15px] mt-1 font-poppins"
-                placeholder="Current Password"
+                className="w-full p-2 border border-black rounded-[15px] mt-1 pr-10 font-poppins"
               />
-              <AiOutlineForm 
-              className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 cursor-pointer mt-3"
-              onClick={handleEdit} // Tambahkan fungsi handleEdit jika diperlukan
-            />
+            </div>
+
+            <div>
+              <label htmlFor="newPassword" className="block text-gray-700 font-poppins">Kata Sandi baru</label>
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full p-2 border border-black rounded-[15px] mt-1 pr-10 font-poppins"
+              />
             </div>
 
             <div className="flex justify-end">

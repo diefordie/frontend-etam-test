@@ -82,7 +82,7 @@ const Login = () => {
         switch (errorCode) {
             case 'FIREBASE_ERROR: EMAIL_NOT_VERIFIED':
                 return 'Email Anda belum diverifikasi. Silakan periksa email Anda untuk link verifikasi.';
-            case 'FIREBASE_ERROR: USER_NOT_FOUND':
+            case 'FIREBASE_ERROR: USER_NOT_FOUND_IN_FIREBASE':
                 return 'Email tidak terdaftar. Silakan periksa kembali atau daftar akun baru.';
             case 'FIREBASE_ERROR: WRONG_PASSWORD':
                 return 'Password salah. Silakan coba lagi.';
@@ -115,8 +115,7 @@ const Login = () => {
                 className="w-48 h-44 mx-auto object-contain mt-5 laptop:mr-20 laptop:relative laptop:h-full laptop:w-1/4 tablet:hidden laptop:block"
             />
             
-            <div className="absolute inset-x-0 -bottom-4 p-1 laptop:max-w-96 laptop:p-7 bg-powderBlue shadow-md rounded-[25px] w-full h-3/4 tablet:w-3/4  tablet:inset-0 tablet:mx-auto tablet:my-auto laptop:ml-48 laptop:h-1/2">
-            
+            <div className="absolute inset-x-0 -bottom-4 p-1 laptop:max-w-96 laptop:p-7 bg-powderBlue shadow-md rounded-[25px] w-full h-3/4 tablet:w-3/4  tablet:inset-0 tablet:mx-auto tablet:my-auto laptop:ml-48 laptop:h-[500px]">
                 <h2 className="text-3xl font-bold mb-4 text-black text-center my-8 tablet:my-10 laptop:my-3">Login</h2>
                 <form className="space-y-4 mt-12 mobile:mx-4 tablet:mx-10 laptop:mb-5" onSubmit={handleSubmit}>
                     <div>

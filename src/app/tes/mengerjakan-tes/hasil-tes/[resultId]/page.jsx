@@ -138,7 +138,7 @@ const saveWorkTime = (time) => {
 
       try {
         // Fetch test result data
-        const resultResponse = await fetch(`https://${URL}/tests/test-result/${resultId}`);
+        const resultResponse = await fetch(`https://${URL}/api/tests/test-result/${resultId}`);
         if (!resultResponse.ok) {
           throw new Error('Failed to fetch test result details');
         }
@@ -154,7 +154,7 @@ const saveWorkTime = (time) => {
         }
 
         // Now fetch leaderboard data using the fetched test identifier
-        const leaderboardResponse = await fetch(`https://${URL}/api/leaderboard/${testId}`);
+        const leaderboardResponse = await fetch(`https://${URL}/api/leaderboard/${fetchedTestId}`);
         if (!leaderboardResponse.ok) {
           throw new Error('Failed to fetch leaderboard data');
         }
@@ -389,7 +389,6 @@ const saveWorkTime = (time) => {
       localStorage.removeItem(`remainingTime_${sessionId}`);
       localStorage.removeItem(`workTime_${sessionId}`);
       localStorage.removeItem(`sessionId`);
-      localStorage.removeItem(currentOption);
   
       console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
     } else {
@@ -520,80 +519,75 @@ const saveWorkTime = (time) => {
             </p>
         </div>
       ))}
-    
+      
       <section className='bg-white p-8 text-bold'>
-        <div>
-          {/* Main Content */}
-          <main className="bg-abumuda p-1 pt-0 rounded-lg shadow-lg mt-0">
+  <div>
+    {/* Main Content */}
+    <main className="bg-abumuda p-4 lg:p-8 rounded-2xl shadow-xl mt-0 w-full max-w-screen-xl mx-auto">
 
-            {/* Score Progress Bar */}
-            <div className='mb-4 bg-deepBlue p-5 lg:p-8 rounded-lg'>
-              {user.map((user,index)=> (
-                <div className="w-full bg-white h-8 rounded-full overflow-hidden ">
-                  <div
-                    className="bg-paleBlue h-8 flex relative items-center justify-center text-deepBlue font-bold text-lg transition-all duration-300"
-                    style={{ width: getProgressWidth() }} // width sesuai dengan persentase
-                  > 
-                    <div className='absolute right-0 bg-white text-deepBlue p-2 border border-grey shadow '>
-                    {userData.score} {/* Menampilkan nilai total */}
-                    </div>
-                  </div>
-                </div>
-                
-              ))}
+      {/* Score Progress Bar */}
+      <div className='mb-4 bg-deepBlue p-5 lg:p-8 rounded-xl'>
+        {user.map((user, index) => (
+          <div className="w-full bg-white h-8 rounded-full overflow-hidden">
+            <div
+              className="bg-paleBlue h-8 flex relative items-center justify-center text-deepBlue font-bold text-sm lg:text-lg transition-all duration-300"
+              style={{ width: getProgressWidth() }} // width sesuai dengan persentase
+            >
+              <div className='absolute right-0 bg-white text-deepBlue p-2 border border-grey shadow'>
+                {userData.score} {/* Menampilkan nilai total */}
+              </div>
             </div>
+          </div>
+        ))}
+      </div>
 
-            {/* Flex container for Performance and Top Score */}
-            <div className="flex flex-col md:flex-row justify-center items-center gap-8 pt-0 text-center">
-              {/* Performance Section */}
-              {user.map((user, index) => (
-                <div className="bg-abumuda p-6 flex-1 flex flex-col items-center pr-5 pb-8">
-                  <h3 className="text-4xl font-semibold text-deepBlue">Performa</h3>
-                  <div className="flex items-center gap-4 mt-4">
-                    <div className="flex text-sm lg:text-2xl items-center text-black block font-semibold bg-white p-2 pr-8 rounded-lg">
-                      <ul>
-                        <li><i className=" fa-solid fa-xmark text-red-500"></i> {userData.wrongAnswers} </li>
-                        <li>Salah</li>
-                      </ul>
-                    </div>
-                    <div className="text-black text-sm lg:text-2xl font-semibold bg-white p-2 pr-8 rounded-lg ">
-                      <ul>
-                        <li><i className=" fa-solid fa-check text-green"></i> {userData.correctAnswers} </li>
-                        <li>Benar</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="text-black mt-2 flex items-center gap-4">
-                    <div className="text-sm lg:text-2xl bg-white p-2 font-semibold rounded-lg">
-                      <ul>
-                        <li><i className="fa-solid fa-clock text-grey "></i> {formatTime(workTime)} </li>
-                        <li> Waktu</li>
-                      </ul>
-                    </div>
-                    {/* <div className="text-sm lg:text-2xl bg-white p-2 font-semibold rounded-lg">
-                      <ul>
-                      <li>{userRank !== null ? userRank : 'N/A'}</li>
-                        <li>Peringkat</li>
-                      </ul>
-                    </div> */}
-                    <div className="text-sm lg:text-2xl font-semibold bg-white px-5 p-2 rounded-lg">
-                      <ul>
-                        <li>{userData.score} </li>
-                        <li>Nilai</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="flex space-x-3 group-hover:opacity-100 transition-opacity duration-300 z-30 pt-4">
-                  <a onClick={handleDownloadPDF} className="bg-white border border-deepBlue text-[0.5rem] lg:text-lg text-deepBlue text-bold px-2  lg:px-2 py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue cursor-pointer">
-                    Unduh Pembahasan Soal
-                  </a>
-                  <a href= {`/user/topscore/${testId}`} className="bg-paleBlue border border-deepBlue text-[0.5rem] lg:text-lg text-deepBlue text-bold px-6  lg:px-7 py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue">
-                    Lihat Top Score
-                  </a>
-                </div>
-                </div>
-                
-              ))}
+      {/* Flex container for Performance and Top Score */}
+      <div className="flex flex-col md:flex-row justify-center items-center gap-8 pt-0 text-center w-full">
+        {/* Performance Section */}
+        {user.map((user, index) => (
+          <div className="bg-abumuda p-6 flex-1 flex flex-col items-center pr-5 pb-8 w-full md:w-1/2 xl:w-1/3">
+            <a href="#performa" className="text-xl sm:text-2xl lg:text-3xl font-semibold text-deepBlue">
+            Performa
+            </a>
+
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-4 w-full">
+              <div className="flex text-sm lg:text-2xl items-center justify-center text-black block font-semibold bg-white p-2 pr-4.5 rounded-lg w-full md:w-auto">
+                <ul>
+                  <li><i className="fa-solid fa-xmark text-red-500"></i> {userData.wrongAnswers} </li>
+                  <li>Salah</li>
+                </ul>
+              </div>
+              <div className="text-black text-sm lg:text-2xl font-semibold bg-white p-2 pr-4.5 rounded-lg w-full md:w-auto">
+                <ul>
+                  <li><i className="fa-solid fa-check text-green"></i> {userData.correctAnswers} </li>
+                  <li>Benar</li>
+                </ul>
+              </div>
+            </div>
+            <div className="text-black mt-2 flex flex-col md:flex-row items-center justify-center gap-4 w-full">
+              <div className="text-sm lg:text-2xl bg-white p-2 font-semibold rounded-lg w-full md:w-auto">
+                <ul>
+                  <li><i className="fa-solid fa-clock text-grey"></i> {formatTime(workTime)} </li>
+                  <li> Waktu</li>
+                </ul>
+              </div>
+              <div className="text-sm lg:text-2xl font-semibold bg-white px-5 p-2 rounded-lg w-full md:w-auto">
+                <ul>
+                  <li>{userData.score} </li>
+                  <li>Nilai</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 items-center justify-center group-hover:opacity-100 transition-opacity duration-300 z-30 pt-4 w-full">
+              <a onClick={handleDownloadPDF} className="bg-white border border-deepBlue text-[0.8rem] lg:text-lg text-deepBlue text-bold px-2 lg:px-2 py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue cursor-pointer w-full md:w-auto">
+                Unduh Pembahasan Soal
+              </a>
+              <a href={`/user/topscore/${testId}`} className="bg-paleBlue border border-deepBlue text-[0.8rem] lg:text-lg text-deepBlue text-bold px-6 lg:px-7 py-2 rounded-full inline-block hover:bg-orange hover:text-deepBlue w-full md:w-auto">
+                Lihat Top Score
+              </a>
+            </div>
+          </div>
+        ))}
 
               {/* Top Score Section */}
               <div className="bg-white hidden lg:block p-2 flex-1 rounded-lg shadow-md">
@@ -622,11 +616,10 @@ const saveWorkTime = (time) => {
 
 
             </div>
-            
           </main>
-            
         </div>
       </section>
     </>
   );
 }
+
