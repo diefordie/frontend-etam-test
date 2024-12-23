@@ -205,6 +205,7 @@ useEffect(() => {
     }
 
     try {
+      setLoading(true);
       const response = await fetch(`https://${URL}/tes/${testId}/detail`, { // Ganti URL dengan endpoint yang benar
         method: 'GET',
         headers: {
@@ -223,6 +224,8 @@ useEffect(() => {
       console.error('Error fetching test data:', error);
       setError('Gagal mengambil data soal');
     }
+
+    setLoading(false);
   };
 
   fetchTestData();

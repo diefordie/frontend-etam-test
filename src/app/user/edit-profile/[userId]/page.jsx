@@ -154,11 +154,14 @@ export default function EditProfile({ params }) {
     }
   };
   
+
+  
   const handleSave = async (event) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
   
     try {
+      setLoading(true);
       // Update Name
       await fetch(`https://${URL}/user/profile/name`, {
         method: "PATCH",
@@ -229,6 +232,8 @@ export default function EditProfile({ params }) {
         icon: 'error',
         confirmButtonText: 'Coba ',
       });
+    } finally {
+      setLoading(false);
     }
   };  
 
@@ -358,7 +363,7 @@ export default function EditProfile({ params }) {
             />
             </div>
 
-            <div>
+            <div className="relative">
               <label htmlFor="currentPassword" className="block text-gray-700 font-poppins">Kata Sandi Saat Ini</label>
               <input
                 type="password"
@@ -369,9 +374,13 @@ export default function EditProfile({ params }) {
                 onChange={handleChange}
                 className="w-full p-2 border border-black rounded-[15px] mt-1 pr-10 font-poppins"
               />
+                <AiOutlineForm 
+                className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 cursor-pointer mt-3"
+                onClick={handleEdit} 
+              />
             </div>
 
-            <div>
+            <div className="relative">
               <label htmlFor="newPassword" className="block text-gray-700 font-poppins">Kata Sandi baru</label>
               <input
                 type="password"

@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { jwtDecode } from "jwt-decode";
 import { IoPersonCircle } from "react-icons/io5";
@@ -24,6 +23,7 @@ function TestPayment() {
   const [error, setError] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [errorUser, setErrorUser] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
@@ -67,6 +67,7 @@ function TestPayment() {
 
   useEffect(() => {
       const fetchUserData = async () => {
+        setLoading(true);
         let token;
         if (typeof window !== 'undefined') {
           token = localStorage.getItem('token');
@@ -109,6 +110,7 @@ function TestPayment() {
             router.push('/login');
           }
         } finally {
+          setLoading(false);
           setLoadingUser(false);
         }
       };
@@ -118,6 +120,7 @@ function TestPayment() {
 
   useEffect(() => {
     const fetchTestDetail = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`https://${URL}/api/tests/get-test/${testId}`);
         if (!response.ok) {
@@ -126,13 +129,15 @@ function TestPayment() {
         }
         const data = await response.json();
         console.log('Data fetched:', data);
-        setTestCategory(data.data.category);
-        setTestTitle(data.data.title);
-        setTestSimilarity(data.data.similarity);
-        setTestPrice(data.data.price);
+        setTestCategory(data.category);
+        setTestTitle(data.title);
+        setTestSimilarity(data.similarity);
+        setTestPrice(data.price);
       } catch (error) {
         console.error('Failed to fetch test details:', error);
         setError('Terjadi kesalahan: ' + error.message);
+      } finally {
+        setLoading(false);
       }
     };
       fetchTestDetail(); // Memanggil API ketika testId ada
@@ -144,6 +149,7 @@ function TestPayment() {
         const token = localStorage.getItem('token'); // Ambil token dari localStorage
         
         // Ambil token dari backend
+        setLoading(true);
         const response = await fetch(`https://${URL}/api/payment/payment-process`, {
           method: 'POST',
           headers: {
@@ -161,22 +167,28 @@ function TestPayment() {
           window.snap.pay(data.token, {
             onSuccess: function (result) {
               console.log('Payment success:', result);
+              setLoading(false);
             },
             onPending: function (result) {
               console.log('Payment pending:', result);
+              setLoading(false);
             },
             onError: function (result) {
               console.log('Payment error:', result);
+              setLoading(false);
             },
             onClose: function () {
               console.log('Payment dialog closed');
+              setLoading(false);
             },
           });
         } else {
           console.error('Failed to get payment token:', data.error);
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error during payment:', error);
+        setLoading(false);
       }
     } else {
       console.error('Test ID not found');
@@ -185,11 +197,12 @@ function TestPayment() {
 
   const handleLogout = async () => {
     try {
+        setLoading(true);
         const response = await fetch(`https://${URL}/auth/logout`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu
+                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu,
             },
         });
         if (!response.ok) {
@@ -201,6 +214,8 @@ function TestPayment() {
         window.location.href = '/auth/login';
     } catch (error) {
         console.error('Error during logout:', error);
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -232,7 +247,7 @@ const Navbar = ({testCategory}) => {
                       <li>/</li>
                       <li>
                       <Link href={`/tes/category/${testCategory?.toLowerCase()}`} className="hover:text-orange font-poppins font-bold text-white">
-                        Try Out {testCategory}
+                        Latihan Tes {testCategory}
                       </Link>
                       </li>
                       <li>/</li>

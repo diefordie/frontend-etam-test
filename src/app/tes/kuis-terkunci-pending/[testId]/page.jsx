@@ -337,59 +337,6 @@ const startWorkTime = () => {
     }, 1000);
 };
 
-useEffect(() => {
-    if (!sessionId) return; // Jangan lanjutkan jika sessionId belum ada
-
-    const storedWorkTime = localStorage.getItem(`workTime_${sessionId}`);
-    setWorkTime(storedWorkTime ? parseInt(storedWorkTime) : 0);
-
-    const fetchRemainingTime = async () => {
-        if (!sessionId) return; // Validasi sessionId sebelum digunakan
-        const storedRemainingTime = localStorage.getItem(`remainingTime_${sessionId}`);
-        if (storedRemainingTime) {
-            const time = Number(storedRemainingTime);
-            if (!isNaN(time) && time > 0) {
-                setRemainingTime(time);
-                setTimerActive(true);
-                startWorkTime();
-                startCountdown(time);
-            }
-        } else {
-            // Fetch dari backend jika tidak ditemukan di localStorage
-            try {
-                const response = await fetch(`https://${URL}/timer/${testId}/worktime`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!response.ok) throw new Error('Failed to fetch worktime');
-
-                const data = await response.json();
-                const { hours, minutes, seconds } = data;
-                const totalWorkTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
-
-                if (totalWorkTimeInSeconds > 0) {
-                    setRemainingTime(totalWorkTimeInSeconds);
-                    setTimerActive(true);
-                    localStorage.setItem(`remainingTime_${sessionId}`, totalWorkTimeInSeconds);
-                    startWorkTime();
-                    startCountdown(totalWorkTimeInSeconds);
-                } else {
-                    setRemainingTime(0);
-                    alert('Waktu sudah habis!');
-                }
-            } catch (error) {
-                console.error('Failed to fetch worktime:', error);
-                alert('Gagal mengambil waktu kerja.');
-            }
-        }
-    };
-
-    fetchRemainingTime();
-
-    return () => {
-        clearInterval(workTimeInterval.current);
-        clearInterval(countdownInterval.current);
-    };
-}, [sessionId, testId, token]);
 
     // Fungsi untuk memulai countdown waktu pengerjaan    // Memulai countdown timer
     const startCountdown = () => {
