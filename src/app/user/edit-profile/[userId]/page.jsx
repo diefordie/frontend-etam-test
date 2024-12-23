@@ -26,6 +26,23 @@ export default function EditProfile({ params }) {
   const [error, setError] = useState(null);
   const router = useRouter();
 
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
   // Fungsi untuk mengambil data profil pengguna dari backend
   const fetchUserData = async () => {
     try {
@@ -87,7 +104,6 @@ export default function EditProfile({ params }) {
     // Logika untuk menangani klik pada ikon edit
     console.log("Edit clicked");
   };
-  
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -161,7 +177,7 @@ export default function EditProfile({ params }) {
   };
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <LoadingAnimation />;
   }
 
   if (error) {
@@ -234,6 +250,7 @@ export default function EditProfile({ params }) {
         {/* Form */}
         <div className="w-full max-w-[1228px] mx-auto mt-0 p-4 bg-white shadow-md border border-black rounded-md">
           <form className="space-y-4 mt-4" onSubmit={handleSave}>
+
           <div className="relative">
             <label className="block text-gray-700 font-poppins">Nama Depan</label>
             <input
@@ -246,7 +263,7 @@ export default function EditProfile({ params }) {
             {/* Ikon Edit Menggunakan react-icons */}
             <AiOutlineForm 
               className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 cursor-pointer mt-3"
-              onClick={handleEdit} // Tambahkan fungsi handleEdit jika diperlukan
+              onClick={handleEdit} 
             />
           </div>
 
@@ -261,7 +278,7 @@ export default function EditProfile({ params }) {
               />
               <AiOutlineForm 
               className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 cursor-pointer mt-3"
-              onClick={handleEdit} // Tambahkan fungsi handleEdit jika diperlukan
+              onClick={handleEdit}
             />
             </div>
 
@@ -276,7 +293,7 @@ export default function EditProfile({ params }) {
               />
               <AiOutlineForm 
               className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 cursor-pointer mt-3"
-              onClick={handleEdit} // Tambahkan fungsi handleEdit jika diperlukan
+              onClick={handleEdit} 
             />
             </div>
 
@@ -292,7 +309,7 @@ export default function EditProfile({ params }) {
               />
               <AiOutlineForm 
               className="absolute right-6 top-1/2 transform -translate-y-1/2 w-5 h-5 cursor-pointer mt-3"
-              onClick={handleEdit} // Tambahkan fungsi handleEdit jika diperlukan
+              onClick={handleEdit} 
             />
             </div>
 

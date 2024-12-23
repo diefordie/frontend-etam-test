@@ -11,7 +11,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
-const VerifikasiAuthor2 = () => {
+const DataAuthor = () => {
   const [data, setData] = useState([]); // State for backend data
   const [filter, setFilter] = useState("semua"); // State for filtering
   const [authors, setAuthors] = useState([]);
@@ -20,6 +20,23 @@ const VerifikasiAuthor2 = () => {
   const [loadingUser, setLoadingUser] = useState(true);
   const [token, setToken] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value.toLowerCase());
@@ -98,22 +115,26 @@ const VerifikasiAuthor2 = () => {
   };
   
 
-const { aktif, nonaktif, total } = getStatusCount();
+  const { aktif, nonaktif, total } = getStatusCount();
 
-const handleStatusChange = async (id, newStatus) => {
-  try {
-   
-    await axios.patch(`https://${URL}/author/edit-author/${id}/status`, { isApproved: newStatus === 'Aktif' });
+  const handleStatusChange = async (id, newStatus) => {
+    try {
     
-    setAuthors(authors.map(author => 
-      author.id === id ? { ...author, isApproved: newStatus === 'Aktif' } : author
-    ));
-  } catch (error) {
-    console.error('Error updating author status:', error);
-    
+      await axios.patch(`https://${URL}/author/edit-author/${id}/status`, { isApproved: newStatus === 'Aktif' });
+      
+      setAuthors(authors.map(author => 
+        author.id === id ? { ...author, isApproved: newStatus === 'Aktif' } : author
+      ));
+    } catch (error) {
+      console.error('Error updating author status:', error);
+      
+    }
+  };
+
+  if (loading) {
+    return <LoadingAnimation />;
   }
-};
- 
+  
   return (
     <>
      
@@ -285,4 +306,4 @@ const handleStatusChange = async (id, newStatus) => {
   );
 };
 
-export default VerifikasiAuthor2;
+export default DataAuthor;

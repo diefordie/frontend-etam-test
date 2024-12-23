@@ -23,6 +23,23 @@ const TopScore = () => {
     const [userData, setUserData] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
 
+    const LoadingAnimation = () => (
+      <div className="flex items-center justify-center h-screen bg-white duration-300">
+        <div className="relative">
+          {/* Roket */}
+          <img
+            src="/images/rocket.png"
+            alt="Rocket Loading"
+            className="w-20 md:w-40 lg:w-55 animate-rocket"
+          />
+          {/* Tulisan */}
+          <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+            Loading...
+          </p>
+        </div>
+      </div>
+    );
+
     useEffect(() => {
         const fetchScores = async () => {
             if (!params.testId) return;
@@ -98,110 +115,117 @@ const TopScore = () => {
       }, []);
 
     useEffect(() => {
-        const fetchTestTitle = async () => {
-            if (!params.testId) return;
+      const fetchTestTitle = async () => {
+        if (!params.testId) return;
     
-            setLoadingTitle(true);
-            try {
-                const response = await axios.get(`https://${URL}/test/get-test/${params.testId}`);
-                if (response.status === 200 && response.data && response.data.data && response.data.data.title) {
-                    setTestTitle(response.data.data.title);
-                } else {
-                    throw new Error('Invalid response format');
-                }
-            } catch (error) {
-                console.error('Error fetching test title:', error);
-                setTestTitle('Untitled Test'); // Fallback title
-            } finally {
-                setLoadingTitle(false);
-            }
-        };
+        setLoadingTitle(true); // Mulai loading
+        try {
+          const response = await axios.get(`https://${URL}/test/get-test/${params.testId}`);
+          if (
+            response.status === 200 &&
+            response.data &&
+            response.data.data &&
+            response.data.data.title
+          ) {
+            setTestTitle(response.data.data.title); // Set judul tes jika berhasil
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } catch (error) {
+          console.error('Error fetching test title:', error);
+          setTestTitle('Untitled Test'); // Fallback jika terjadi error
+        } finally {
+          setLoadingTitle(false); // Selesai loading
+        }
+      };
     
-        fetchTestTitle();
+      fetchTestTitle();
     }, [params.testId]);
 
     const handleHome = () => {
         // Redirect ke halaman dashboard
         router.push('/user/dashboard');
     };
-      
 
-
+    if (loading) {
+      return <LoadingAnimation />;
+    }
+     
     return (
         <div className="min-h-screen bg-[#FFFFFF] font-sans">
             {/* Header */}
             <header className="relative flex w-full bg-deepBlue text-white p-3 items-center z-50">
-        <div className="flex justify-between items-center w-full">
-          <div className="flex items-center p-2 lg:ml-9">
-            <Link href="/">
-              <img 
-                src="/images/etamtest.png" 
-                alt="EtamTest" 
-                className="lg:h-14 h-8 mr-3 object-contain" 
-              />
-            </Link> 
-          </div>
-
-          <div className="relative flex  items-center">
-            <div className="mx-auto">
-              <h5 className="text-xl lg:text-3xl font-bold font-bodoni lg:mr-8">Top Score</h5>
-              <nav className="mt-0 lg:mt-1">
-                <ol className="list-reset flex space-x-2">
-                  <li>
-                  <Link href="/user/dashboard" legacyBehavior>
-                      <a onClick={handleHome} className="text-[0.6rem] lg:text-sm hover:text-orange font-poppins font-bold">Home</a>
-                    </Link>
-                  </li>
-                  <li>/</li>
-                  <li>
-                    <Link href={`/user/topscore/${params.testId}`} legacyBehavior>
-                      <a className="text-[0.6rem] lg:text-sm hover:text-orange font-poppins font-bold">Top Score</a>
-                    </Link>
-                  </li>
-                </ol>
-              </nav>
-            </div>
-            <div className="relative inline-block">
-              {userData?.userPhoto ? (
-                <img
-                  src={userData.userPhoto}
-                  alt="User Profile"
-                  className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
-                  onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => setDropdownOpen(false)}
-                />
-              ) : (
-                <IoPersonCircle
-                  className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
-                  onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => setDropdownOpen(false)}
-                />
-              )}
-              {/* Dropdown */}
-              {isDropdownOpen && (
-                <div 
-                  className="absolute right-0 mt-1 w-35 bg-white rounded-lg shadow-lg z-10 p-1
-                              before:content-[''] before:absolute before:-top-4 before:right-8 before:border-8 
-                              before:border-transparent before:border-b-white"
-                  onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => setDropdownOpen(false)}
-                >
-                  <Link legacyBehavior href="/profile-edit">
-                    <a className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
-                      Ubah Profil
-                    </a>
-                  </Link>
-                  <Link legacyBehavior href="/logout">
-                    <a className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md">
-                      Logout
-                    </a>
-                  </Link>
+              <div className="flex justify-between items-center w-full">
+                <div className="flex items-center p-2 lg:ml-9">
+                  <Link href="/">
+                    <img 
+                      src="/images/etamtest.png" 
+                      alt="EtamTest" 
+                      className="lg:h-14 h-8 mr-3 object-contain" 
+                    />
+                  </Link> 
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+
+                <div className="relative flex  items-center">
+                  <div className="mx-auto">
+                    <h5 className="text-xl lg:text-3xl font-bold font-bodoni lg:mr-8">Top Score</h5>
+                    <nav className="mt-0 lg:mt-1">
+                      <ol className="list-reset flex space-x-2">
+                        <li>
+                        <Link href="/user/dashboard" legacyBehavior>
+                            <a onClick={handleHome} className="text-[0.6rem] lg:text-sm hover:text-orange font-poppins font-bold">Home</a>
+                          </Link>
+                        </li>
+                        <li>/</li>
+                        <li>
+                          <Link href={`/user/topscore/${params.testId}`} legacyBehavior>
+                            <a className="text-[0.6rem] lg:text-sm hover:text-orange font-poppins font-bold">Top Score</a>
+                          </Link>
+                        </li>
+                      </ol>
+                    </nav>
+                  </div>
+                  <div className="relative inline-block">
+                    {userData?.userPhoto ? (
+                      <img
+                        src={userData.userPhoto}
+                        alt="User Profile"
+                        className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
+                        onMouseEnter={() => setDropdownOpen(true)}
+                        onMouseLeave={() => setDropdownOpen(false)}
+                      />
+                    ) : (
+                      <IoPersonCircle
+                        className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
+                        onMouseEnter={() => setDropdownOpen(true)}
+                        onMouseLeave={() => setDropdownOpen(false)}
+                      />
+                    )}
+                    {/* Dropdown */}
+                    {isDropdownOpen && (
+                      <div 
+                        className="absolute right-0 mt-1 w-35 bg-white rounded-lg shadow-lg z-10 p-1
+                                    before:content-[''] before:absolute before:-top-4 before:right-8 before:border-8 
+                                    before:border-transparent before:border-b-white"
+                        onMouseEnter={() => setDropdownOpen(true)}
+                        onMouseLeave={() => setDropdownOpen(false)}
+                      >
+                        <Link legacyBehavior href="/profile-edit">
+                          <a className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
+                            Ubah Profil
+                          </a>
+                        </Link>
+                        <Link legacyBehavior href="/logout">
+                          <a className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md">
+                            Logout
+                          </a>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </header>
 
             {/* Main Content */}
             <main className="max-w-6xl mx-auto mt-6 px-4 sm:px-0">
