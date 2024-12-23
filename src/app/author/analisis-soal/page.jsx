@@ -37,6 +37,22 @@ export default function Home() {
   const publishTests = authorTests.filter(test => test.status === 'publish');
   const draftTests = authorTests.filter(test => test.status === 'draft');
 
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
   
   useEffect(() => {
     console.log('Author Tests:', authorTests);
@@ -277,6 +293,12 @@ export default function Home() {
   
   const uniqueKategori = ['Semua Kategori', ...new Set(authorTests.map(test => test.kategori))];
 
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
+
   return (
     <>
       <div className="flex h-screen font-poppins">
@@ -288,6 +310,7 @@ export default function Home() {
           <div className="text-white mb-5">
             <img src="/images/etamtest.png" alt="Logo" className="h-auto w-36" />
           </div>
+
           <nav>
             <ul className="space-y-3">
               <li className="text-white cursor-pointer py-2 px-4 hover:bg-deepBlue  rounded-lg">

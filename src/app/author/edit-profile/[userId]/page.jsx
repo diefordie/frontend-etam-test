@@ -14,6 +14,24 @@ dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function EditProfile({ params }) {
+
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
   const { userId } = params;
   const [formData, setFormData] = useState({
     firstName: '',
@@ -281,9 +299,8 @@ export default function EditProfile({ params }) {
   };
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <LoadingAnimation />;
   }
-
   if (error) {
     return <p>{error}</p>;
   }  

@@ -27,11 +27,22 @@ export default function Favorite() {
   const [likedItems, setLikedItems] = useState({});
   const [userId, setUserId] = useState(null);
   
-    const LoadingSpinner = () => (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-deepBlue"></div>
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
       </div>
-    );
+    </div>
+  );
 
   useEffect(() => {
     const getUserIdFromToken = () => {
@@ -115,21 +126,20 @@ export default function Favorite() {
   }, []);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-        setToken(storedToken);
-    }
-}, []);
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+          setToken(storedToken);
+      }
+  }, []);
 
 if (loading && !error) {
   return <div className="text-center mt-20">Loading...</div>;
 }
 
 useEffect(() => {
-  // Inisialisasi semua item sebagai liked secara default
   const initialLikedState = {};
   favorites.forEach((test) => {
-    initialLikedState[test.id] = true; // Set semua item ke 'liked' saat pertama kali
+    initialLikedState[test.id] = true; 
   });
   setLikedItems(initialLikedState);
 }, []);
@@ -138,10 +148,10 @@ const menus = [
   {href:'/user/dashboard', text: "Home"},
   {href:'/user/favorite', text: "Favorit"},
   {href:'/user/riwayat-transaksi', text: "Transaksi"},
+  {href:'/auth/login', text: "Logout" , className: "block md:hidden lg:hidden"},
 ]
 
 const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
 
 const toggleSidebar = () => {
   setIsSidebarOpen(!isSidebarOpen);
@@ -152,8 +162,7 @@ const toggleSidebar = () => {
   }
 };
 
-// Ambil status like dari server saat komponen dimuat
-// Mengambil status like dari server saat komponen dimuat
+
 useEffect(() => {
   const fetchFavoritesData = async () => {
     setLoading(true);
@@ -195,7 +204,7 @@ useEffect(() => {
 }, [token]);
 
 
-// Mengambil status like dari local storage saat pertama kali komponen dimuat jika belum ada dari server
+
 useEffect(() => {
   const storedLikedItems = localStorage.getItem('likedItems');
   if (storedLikedItems && !Object.keys(likedItems).length) {
@@ -203,12 +212,12 @@ useEffect(() => {
   }
 }, []);
 
-// Mengupdate local storage setiap kali likedItems diupdate
+
 useEffect(() => {
   localStorage.setItem('likedItems', JSON.stringify(likedItems));
 }, [likedItems]);
 
-// Fungsi toggle like/unlike
+
 const toggleLike = async (id) => {
   const isLiked = likedItems[id];
 
@@ -262,31 +271,37 @@ const toggleLike = async (id) => {
   }
 };
 
-// Logout function
-const handleLogout = async () => {
-  try {
+  // Logout function
+  const handleLogout = async () => {
+    setLoading(true); 
+    try {
       const response = await fetch(`https://${URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu
-          },
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`, 
+        },
       });
+  
       if (!response.ok) {
-          throw new Error('Logout failed');
+        throw new Error('Logout failed');
       }
-
+  
       localStorage.clear();
-
+      
       window.location.href = '/auth/login';
-  } catch (error) {
+    } catch (error) {
       console.error('Error during logout:', error);
-  }
-};
+      setError('Logout gagal. Silakan coba lagi.'); 
+    } finally {
+      setLoading(false); // Mengakhiri proses loading
+    }
+  };
 
-if (loading) {
-  return <LoadingSpinner />;
-}
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
 
   return (
 
@@ -319,7 +334,7 @@ if (loading) {
             <nav className="md:block lg:block flex">
               <ul className="flex lg:space-x-7 md:space-x-4">
                 {menus.map((menu, index) => (
-                  <li key={index}>
+                  <li key={index} className={menu.className || ''}>
                     <Link legacyBehavior href={menu.href}>
                       <a className="hidden hover:text-orange font-bold lg:block">{menu.text}</a>
                     </Link>
@@ -426,7 +441,7 @@ if (loading) {
             {favorites.length === 0 || favorites.filter((test) => !test.isHidden).length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center text-center text-gray-500 h-screen">
                   <TbFileSad className="text-6xl lg:text-8xl  -mt-20" />
-                  <p className="mt-2">Tidak ada data ditemukan</p>
+                  <p className="mt-2">Tidak ada tes favorite</p>
                 </div>
               ) : (
             favorites.filter((test) => !test.isHidden).map((test) => (

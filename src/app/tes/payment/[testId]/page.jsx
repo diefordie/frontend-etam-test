@@ -25,6 +25,24 @@ function TestPayment() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [errorUser, setErrorUser] = useState(null);
 
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
+
   useEffect(() => {
     const snapScript = "https://app.sandbox.midtrans.com/snap/snap.js"
     const clientKey = process.env.PUBLIC_CLIENT_KEY
@@ -276,6 +294,8 @@ const Navbar = ({testCategory}) => {
   );
 };
 
+
+
 // Box Content Component
 const PaymentBox = ({ testTitle, testPrice, testSimilarity }) => {
   return (
@@ -310,6 +330,11 @@ const PaymentBox = ({ testTitle, testPrice, testSimilarity }) => {
     </div>
   );
 };
+
+if (loading) {
+  return <LoadingAnimation />;
+}
+
 
   return (
     <div className="min-h-screen flex flex-col">

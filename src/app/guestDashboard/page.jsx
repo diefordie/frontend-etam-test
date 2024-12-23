@@ -6,7 +6,8 @@ import { FaEye } from "react-icons/fa";
 import { SlBookOpen } from "react-icons/sl";
 import { IoIosLock } from "react-icons/io";
 import { IoPersonCircle } from "react-icons/io5";
-import { FaSearch } from "react-icons/fa";
+import { IoSearch } from "react-icons/io5";
+import { IoSadOutline } from "react-icons/io5";
 import { IoMenu } from "react-icons/io5";
 import Image from 'next/image';
 
@@ -25,17 +26,34 @@ export default function GuestDashboard() {
   const [error, setError] = useState([null]);
   const isLoggedIn = false;
 
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     const fetchPopularTests = async () => {
       try {
         const response = await fetch(`https://${URL}/dashboard/popular-tests`);
         if (!response.ok) {
-          throw new Error("Failed to fetch popular tests");
+          throw new Error('Failed to fetch popular tests');
         }
         const data = await response.json();
         setPopularTests(data);
       } catch (error) {
-        console.error("Error fetching popular tests:", error);
+        console.error('Error fetching popular tests:', error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -50,12 +68,12 @@ export default function GuestDashboard() {
       try {
         const response = await fetch(`https://${URL}/dashboard/free-tests`);
         if (!response.ok) {
-          throw new Error("Failed to fetch free tests");
+          throw new Error('Failed to fetch free tests');
         }
         const data = await response.json();
         setFreeTests(data);
       } catch (error) {
-        console.error("Error fetching free tests:", error);
+        console.error('Error fetching free tests:', error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -70,20 +88,20 @@ export default function GuestDashboard() {
       try {
         const response = await fetch(`https://${URL}/dashboard/locked-tests`);
         if (!response.ok) {
-          throw new Error("Failed to fetch locked tests");
+          throw new Error("Failed to fetch paid tests");
         }
         const data = await response.json();
         setBerbayarTests(data);
       } catch (error) {
-        console.error("Error fetching locked tests:", error);
+        console.error("Error fetching paid tests:", error);
         setError(error.message);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchBerbayarTests();
-  }, []);
+  }, []); 
 
   const debounce = (func, delay) => {
     let timer;
@@ -92,13 +110,12 @@ export default function GuestDashboard() {
       timer = setTimeout(() => func(...args), delay);
     };
   };
-
+  
   const handleSearch = debounce(async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
       return;
     }
-    setLoading(true);
     try {
       const response = await fetch(`https://${URL}/dashboard/search-tests?title=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error("Failed to search tests");
@@ -110,13 +127,20 @@ export default function GuestDashboard() {
     } finally {
       setLoading(false);
     }
-  }, 500); 
-
+  }, 500);
+  
   const handleInputChange = (e) => {
-    const value = e.target.value || ''; 
+    const value = e.target.value || '';
     setSearchQuery(value);
+  
+    // Update sementara ke UI
+    if (!value.trim()) {
+      setSearchResults([]);
+    }
+  
+    // Trigger debounce untuk pencarian sebenarnya
     handleSearch(value);
-  }; 
+  };
 
   if (loading && !error) {
     return <div className="text-center mt-20">Loading...</div>;
@@ -316,6 +340,10 @@ export default function GuestDashboard() {
     }
   };
 
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   return (
     <>
       {/* Header */}
@@ -410,24 +438,27 @@ export default function GuestDashboard() {
       {/* Search Bar */}
       <section className="bg-gradient-custom p-20 lg:pt-40 pt-30">
       <div className="container justify-between mt-10 lg:mt-4 lg:max-w-[610px] max-w-full">
-        <form
-          onSubmit={handleSearch}
-          className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins sm:max-w-[400px] lg:max-w-[610px] justify-between"
-        >
-          <input
+      <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearch(searchQuery);
+            }}
+            className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins sm:max-w-[400px] lg:max-w-[610px] justify-between"
+          >
+            <input
               type="text"
               placeholder="Cari Tes Soal"
               className="flex-grow p-1 lg:p-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
               value={searchQuery}
               onChange={handleInputChange}
             />
-          <button
-            type="submit"
-            className="p-1 sm:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins flex items-center justify-end"
-          >
-            <FaSearch className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="p-1 sm:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins flex items-center justify-end"
+            >
+              <IoSearch className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
+            </button>
+          </form>
       </div>
     </section>
 
@@ -540,6 +571,15 @@ export default function GuestDashboard() {
           </div>
         </section>
       )}
+      {!loading && searchQuery.trim() && searchResults.length === 0 && (
+        <section className="block mx-auto p-5 font-poppins relative">
+          <div className="flex flex-col items-center text-gray-500 font-poppins mt-5">
+            <IoSadOutline className="text-4xl lg:text-6xl text-gray-400" />
+            <p className="mt-2 font-bold">Tidak ada hasil yang ditemukan.</p>
+            <p className="text-sm">Coba gunakan kata kunci lain!</p>
+          </div>
+        </section>
+      )}
 
       {/* Bagian Katagori */}
       <section className="block mx-auto p-3 text-deepBlue">
@@ -559,8 +599,8 @@ export default function GuestDashboard() {
                       <Image
                         src={category.src}
                         alt={category.alt}
-                        layout="fill" // Gambar memenuhi elemen pembungkus
-                        objectFit="cover" // Menjaga gambar proporsional
+                        fill // Mengganti layout="fill"
+                        style={{ objectFit: "cover" }} // Memindahkan objectFit ke style
                         className="rounded-lg hover:scale-90 hover:shadow-lg hover:shadow-gray-400"
                         priority
                       />

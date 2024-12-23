@@ -28,6 +28,25 @@ const DetailSoal = () => {
   const [testData, setTestData] = useState([]);
   const { testId } = useParams(); 
   const router = useRouter();
+
+
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
   const menus = [
     {href:'/', text: "Home"},
     {href:'/fav', text: "Favorit"},
@@ -351,6 +370,10 @@ const handleStartTryOut = async () => {
         console.error('Error during logout:', error);
     }
   };
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
   
 
   return (

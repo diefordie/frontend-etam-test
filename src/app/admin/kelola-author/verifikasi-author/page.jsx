@@ -11,7 +11,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
-const VerifikasiAuthor2 = () => {
+const VerifikasiAuthor = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +19,24 @@ const VerifikasiAuthor2 = () => {
   const [data, setData] = useState([]); // Data dengan kelengkapan dokumen
   const [error, setError] = useState(null);
   const [errorUser, setErrorUser] = useState(null);
+
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value.toLowerCase());
@@ -130,28 +148,6 @@ const VerifikasiAuthor2 = () => {
     }
   };
 
-  // Logout function
-  const handleLogout = async () => {
-    try {
-        const response = await fetch(`http://${URL}/auth/logout`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu
-            },
-        });
-        if (!response.ok) {
-            throw new Error('Logout failed');
-        }
-
-        localStorage.clear();
-
-        window.location.href = '/auth/login-admin';
-    } catch (error) {
-        console.error('Error during logout:', error);
-    }
-  };
-  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const toggleSidebar = () => {
@@ -168,6 +164,11 @@ const VerifikasiAuthor2 = () => {
     {href:'/admin/kelola-author', text: "Kelola Author"},
     {href:'/auth/login-admin', text: "Logout"},
   ]
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+  
 
   return (
       <>
@@ -353,6 +354,6 @@ const VerifikasiAuthor2 = () => {
   );
 };
 
-export default VerifikasiAuthor2;
+export default VerifikasiAuthor;
 
 

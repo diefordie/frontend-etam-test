@@ -8,6 +8,7 @@ import { AiOutlineBars } from "react-icons/ai";
 import { IoPersonCircle } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import { IoIosLock } from "react-icons/io";
+import { IoSadOutline } from "react-icons/io5";
 import { SlBookOpen } from "react-icons/sl";
 import { FaEye } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
@@ -21,7 +22,7 @@ export default function CPNS() {
   const [freeTestsByCategory, setFreeTestsByCategory] = useState([]);
   const [berbayarTests, setBerbayarTests] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [searchQuery, setSearchQuery] = useState (['']);
+  const [searchQuery, setSearchQuery] = useState ('');
   const [loading, setLoading] = useState([true]);
   const [error, setError] = useState([null]);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -30,6 +31,23 @@ export default function CPNS() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [errorUser, setErrorUser] = useState(null);
   const [userId, setUserId] = useState(null);
+
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     const getUserIdFromToken = () => {
@@ -102,7 +120,7 @@ export default function CPNS() {
           if (typeof window !== 'undefined') {
             localStorage.removeItem('token');
           }
-          router.push('/login');
+          router.push('/auth/login');
         }
       } finally {
         setLoadingUser(false);
@@ -179,21 +197,45 @@ export default function CPNS() {
     fetchFreeTestsByCategory();
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery) return;
-
+  const debounce = (func, delay) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  };
+  
+  const handleSearch = debounce(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
     try {
-      const response = await fetch(`https://${URL}/dashboard/search-tests-by-category?title=${encodeURIComponent(searchQuery)}&category=CPNS`);
-      if (!response.ok) {
-        throw new Error('Failed to search tests');
-      }
+      const response = await fetch(`https://${URL}/dashboard/search-tests-by-category?title=${encodeURIComponent(
+          searchQuery
+        )}&category=CPNS`);
+      if (!response.ok) throw new Error("Failed to search tests");
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
-      console.error('Error searching tests:', error);
+      console.error("Error searching tests:", error);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
+  }, 500);
+  
+  const handleInputChange = (e) => {
+    const value = e.target.value || '';
+    setSearchQuery(value);
+  
+    // Update sementara ke UI
+    if (!value.trim()) {
+      setSearchResults([]);
+    }
+  
+    // Trigger debounce untuk pencarian sebenarnya
+    handleSearch(value);
   };
 
   if (loading && !error) {
@@ -339,13 +381,6 @@ export default function CPNS() {
       }
   };
 
-  const menus = [
-    {href:'/', text: "Home"},
-    {href:'/fav', text: "Favorit"},
-    {href:'/transaksi', text: "Transaksi"},
-
-  ]
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -362,33 +397,36 @@ export default function CPNS() {
   // Ambil status like dari local storage atau API saat komponen dimuat
   useEffect(() => {
     const fetchFavorites = async () => {
+      setLoading(true); // Mulai loading
       try {
         const response = await fetch(`https://${URL}/api/favorites`, {
-          method: 'GET',
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         if (!response.ok) {
-          throw new Error('Failed to fetch favorites');
+          throw new Error("Failed to fetch favorites");
         }
         const favoriteTests = await response.json();
-  
+
         // Buat objek liked items berdasarkan favoriteTests
         const initialLikedItems = {};
-        favoriteTests.forEach(test => {
+        favoriteTests.forEach((test) => {
           initialLikedItems[test.id] = true; // Asumsikan test.id adalah ID dari tes
         });
-  
+
         setLikedItems(initialLikedItems);
       } catch (error) {
-        console.error('Error fetching favorite tests:', error);
+        console.error("Error fetching favorite tests:", error);
+      } finally {
+        setLoading(false); // Akhiri loading
       }
     };
-  
+
     // Memanggil fetchFavorites untuk mendapatkan favorit dari server
     fetchFavorites();
-  }, [token]);
+  }, [token, URL]);
   
   // Mengambil status like dari local storage saat pertama kali komponen dimuat
   useEffect(() => {
@@ -462,6 +500,10 @@ export default function CPNS() {
     }
   };
 
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+  
   return (
     <>
     <header className="relative flex w-full bg-deepBlue text-white p-3 items-center z-50">
@@ -555,29 +597,32 @@ export default function CPNS() {
 {/* Search Bar */}
       <section className="bg-gradient-custom p-20 lg:pt-40 pt-30">
         <div className="container justify-between mt-10 lg:mt-4 lg:max-w-[610px] max-w-full ">
-          <form
-            onSubmit={handleSearch}
+        <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearch(searchQuery);
+            }}
             className="flex items-center p-1 rounded-2xl bg-white w-full font-poppins sm:max-w-[400px] lg:max-w-[610px] justify-between"
           >
             <input
               type="text"
               placeholder="Cari Tes Soal"
-              className="flex-grow p-1 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins w-full sm:max-w-[400px] md:max-w-[300px] lg:max-w-[400px]"
+              className="flex-grow p-1 lg:p-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-powderBlue font-poppins max-w-[130px] lg:max-w-[610px]"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleInputChange}
             />
             <button
               type="submit"
               className="p-1 sm:p-2 text-deepBlue font-bold rounded-2xl hover:bg-gray-200 font-poppins flex items-center justify-end"
             >
-            <IoSearch className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
+              <IoSearch className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
             </button>
           </form>
         </div>
       </section>
     
     {/* Bagian search bar */}
-    {searchResults.length > 0 && (
+    {!loading && searchQuery.trim() && searchResults.length > 0 && (
         <section className="block mx-auto p-5 font-poppins relative">
         <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
             Hasil Pencarian
@@ -671,6 +716,15 @@ export default function CPNS() {
             </button>
         </div>
       </section>
+      )}
+      {!loading && searchQuery.trim() && searchResults.length === 0 && (
+        <section className="block mx-auto p-5 font-poppins relative">
+          <div className="flex flex-col items-center text-gray-500 font-poppins mt-5">
+            <IoSadOutline className="text-4xl lg:text-6xl text-gray-400" />
+            <p className="mt-2 font-bold">Tidak ada hasil yang ditemukan.</p>
+            <p className="text-sm">Coba gunakan kata kunci lain!</p>
+          </div>
+        </section>
       )}
 
     {/* Bagian Paling Populer */}

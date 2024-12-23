@@ -13,17 +13,38 @@ dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
 
-const VerifikasiAuthor1 = () => {
+const DashboardAuthor = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
+
+
 
   const [dashboardStats, setDashboardStats] = useState({
     totalUsers: 0,
     totalAuthors: 0,
     totalPublishedTests: 0
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
+  
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
@@ -31,8 +52,7 @@ const VerifikasiAuthor1 = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            // Add authentication header if required
-            // 'Authorization': `Bearer ${yourAuthToken}`
+          
           },
         });
 
@@ -69,6 +89,11 @@ const VerifikasiAuthor1 = () => {
       document.body.classList.remove('overflow-hidden');
     }
   };
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+   
 
   return (
     <>  
@@ -177,4 +202,4 @@ const VerifikasiAuthor1 = () => {
   );
 };
 
-export default VerifikasiAuthor1 ;
+export default DashboardAuthor ;

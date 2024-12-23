@@ -25,17 +25,36 @@ export default function RiwayatTransaksiHeader() {
   const { testId } = useParams();
   const [userId, setUserId] = useState(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
   
-    const handleCopy = (vaNumber) => {
-      navigator.clipboard.writeText(vaNumber);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    };
+  const handleCopy = (vaNumber) => {
+    navigator.clipboard.writeText(vaNumber);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   const menus = [ 
     { href: '/user/dashboard', text: "Home" },
     { href: '/user/favorite', text: "Favorit" },
     { href: '/user/riwayat-transaksi', text: "Transaksi" },
+    {href:'/auth/login', text: "Logout" , className: "block md:hidden lg:hidden"},
   ];
   
   const toggleSidebar = () => {
@@ -146,23 +165,36 @@ const handleLogout = async () => {
   }
 };
 
+if (loading) {
+  return <LoadingAnimation />;
+}
+
+
   return (
     <>
       {/* Sidebar ketika tampilan mobile */}
       <aside className={`fixed top-16 pt-6 left-0 w-64 bg-white h-full transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden z-40`}>
         <ul className="p-4 space-y-4 text-deepblue round-lg">
           <div className="flex flex-col items-center">
-          {userData?.userPhoto ? (
-              <img 
-                src={userData.userPhoto} // Gunakan foto dari userData jika ada
-                alt="profile" 
-                className="h-14 w-14 cursor-pointer mb-2 rounded-full object-cover" 
-              />
+          <li>
+            {userData?.userPhoto ? (
+              <Link legacyBehavior href={`/user/edit-profile/${userId}`}>
+                <a>
+                  <img
+                    src={userData.userPhoto}
+                    alt="profile"
+                    className="h-14 w-14 cursor-pointer mb-2 rounded-full object-cover"
+                  />
+                </a>
+              </Link>
             ) : (
-              <IoPersonCircle 
-                className="h-14 w-14 text-gray-500 cursor-pointer mb-2 rounded-full" // Fallback ke ikon IoPersonCircle
-              />
+              <Link legacyBehavior href={`/user/edit-profile/${userId}`}>
+                <a>
+                  <IoPersonCircle className="h-14 w-14 cursor-pointer mb-2 text-black" />
+                </a>
+              </Link>
             )}
+          </li> 
             <p className="font-bold">{userData?.name}</p>
           </div>
           {menus.map((menu, index) => (
@@ -174,14 +206,6 @@ const handleLogout = async () => {
           ))}
         </ul>
       </aside>
-
-      {/* Overlay Sidebar */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black opacity-50 lg:hidden z-30"
-          onClick={toggleSidebar} // Klik overlay menutup sidebar
-        ></div>
-      )}
 
       {/* Overlay Sidebar */}
       {isSidebarOpen && (
@@ -213,7 +237,7 @@ const handleLogout = async () => {
             <nav className="md:block lg:block flex">
               <ul className="flex lg:space-x-7 md:space-x-4">
                 {menus.map((menu, index) => (
-                  <li key={index}>
+                  <li key={index} className={menu.className || ''}>
                     <Link legacyBehavior href={menu.href}>
                       <a className="hidden hover:text-orange font-bold lg:block">{menu.text}</a>
                     </Link>
@@ -221,18 +245,18 @@ const handleLogout = async () => {
                 ))}
               </ul>
             </nav>
-            <div className="relative inline-block">
+            <div className="relative inline-block hidden lg:block">
               {userData?.userPhoto ? (
                 <img
                   src={userData.userPhoto}
                   alt="User Profile"
-                  className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
+                  className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover "
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 />
               ) : (
                 <IoPersonCircle
-                  className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
+                  className="h-14 w-14 rounded-full cursor-pointer text-white mr-5 "
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 />
@@ -275,7 +299,7 @@ const handleLogout = async () => {
         </div>
       )}
 
-      <nav className="w-full h-[51px] sm:h-[68px] bg-white shadow-md overflow-x-hidden">
+      <nav className="w-full h-[51px] sm:h-[68px] bg-white shadow-md ">
         <div className="container mx-auto flex flex-nowrap justify-start space-x-2 py-2 sm:py-2">
           {['Belum Bayar', 'Berhasil (Belum Dikerjakan)', 'Selesai (Sudah Dikerjakan)', 'Tidak Berhasil'].map((tab) => (
             <button
@@ -289,7 +313,7 @@ const handleLogout = async () => {
         </div>
       </nav>
 
-      <div className="container mx-auto p-4 space-y-4 h-screen">
+      <div className="container mx-auto p-4 space-y-4 ">
   {getDataByTab().length === 0 ? (
     <div className="flex flex-col items-center justify-center text-center text-gray-500 h-screen">
       <TbFileSad className="text-8xl mb-4" />
