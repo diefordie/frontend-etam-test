@@ -6,6 +6,11 @@ import { useEffect, useState, Suspense } from 'react';
 import { auth } from '@/app/firebase/config';
 import { applyActionCode, confirmPasswordReset } from "firebase/auth";
 
+import dotenv from 'dotenv';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
+
 function EmailVerificationContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -59,7 +64,7 @@ function EmailVerificationContent() {
         }
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:2000/auth/reset-password', {
+            const response = await fetch(`https://${URL}/auth/reset-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

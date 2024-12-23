@@ -87,16 +87,25 @@ const Login = () => {
                     throw new Error('Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.');
                 }
             }
-    
-            console.log("Login berhasil:", data);
             localStorage.setItem('token', data.token);
             
-            // Redirect berdasarkan role
-            if (data.user.role === 'AUTHOR') {
-                router.push('/author/dashboard'); 
-            } else {
-                router.push('/user/dashboard'); 
-            }
+            Swal.fire({
+                icon: 'success',
+                title: 'Login Berhasil',
+                text: 'Anda berhasil masuk ke akun Anda.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                // Redirect berdasarkan role
+                if (data.user.role === 'AUTHOR') {
+                    router.push('/author/dashboard');
+                } else {
+                    router.push('/user/dashboard');
+                }
+            });
+
+            
+            
         } catch (err) {
             console.error("Kesalahan login", err);
     
@@ -163,7 +172,7 @@ const Login = () => {
                         </span>
                     </div>
                     <p className="text-right mt-4 text-xs">
-                        <Link href="/auth/forgot-password" className="text-black  hover:underline">Lupa Password</Link>
+                        <Link href="/auth/login/forgot-password" className="text-black  hover:underline">Lupa Password</Link>
                     </p>
                     </div>
                     <div className="flex justify-center">

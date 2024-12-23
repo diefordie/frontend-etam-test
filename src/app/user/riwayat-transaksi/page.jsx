@@ -281,7 +281,7 @@ const handleLogout = async () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`text-lg px-4 pb-2 text-xs sm:text-lg ${activeTab === tab ? 'text-[#0B61AA] border-b-4 border-[#0B61AA]' : 'text-gray-500'} hover:text-[#0B61AA]`}
+              className={`text-lg px-4 pb-2 sm:text-lg ${activeTab === tab ? 'text-[#0B61AA] border-b-4 border-[#0B61AA]' : 'text-gray-500'} hover:text-[#0B61AA]`}
             >
               {formatStatus(tab)}
             </button>
@@ -289,7 +289,7 @@ const handleLogout = async () => {
         </div>
       </nav>
 
-      <div className="container mx-auto p-4 space-y-4 overflow-y-auto h-screen">
+      <div className="container mx-auto p-4 space-y-4 h-screen">
   {getDataByTab().length === 0 ? (
     <div className="flex flex-col items-center justify-center text-center text-gray-500 h-screen">
       <TbFileSad className="text-8xl mb-4" />

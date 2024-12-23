@@ -10,9 +10,10 @@ import { FaEye } from "react-icons/fa";
 import { IoIosLock } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 import { useRouter } from 'next/navigation';
 import dotenv from 'dotenv';
+
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -152,7 +153,7 @@ export default function Home() {
         setLoading(true);
         const token = localStorage.getItem('token');
         
-        const response = await axios.get(`https://${URL}/author/tests`, {
+        const response = await axios.get(`https://${URL}/api/author/tests`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -421,15 +422,15 @@ useEffect(() => {
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
-                  <Link legacyBehavior href={`/author/edit-profile`}>
-                    <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
+                  <Link legacyBehavior href={`/author/edit-profile/${userId}`}>
+                    <a className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
                       Ubah Profil
                     </a>
                   </Link>
                   <Link legacyBehavior href="/auth/login">
                     <a
                       onClick={handleLogout}
-                      className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+                      className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md"
                     >
                       Logout
                     </a>
@@ -467,12 +468,12 @@ useEffect(() => {
                     <a>Home</a>
                   </Link>
                 </li>
-                <li className="text-white cursor-pointer py-2 px-4 hover:bg-deepBlue rounded-lg bg-opacity-50 rounded-lg py-2 px-4 min-w-[200px]">
+                <li className="text-white cursor-pointer py-2 px-4 hover:bg-deepBlue rounded-lg bg-opacity-50 min-w-[200px]">
                   <Link legacyBehavior href="/author/analisis-soal">
                     <a>Analisis Soal</a>
                   </Link>
                 </li>
-                <li className="text-white cursor-pointer py-2 px-4 hover:bg-deepBlue rounded-lg bg-opacity-50 rounded-lg py-2 px-4 min-w-[200px]">
+                <li className="text-white cursor-pointer py-2 px-4 hover:bg-deepBlue rounded-lg bg-opacity-50  min-w-[200px]">
                   <Link legacyBehavior href="/author/my-saldo">
                     <a>My Saldo</a>
                   </Link>
@@ -518,7 +519,7 @@ useEffect(() => {
         
             <div className="flex pr-4 gap-5 mt-4 ml-3 justify-between">
               <div className="flex pr-4 gap-5 mt-4 ml-3 ">
-                <div className="bg-[#F3F3F3] px-3 py-1 max-w-auto justify-between item-center rounded-[15px] shadow-lg shadow-lg text-[#0B61AA]">
+                <div className="bg-[#F3F3F3] px-3 py-1 max-w-auto justify-between item-center rounded-[15px] shadow-lg text-[#0B61AA]">
                   <span>Total Soal</span>
                   <span className="font-semibold ml-4">{authorData?.[0]?.totalSoal || 0}</span>
 
@@ -592,7 +593,7 @@ useEffect(() => {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-contain rounded-full"
                           />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />

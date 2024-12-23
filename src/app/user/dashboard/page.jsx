@@ -372,10 +372,10 @@ const berbayarprevSlide = () => {
   };
 
   const categories = [
-    { href: '/tes/category/pemrograman', src: '/images/pemrograman.png', alt: 'pemrograman' },
-    { href: '/tes/category/cpns', src: '/images/cpns.png', alt: 'cpns' },
-    { href: '/tes/category/psikotes', src: '/images/psikotes.png', alt: 'psikotes' },
-    { href: '/tes/category/utbk', src: '/images/utbk.png', alt: 'utbk' },
+    { href: '/tes/category/pemrograman', src: '/images/pemrograman.svg', alt: 'pemrograman' },
+    { href: '/tes/category/cpns', src: '/images/cpns.svg', alt: 'cpns' },
+    { href: '/tes/category/psikotes', src: '/images/psikotes.svg', alt: 'psikotes' },
+    { href: '/tes/category/utbk', src: '/images/utbk.svg', alt: 'utbk' },
   ];
 
   // fungsi slider catagories

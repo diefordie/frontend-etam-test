@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { IoPersonCircle } from "react-icons/io5";
 import { IoWalletOutline } from "react-icons/io5";
@@ -15,7 +16,7 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Home() {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
-    const [userId, setUserId] = useState(null);
+    const [authorData, setAuthorData] = useState(null);
     const [userData, setUserData] = useState(null);
     const [showHistory, setShowHistory] = useState(false);
     const [showNotification, setShowNotification] = useState(false); 
@@ -32,11 +33,64 @@ export default function Home() {
     const [errorUser, setErrorUser] = useState(null);
     const [token, setToken] = useState('');
     const [authorProfit, setAuthorProfit] = useState(null);
+    const [transactions, setTransactions] = useState([]);
 
+    const banks = ['BCA', 'BNI', 'MANDIRI', 'Bank Lainnya'];
 
-    const recipientName = "Abellia Putri Dwi Masita"; 
-    const recipientAccount = "1328811353"; 
-    const banks = ['BNI', 'MANDIRI', 'Bank Lainnya'];
+    useEffect(() => {
+        if (showHistory) {
+          const fetchTransactionHistory = async () => {
+            try {
+              const token = localStorage.getItem('token');
+              if (!token) {
+                throw new Error('No authentication token found');
+              }
+              
+              const response = await fetch(`https://${URL}/api/withdrawals/history`, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+    
+              if (!response.ok) {
+                throw new Error('Failed to fetch transaction history');
+              }
+    
+              const data = await response.json();
+              setTransactions(data); 
+            } catch (error) {
+              console.error('Error fetching transaction history:', error);
+            }
+          };
+    
+          fetchTransactionHistory();
+        }
+      }, [showHistory]);
+
+    useEffect(() => {
+        const fetchAuthorData = async () => {
+          try {
+            const token = localStorage.getItem('token');
+    
+            if (!token) {
+              throw new Error('No authentication token found');
+            }
+    
+            const response = await axios.get(`https://${URL}/author/authorID`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });    
+            setAuthorData(response.data.data);
+          } catch (err) {
+            console.error('Error fetching author data:', err);
+            setError(err.message);      }
+        };
+    
+        fetchAuthorData();
+      }, []);
 
     useEffect(() => {
       const fetchUserData = async () => {
@@ -75,7 +129,6 @@ export default function Home() {
             console.error('Error fetching user data:', error);
             setErrorUser('Gagal mengambil data pengguna');
             if (error.message === 'Failed to fetch user data') {
-            // Token mungkin tidak valid atau kadaluarsa
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('token');
             }
@@ -96,35 +149,11 @@ export default function Home() {
         }
       }, []);
 
-  useEffect(() => {
-    const getAuthorProfit = async () => {
-        try {
-            const response = await fetch(`https://${URL}/author/${userId}`, { // nanti ubah id nya ke id
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch author profit');
-
-            const data = await response.json();
-            setAuthorProfit(data);
-            console.log('Author profit:', data);
-        } catch (error) {
-            console.error('Error fetching author profit:', error);
-        }
-        
-    };
-
-    getAuthorProfit();
-  }, []);
-
 
     const handleBankChange = (e) => {
     setSelectedBank(e.target.value);
     if (e.target.value !== 'Bank Lainnya') {
-      setOtherBankName(''); // Reset jika bank lainnya tidak dipilih
+      setOtherBankName('');
     }
   };
 
@@ -146,7 +175,7 @@ export default function Home() {
       const payload = {
         withdrawAmount,
         bank: selectedBank === 'Bank Lainnya' ? otherBankName : selectedBank,
-        notes, // Tambahkan notes ke payload
+        notes, 
       };
   
       console.log('Mengirim data:', payload);
@@ -175,10 +204,47 @@ export default function Home() {
     },);
   };
 
-  const handleProcessClick = () => {
+  const handleProcessClick = async () => {
+    // Menyembunyikan notifikasi jika penarikan dimulai
     setShowNotification(false); 
-    setShowProcessNotification(true); 
-  };
+    
+    try {
+        const token = localStorage.getItem('token');
+    
+        if (!token) {
+            throw new Error('No authentication token found');
+        }
+
+        const response = await fetch(`https://${URL}/api/withdrawals/payout`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                beneficiary_bank: selectedBank.toLowerCase(),
+                beneficiary_account: accountNumber,
+                amount: withdrawAmount,
+                notes: notes,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.error || 'Terjadi kesalahan. Pastikan data diisi dengan benar dan saldo anda mencukupi');
+            return;
+        }
+
+        setShowProcessNotification(true);
+
+        const result = await response.json();
+        console.log('Response:', result);
+        alert('Penarikan berhasil!');
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Penarikan gagal.');
+    }
+};  
 
   const toggleHistory = () => {
     setShowHistory(!showHistory);
@@ -189,23 +255,22 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleWithdrawInput = (e) => {
-    const value = e.target.value.replace(/\D/g, ''); // Hanya izinkan angka
+    const value = e.target.value.replace(/\D/g, '');
     setWithdrawAmount(value);
 
-    // Validasi minimal 50.000 dan kelipatan 1.000
     if (value < 50000) {
       setErrorMessage('Nominal minimal adalah Rp 50.000.');
     } else if (value % 10000 !== 0) {
       setErrorMessage('Nominal harus dalam kelipatan Rp 10.000.');
     } else {
-      setErrorMessage(''); // Bersihkan pesan error jika validasi terpenuhi
+      setErrorMessage(''); 
     }
 
   };
   
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+      const response = await fetch(`http://${URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -311,7 +376,9 @@ export default function Home() {
             <section className="saldo-section bg-[#f1f1f1] rounded-lg p-5 shadow-md w-full">
             <div className="saldo-container flex items-center justify-between mb-5 px-8">
                 <div className="saldo-amount font-normal whitespace-nowrap text-[#0B61AA] lg:text-3xl">
-                Rp {Number(authorProfit?.data?.profit).toLocaleString('id-ID')}.00,-
+                {authorData?.profit !== undefined && authorData?.profit !== null
+                    ? `Rp ${Number(authorData.profit).toLocaleString('id-ID')}.00,-`
+                    : 'Rp 0.00,-'}
                 </div>
                 <button
                     onClick={handleWithdrawClick}
@@ -440,14 +507,22 @@ export default function Home() {
             <div className="history-content relative mt-2 transition-all duration-300">
                 <div className="relative mt-5">
                 <table className="min-w-[500] lg:min-w-[930px] mx-8 border-collapse border border-gray-200 text-left rounded-lg bg-white shadow-lg">
-                    <thead>
+                <thead>
                     <tr className="bg-[#0b61aa] text-white">
-                        <th className="py-3 px-4">ID Transaksi</th>
-                        <th className="py-3 px-4">Tanggal</th>
-                        <th className="py-3 px-4">Jumlah</th>
-                        <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">No. Reference</th>
+                    <th className="py-3 px-4">Tanggal</th>
+                    <th className="py-3 px-4">Jumlah</th>
                     </tr>
-                    </thead>
+                </thead>
+                <tbody>
+                    {transactions.map((transaction) => (
+                    <tr key={transaction.id}>
+                        <td className="py-3 px-4">{transaction.reference}</td>
+                        <td className="py-3 px-4">{new Date(transaction.createdAt).toLocaleDateString()}</td>
+                        <td className="py-3 px-4">{transaction.amount.toLocaleString()}</td>
+                    </tr>
+                    ))}
+                </tbody>
                 </table>
                 </div>
             </div>
@@ -469,11 +544,11 @@ export default function Home() {
               <div className="text-left mb-2">
                 <p className="flex justify-between mb-4 text-sm sm:text-base max-[580px]:text-xs">
                   <span>Rekening Tujuan:</span>
-                  <strong className="font-normal">{recipientAccount}</strong>
+                  <strong className="font-normal">{accountNumber}</strong>
                 </p>
                 <p className="flex justify-between mb-4 text-sm sm:text-base max-[580px]:text-xs">
                   <span>Nama Penerima:</span>
-                  <strong>{recipientName}</strong>
+                  <strong>{userData?.name}</strong>
                 </p>
                 <hr className="border-t-1 border-black mb-4" />
                 <p className="flex justify-between mb-4 text-sm sm:text-base max-[580px]:text-xs">
@@ -484,14 +559,6 @@ export default function Home() {
                   <span>Total:</span>
                   <strong>Rp {totalAmount.toLocaleString('id-ID')}</strong>
                 </p>
-              </div>
-              <div className="flex items-center justify-between mb-8 sm:mb-28 max-[580px]:mb-6">
-                <label className="block mr-2 text-sm sm:text-base max-[580px]:text-xs">Kata Sandi</label>
-                <input
-                  type="password"
-                  placeholder="Masukkan kata sandi"
-                  className="bg-transparent border-b border-black focus:outline-none focus:border-b-2 focus:border-black text-black-500 placeholder-black placeholder-opacity-50 flex-grow max-[580px]:flex-grow-0 max-[580px]:w-[60%] max-[580px]:text-xs"
-                />
               </div>
               <button
                 className="bg-[#0B61AA] w-full sm:w-auto h-10 text-white px-4 py-2 rounded-lg mt-3 sm:mt-0 text-sm sm:text-base max-[580px]:text-xs"

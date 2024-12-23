@@ -389,6 +389,7 @@ const saveWorkTime = (time) => {
       localStorage.removeItem(`remainingTime_${sessionId}`);
       localStorage.removeItem(`workTime_${sessionId}`);
       localStorage.removeItem(`sessionId`);
+      localStorage.removeItem(`currentOption`);
   
       console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
     } else {

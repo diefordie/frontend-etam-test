@@ -539,7 +539,7 @@ const LandingPage = () => {
       {
         title: "Membuat Soal",
         desc: "Buat soal untuk membantu komunitas atau tingkatkan kemampuanmu dengan soal dari author berkualitas.",
-        img: "/images/Gift.png",
+        img: "/images/Gift.svg",
       },
       {
         title: "Penilaian Otomatis",
@@ -606,7 +606,7 @@ const LandingPage = () => {
           {/* Logo */}
           <div className="mb-2">
             <Image
-              src="/images/Vector.png"
+              src="/images/logo.svg"
               alt="Etam Test Logo"
               width={100}
               height={100}

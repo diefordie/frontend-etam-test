@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { IoMdArrowRoundBack } from "react-icons/io";
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -9,19 +10,17 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const BuatTes = () => {
   const router = useRouter();
-  const [jenisTes, setJenisTes] = useState('');
+  const [jenisTes, setJenisTes] = useState('PilihanGanda');
   const [kategoriTes, setKategoriTes] = useState('');
-  const [namaTes, setNamaTes] = useState('');
+  const [namaTes, setNamaTes] = useState(''); 
   const [deskripsi, setDeskripsi] = useState('');
 
-  const [showJenisDropdown, setShowJenisDropdown] = useState(false);
   const [showKategoriDropdown, setShowKategoriDropdown] = useState(false);
 
   const [activeTab, setActiveTab] = useState('buatTes');
 
-  const jenisDropdownRef = useRef(null);
   const kategoriDropdownRef = useRef(null);
-  const [authorId, setAuthorId] = useState('');
+  const [authorId, setAuthorId] = useState(null);
 
   useEffect(() => {
     const fetchAuthorId = async () => {
@@ -47,7 +46,6 @@ const BuatTes = () => {
         setAuthorId(authorData.id);
       } catch (error) {
         console.error('Error fetching author data:', error);
-        // Handle error (e.g., redirect to login page)
       }
     };
 
@@ -56,9 +54,6 @@ const BuatTes = () => {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (jenisDropdownRef.current && !jenisDropdownRef.current.contains(event.target)) {
-        setShowJenisDropdown(false);
-      }
       if (kategoriDropdownRef.current && !kategoriDropdownRef.current.contains(event.target)) {
         setShowKategoriDropdown(false);
       }
@@ -73,7 +68,7 @@ const BuatTes = () => {
   
     const newTest = {
       authorId: authorId,
-      type: jenisTes,
+      type: jenisTes, 
       category: kategoriTes,
       title: namaTes,
       testDescription: deskripsi
@@ -91,7 +86,7 @@ const BuatTes = () => {
       if (response.ok) {
         console.log('Tes berhasil disimpan!');
         const result = await response.json();
-        const testId = result.id;  // Menggunakan 'id' dari respons
+        const testId = result.id;
         if (testId) {
           router.push(`/author/buatSoal?testId=${testId}`);
         } else {
@@ -103,21 +98,25 @@ const BuatTes = () => {
     } catch (error) {
       console.error('Error:', error);
     }
-  };
+  };  
 
   return (
     <>
     {/* Header dengan Warna Biru Kustom */}
-      <header className="bg-deepBlue text-white p-4 sm:p-6 w-auto h-[80px]">
-        <div className="container  flex items-center">
-          <div className="flex space-x-4 w-full">
-            <Link href="/author/dashboard">
-              <img src="/images/etamtest.png" alt="EtamTest" className="h-6 sm:h-9 absolute left-16 absolute top-5" // Gunakan positioning absolute untuk posisi kiri
-                style={{ maxWidth: '279px' }} />
-            </Link>
-          </div>
-        </div>
-      </header>
+    <header className="bg-[#0B61AA] text-white p-6 font-poppins" style={{ maxWidth: '1440px', height: '108px' }}>
+  <div className="container mx-auto flex justify-start items-center max-w-7xl px-4">
+    <Link href="/author/dashboard">
+      <IoMdArrowRoundBack className="text-white text-3xl sm:text-3xl lg:text-4xl ml-2" />
+    </Link>
+    <Link href="/author/dashboard">
+      <img src="/images/etamtest.png" alt="Etamtest" className="h-[50px] ml-4" style={{ maxWidth: '179px' }} />
+    </Link>
+  </div>
+</header>
+
+
+
+
 
       {/* Navigasi */}
       <nav className="bg-[#FFFFFF] text-black p-4">
@@ -156,54 +155,15 @@ const BuatTes = () => {
 
               {/* Bar putih di samping */}
               <div className="bg-white p-6 rounded-md shadow-lg w-full h-[550px] sm:mr-0 mr-10">
-                {/* Dropdown Jenis Tes */}
+                {/* Jenis Tes Langsung Pilihan Ganda */}
                 <div className="mb-4 sm:pt-4">
-                  <div className="relative" ref={jenisDropdownRef}>
-                    <button
-                      className="w-full border border-gray-300 p-2 rounded-full flex justify-between items-center bg-white"
-                      onClick={() => setShowJenisDropdown(!showJenisDropdown)}
-                    >
-                      <span className="font-poppins text-gray-500 italic">{jenisTes || 'Jenis Tes'}</span>
-                      <svg
-                        className="w-4 h-4 ml-2 text-gray-500"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M6.293 9.293a1 1 0 011.414 0L10 10.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                    {showJenisDropdown && (
-                    <div className="absolute z-10 w-full mt-1 border border-gray-300 bg-white rounded-md shadow-lg">
-                      <ul className="absolute z-10 w-full mt-1 border border-gray-300 bg-white rounded-md shadow-lg">
-                        <li>
-                          <button
-                            className="font-poppins w-full text-left px-4 py-2 text-gray-700 italic hover:bg-gray-100"
-                            onClick={() => { setJenisTes('PilihanGanda'); setShowJenisDropdown(false); }}
-                          >
-                            Pilihan Ganda
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            className="font-poppins w-full text-left px-4 py-2 text-gray-700 italic hover:bg-gray-100"
-                            onClick={() => { setJenisTes('Essay'); setShowJenisDropdown(false); }}
-                          >
-                            Essay
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-                    )}
-
-                  </div>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 p-2 rounded-full text:sm sm:text-lg"
+                    value="Pilihan Ganda"
+                    readOnly
+                  />
                 </div>
-
                 {/* Dropdown Kategori Tes */}
                 <div className="mb-4 sm:pt-12 w-full  mr-0 sm:mr-0">
                   <div className="relative" ref={kategoriDropdownRef}>
@@ -226,6 +186,7 @@ const BuatTes = () => {
                         />
                       </svg>
                     </button>
+
                     {showKategoriDropdown && (
                       <div className="absolute z-10 w-full mt-1 border border-gray-300 bg-white rounded-md shadow-lg">
                         <ul className="absolute z-10 w-full mt-1 border border-gray-300 bg-white rounded-md shadow-lg">
@@ -247,10 +208,18 @@ const BuatTes = () => {
                           </li>
                           <li>
                             <button
-                              className="font-poppins w-full text-left px-4 py-2 text-gray-700 italic hover:bg-gray-100 truncate"
-                              onClick={() => { setKategoriTes('PEMROGRAMAN'); setShowKategoriDropdown(false); }}
+                              className="font-poppins w-full text-left px-4 py-2 text-gray-700 italic hover:bg-gray-100"
+                              onClick={() => { setKategoriTes('Pemrograman'); setShowKategoriDropdown(false); }}
                             >
-                              PEMROGRAMAN
+                              Pemrograman
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="font-poppins w-full text-left px-4 py-2 text-gray-700 italic hover:bg-gray-100"
+                              onClick={() => { setKategoriTes('Psikotes'); setShowKategoriDropdown(false); }}
+                            >
+                              Psikotes
                             </button>
                           </li>
                         </ul>
@@ -281,11 +250,12 @@ const BuatTes = () => {
                   />
                 </div>
 
+
                 {/* Tombol Simpan */}
                 <div className="relative min-h-[600px] sm:min-h-[450px]">
                   <div className="absolute bottom-60 right-0 pb-10  mr-[-20px]">
                     <button
-                      className="bg-white text-black w-[180px] px-6 py-2 rounded-md hover:bg-[#0B61AA] hover:text-white transition duration-300" 
+                      className="bg-white text-black w-[150px] sm:w-[170px] px-6 py-2 rounded-md hover:bg-[#0B61AA] hover:text-white transition duration-300" 
                       onClick={handleSubmit}>
                       Selanjutnya
                     </button>
@@ -293,12 +263,6 @@ const BuatTes = () => {
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {activeTab === 'publikasi' && (
-          <div className="bg-[#465C6F] p-6 rounded-md">
-            <h2 className="text-white text-xl">Halaman Publikasi</h2>
           </div>
         )}
       </div>

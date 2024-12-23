@@ -46,7 +46,7 @@ export default function EditProfile({ params }) {
           return;
         }
     
-        const response = await fetch(`https://${URL}/user/profile/handphoneNum/${userId}`, {
+        const response = await fetch(`http://localhost:2000/user/profile/handphoneNum/${userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export default function EditProfile({ params }) {
           return;
         }
 
-        const response = await fetch(`https://${URL}/user/profile`, {
+        const response = await fetch(`http://localhost:2000/user/profile`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -118,9 +118,60 @@ export default function EditProfile({ params }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleDeleteProfileImage = () => {
-    setFormData({ ...formData, profileImage: '' });
+  const handleDeleteProfileImage = async () => {
+    try {
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('Token tidak tersedia');
+        Swal.fire({
+          title: 'Gagal!',
+          text: 'Token tidak ditemukan. Silakan login kembali.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+  
+      // Make the DELETE request to the backend to remove the profile photo
+      const response = await fetch('http://localhost:2000/user/profile/author/photo', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      // Handle the response from the server
+      if (response.ok) {
+        setFormData({ ...formData, profileImage: '' }); // Update form data to clear the profile image
+        Swal.fire({
+          title: 'Berhasil!',
+          text: 'Foto profil berhasil dihapus.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+      } else {
+        // Parse the error response from the backend and show an error message
+        const errorData = await response.json();
+        Swal.fire({
+          title: 'Gagal!',
+          text: errorData.message || 'Gagal menghapus foto profil.',
+          icon: 'error',
+          confirmButtonText: 'Coba Lagi',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting profile image:', error);
+      Swal.fire({
+        title: 'Gagal!',
+        text: 'Terjadi kesalahan saat menghapus foto profil. Coba lagi nanti.',
+        icon: 'error',
+        confirmButtonText: 'Coba Lagi',
+      });
+    }
   };
+  
 
   const handleEdit = () => {
     console.log("Edit clicked");
@@ -146,7 +197,7 @@ export default function EditProfile({ params }) {
     const token = localStorage.getItem("token");
 
     try {
-      await fetch(`https://${URL}/user/profile/author/name`, {
+      await fetch(`http://localhost:2000/user/profile/author/name`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -155,7 +206,7 @@ export default function EditProfile({ params }) {
         body: JSON.stringify({ name: `${formData.firstName} ${formData.lastName}` }),
       });
 
-      await fetch(`https://${URL}/user/profile/author/handphone`, {
+      await fetch(`http://localhost:2000/user/profile/author/handphone`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +217,7 @@ export default function EditProfile({ params }) {
         }),
       });
 
-      await fetch(`https://${URL}/user/profile/email`, {
+      await fetch(`http://localhost:2000/user/profile/email`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -179,7 +230,7 @@ export default function EditProfile({ params }) {
         const profileImageData = new FormData();
         profileImageData.append("profileImage", selectedFile);
 
-        await fetch(`https://${URL}/user/profile/author/photo`, {
+        await fetch(`http://localhost:2000/user/profile/author/photo`, {
           method: "PATCH",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -189,7 +240,7 @@ export default function EditProfile({ params }) {
       }
 
       if (formData.currentPassword && formData.newPassword) {
-        const passwordResponse = await fetch(`https://${URL}/user/profile/password`, {
+        const passwordResponse = await fetch(`http://localhost:2000/user/profile/password`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",

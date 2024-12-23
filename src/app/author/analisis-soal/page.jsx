@@ -9,7 +9,7 @@ import { FaEye } from "react-icons/fa";
 import {SlBookOpen} from "react-icons/sl";
 import {CiLock} from "react-icons/ci";
 import { FaSearch } from "react-icons/fa";
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -35,7 +35,7 @@ export default function Home() {
   const [token, setToken] = useState('');
   const [loadingUser, setLoadingUser] = useState(true);
   const publishTests = authorTests.filter(test => test.status === 'publish');
-const draftTests = authorTests.filter(test => test.status === 'draft');
+  const draftTests = authorTests.filter(test => test.status === 'draft');
 
   
   useEffect(() => {
@@ -315,7 +315,7 @@ const draftTests = authorTests.filter(test => test.status === 'draft');
         <main className="flex-1 bg-white">
           {/* Header */}
           <header className="flex justify-end items-center bg-[#0B61AA] p-4">
-            <div className="relative flex inline-block items-center ">
+            <div className="relative flex items-center ">
               <div className="mx-auto">
                 <span className="text-white font-poppins font-bold mr-3">Hai,{userData?.name}!</span>
               </div>
@@ -346,14 +346,14 @@ const draftTests = authorTests.filter(test => test.status === 'draft');
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
                   <Link legacyBehavior href={`/author/edit-profile/${userId}`}>
-                    <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
+                    <a className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
                       Ubah Profil
                     </a>
                   </Link>
                   <Link legacyBehavior href="/auth/login">
                     <a
                       onClick={handleLogout}
-                      className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+                      className="block px-4 py-1 text-deepBlue text-sm  hover:bg-deepBlue hover:text-white rounded-md"
                     >
                       Logout
                     </a>
@@ -398,7 +398,7 @@ const draftTests = authorTests.filter(test => test.status === 'draft');
                     <span className="ml-2 font-semibold">
                         <span>Kategori:</span>
                         <select
-                            className="ml-2 p-1 rounded-lg bg-abumuda text-deepBlue shadow-lg text-[#0B61AA]"
+                            className="ml-2 p-1 rounded-lg bg-abumuda text-deepBlue shadow-lg "
                             value={selectedKategori}
                             onChange={handleKategoriChange}
                         >

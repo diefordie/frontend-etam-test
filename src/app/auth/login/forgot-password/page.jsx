@@ -1,6 +1,11 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import dotenv from 'dotenv';
+import Swal from 'sweetalert2';
+
+dotenv.config();
+const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const ForgotPassword = () => {
     const router = useRouter();
@@ -14,7 +19,7 @@ const ForgotPassword = () => {
         setMessage('');
     
         try {
-            const response = await fetch('http://localhost:2000/auth/forgot-password', {
+            const response = await fetch(`https://${URL}/auth/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -32,6 +37,13 @@ const ForgotPassword = () => {
                 setMessage(data.message || 'An error occurred');
             }
         } catch (error) {
+            Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: message, 
+            }).then(() => {
+            router.push('/auth/login');
+            });
             console.error("Failed to send forgot password request:", error);
             setMessage('Failed to send request. Please try again.');
         } finally {

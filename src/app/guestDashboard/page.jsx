@@ -275,10 +275,10 @@ export default function GuestDashboard() {
   };
 
   const categories = [
-    { href: "/auth/login", src: "/images/pemrograman.png", alt: "pemrograman" },
-    { href: "/auth/login", src: "/images/cpns.png", alt: "cpns" },
-    { href: "/auth/login", src: "/images/psikotes.png", alt: "psikotes" },
-    { href: "/auth/login", src: "/images/utbk.png", alt: "utbk" },
+    { href: "/auth/login", src: "/images/pemrograman.svg", alt: "pemrograman" },
+    { href: "/auth/login", src: "/images/cpns.svg", alt: "cpns" },
+    { href: "/auth/login", src: "/images/psikotes.svg", alt: "psikotes" },
+    { href: "/auth/login", src: "/images/utbk.svg", alt: "utbk" },
   ];
 
   // fungsi slider catagories

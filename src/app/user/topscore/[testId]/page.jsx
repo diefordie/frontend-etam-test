@@ -104,8 +104,8 @@ const TopScore = () => {
             setLoadingTitle(true);
             try {
                 const response = await axios.get(`https://${URL}/test/get-test/${params.testId}`);
-                if (response.status === 200 && response.data && response.data.data && response.data.data.title) {
-                    setTestTitle(response.data.data.title);
+                if (response.status === 200 ) {
+                    setTestTitle(response.data.title);
                 } else {
                     throw new Error('Invalid response format');
                 }
