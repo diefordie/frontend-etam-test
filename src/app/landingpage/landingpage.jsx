@@ -6,6 +6,11 @@ import { AiOutlineStar } from "react-icons/ai";
 import { AiOutlineLaptop } from "react-icons/ai";
 import { AiOutlineCode } from "react-icons/ai";
 import { AiOutlineBook } from "react-icons/ai";
+import { AiFillInstagram } from "react-icons/ai";
+import { IoLogoFacebook } from "react-icons/io5";
+import { AiFillLinkedin } from "react-icons/ai";
+import { AiFillTikTok } from "react-icons/ai";
+import { IoPersonCircle } from "react-icons/io5";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -19,20 +24,20 @@ const TestimonialsSection = () => {
     const fetchTestimonies = async () => {
       try {
         const response = await fetch(`https://${URL}/api/testimonies`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
         if (!response.ok) {
-          throw new Error('Gagal mengambil data testimonies');
+          throw new Error("Gagal mengambil data testimonies");
         }
 
         const testimonies = await response.json();
         setTestimonials(testimonies); // Set testimonials setelah fetch berhasil
       } catch (error) {
-        console.error('Error fetching testimonies:', error);
+        console.error("Error fetching testimonies:", error);
       }
     };
 
@@ -53,98 +58,106 @@ const TestimonialsSection = () => {
 
   if (testimonials.length === 0) return <p>Loading testimonials...</p>;
 
-  const { user: { name, userPhoto }, comment } = testimonials[currentTestimonialIndex];
+  const {
+    user: { name, userPhoto },
+    comment,
+  } = testimonials[currentTestimonialIndex];
 
-return (
-  <div id="testimoni" className="bg-gray-50 py-20 px-4 text-center">
-    <h1 className="text-4xl font-bold text-gray-800 mb-10">
-      Apa Kata Pengguna?
-    </h1>
+  return (
+    <div id="testimoni" className="bg-gray-50 py-20 px-4 text-center">
+      <h1 className="text-4xl font-bold text-gray-800 mb-10">
+        Apa Kata Pengguna?
+      </h1>
 
-    <div className="flex justify-center items-center mb-6">
-      <button
-        onClick={handlePrev}
-        className="text-gray-600 hover:text-gray-800 focus:outline-none"
-      >
-        <span className="text-2xl">‹</span>
-      </button>
+      <div className="flex justify-center items-center mb-6">
+        <button
+          onClick={handlePrev}
+          className="text-gray-600 hover:text-gray-800 focus:outline-none"
+        >
+          <span className="text-2xl">‹</span>
+        </button>
 
-      <div className="mx-4 opacity-50">
-        <img
-          src={
-            testimonials[
-              (currentTestimonialIndex - 1 + testimonials.length) %
-                testimonials.length
-            ].userPhoto || '/images/profile.png'
-          }
-          alt={
-            testimonials[
-              (currentTestimonialIndex - 1 + testimonials.length) %
-                testimonials.length
-            ].name
-          }
-          className="w-16 h-16 rounded-full object-cover mx-auto"
-        />
-        <p className="text-gray-700">
-          {
-            testimonials[
-              (currentTestimonialIndex - 1 + testimonials.length) %
-                testimonials.length
-            ].name
-          }
-        </p>
+        <div className="mx-4 opacity-50">
+          {testimonials[
+            (currentTestimonialIndex - 1 + testimonials.length) % testimonials.length
+          ].userPhoto ? (
+            <img
+              src={
+                testimonials[
+                  (currentTestimonialIndex - 1 + testimonials.length) %
+                    testimonials.length
+                ].userPhoto
+              }
+              alt={
+                testimonials[
+                  (currentTestimonialIndex - 1 + testimonials.length) %
+                    testimonials.length
+                ].name
+              }
+              className="w-16 h-16 rounded-full object-cover mx-auto"
+            />
+          ) : (
+            <IoPersonCircle className="w-16 h-16 text-gray-400 mx-auto" />
+          )}
+          <p className="text-gray-700">
+            {
+              testimonials[
+                (currentTestimonialIndex - 1 + testimonials.length) %
+                  testimonials.length
+              ].name
+            }
+          </p>
+        </div>
+
+        <div className="mx-4">
+          {userPhoto ? (
+            <img
+              src={userPhoto}
+              alt={name}
+              className="w-24 h-24 rounded-full object-cover mx-auto mb-2"
+            />
+          ) : (
+            <IoPersonCircle className="w-24 h-24 text-gray-400 mx-auto mb-2" />
+          )}
+          <p className="text-lg font-semibold text-gray-800">{name}</p>
+          <p className="text-gray-600">{status}</p>
+          <p className="text-gray-700 italic">"{comment}"</p>
+        </div>
+
+        <div className="mx-4 opacity-50">
+          {testimonials[
+            (currentTestimonialIndex + 1) % testimonials.length
+          ].userPhoto ? (
+            <img
+              src={
+                testimonials[(currentTestimonialIndex + 1) % testimonials.length]
+                  .userPhoto
+              }
+              alt={
+                testimonials[(currentTestimonialIndex + 1) % testimonials.length]
+                  .name
+              }
+              className="w-16 h-16 rounded-full object-cover mx-auto"
+            />
+          ) : (
+            <IoPersonCircle className="w-16 h-16 text-gray-400 mx-auto" />
+          )}
+          <p className="text-gray-700">
+            {testimonials[(currentTestimonialIndex + 1) % testimonials.length].name}
+          </p>
+        </div>
+
+        <button
+          onClick={handleNext}
+          className="text-gray-600 hover:text-gray-800 focus:outline-none"
+        >
+          <span className="text-2xl">›</span>
+        </button>
       </div>
-
-      <div className="mx-4">
-        <img
-          src={userPhoto || '/images/profile.png'}
-          alt={name}
-          className="w-24 h-24 rounded-full object-cover mx-auto mb-2"
-        />
-        <p className="text-lg font-semibold text-gray-800">{name}</p>
-        <p className="text-gray-600">{status}</p>
-        {/* <div className="flex justify-center mb-2">
-          {Array(rating)
-            .fill(0)
-            .map((_, index) => (
-              <span key={index} className="text-yellow-400">
-                ★
-              </span>
-            ))}
-        </div> */}
-        <p className="text-gray-700 italic">"{comment}"</p>
-      </div>
-
-      <div className="mx-4 opacity-50">
-        <img
-          src={
-            testimonials[(currentTestimonialIndex + 1) % testimonials.length]
-              .userPhoto || '/images/profile.png'
-          }
-          alt={
-            testimonials[(currentTestimonialIndex + 1) % testimonials.length]
-              .name
-          }
-          className="w-16 h-16 rounded-full object-cover mx-auto"
-        />
-        <p className="text-gray-700">
-          {
-            testimonials[(currentTestimonialIndex + 1) % testimonials.length]
-              .name
-          }
-        </p>
-      </div>
-
-      <button
-        onClick={handleNext}
-        className="text-gray-600 hover:text-gray-800 focus:outline-none"
-      >
-        <span className="text-2xl">›</span>
-      </button>
     </div>
-  </div>
-);
+  );
 };
+
 
 // Section Baru di Bawah Testimoni
 const CallToActionSection = () => (
@@ -162,14 +175,21 @@ const CallToActionSection = () => (
       </div>
 
       {/* Bagian Kanan (Tombol) */}
-      <div className="flex flex-col md:flex-col justify-center items-center space-y-4 w-full md:w-auto">
-        <button className="bg-[#0B61AA] text-white py-3 px-6 rounded-md shadow-md hover:bg-opacity-80 transition duration-300 w-full md:w-auto min-w-[200px]">
-          Mulai Test Sekarang
-        </button>
-        <button className="bg-white text-black border border-gray-300 py-3 px-6 rounded-md shadow-md hover:bg-gray-100 transition duration-300 w-full md:w-auto min-w-[200px]">
-          Buat Soal Sendiri
-        </button>
-      </div>
+<div className="flex flex-col md:flex-col justify-center items-center space-y-4 w-full md:w-auto">
+  <Link
+    href="/guestDashboard"
+    className="bg-[#0B61AA] text-white py-3 px-6 rounded-md shadow-md hover:bg-opacity-80 transition duration-300 w-full md:w-auto min-w-[200px] text-center"
+  >
+    Mulai Test Sekarang
+  </Link>
+  <Link
+    href="/auth/registrasi"
+    className="bg-white text-black border border-gray-300 py-3 px-6 rounded-md shadow-md hover:bg-gray-100 transition duration-300 w-full md:w-auto min-w-[200px] text-center"
+  >
+    Buat Soal Sendiri
+  </Link>
+</div>
+
     </div>
   </div>
 );
@@ -183,6 +203,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+    <div style={{ scrollBehavior: "smooth" }}>
       {/* Navbar */}
       <nav className="bg-birutua shadow-md fixed top-0 left-0 w-full z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -222,20 +243,27 @@ const LandingPage = () => {
           </div>
 
           <ul className="hidden md:flex space-x-6">
-            {["Beranda", "Kategori", "Cara Kerja", "About Us", "Testimoni"].map(
-              (item) => (
-                <li key={item}>
-                  <a
-                    href={`#${item.toLowerCase().replace(" ", "-")}`}
-                    className="text-white hover:text-gray-300"
-                  >
-                    {item}
-                  </a>
-                </li>
-              )
-            )}
-          </ul>
-
+  {["Beranda", "Kategori", "Cara Kerja", "Tentang Kami", "Testimoni"].map(
+    (item) => (
+      <li key={item}>
+        <a
+          href={`#${item.toLowerCase().replace(" ", "-")}`}
+          className="text-white hover:text-gray-300"
+          onClick={(e) => {
+            e.preventDefault(); // Mencegah navigasi default
+            const targetId = item.toLowerCase().replace(" ", "-");
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+        >
+          {item}
+        </a>
+      </li>
+    )
+  )}
+</ul>
           <div className="hidden md:flex space-x-4">
             <Link
               href="/auth/login"
@@ -284,26 +312,32 @@ const LandingPage = () => {
                 </svg>
               </button>
             </div>
-            {["Beranda", "Kategori", "Cara Kerja", "About Us", "Testimoni"].map(
-              (item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(" ", "-")}`}
-                  className="text-white hover:text-gray-300"
-                  onClick={toggleSidebar}
-                >
-                  {item}
-                </a>
-              )
-            )}
+            {["Beranda", "Kategori", "Cara Kerja", "Tentang Kami", "Testimoni"].map(
+  (item) => (
+    <a
+      key={item}
+      href={`#${item.toLowerCase().replace(" ", "-")}`}
+      className="text-white hover:text-gray-300"
+      onClick={(e) => {
+        e.preventDefault(); // Mencegah perilaku default anchor tag
+        document
+          .getElementById(item.toLowerCase().replace(" ", "-"))
+          .scrollIntoView({ behavior: "smooth" }); // Smooth scroll ke elemen
+        toggleSidebar(); // Tetap panggil fungsi toggleSidebar jika diperlukan
+      }}
+    >
+      {item}
+    </a>
+  )
+)}
             <Link
-              href="/login"
+              href="/auth/login"
               className="bg-transparent text-white border border-white py-2 px-4 rounded-md shadow-sm hover:bg-white hover:text-birutua text-center transition duration-300"
             >
               Masuk
             </Link>
             <Link
-              href="/register"
+              href="/auth/registrasi"
               className="bg-birulangit text-white py-2 px-4 rounded-md shadow-sm hover:bg-opacity-80 text-center transition duration-300"
             >
               Daftar
@@ -312,16 +346,26 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
+{/* Hero Section */}
 <div
   id="beranda"
   className="min-h-screen bg-gray-50 flex flex-col justify-center items-center text-center py-20 px-4 mt-16"
 >
   <div className="flex flex-col-reverse md:flex-row items-center w-full max-w-6xl">
     <div className="w-full md:w-2/3 mb-8 md:mb-0 text-center md:text-left">
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
-        Tingkatkan Kemampuanmu dengan Tes Soal Online Terlengkap
-      </h1>
+    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-5">
+            <span className="typing-effect">
+              Tingkatkan Kemampuanmu
+            </span>
+            <br />
+            <span className="typing-effect" style={{ animationDelay: '5s' }}>
+              dengan Tes Soal Online
+            </span>
+            <br />
+            <span className="typing-effect" style={{ animationDelay: '8s' }}>
+              Terlengkap
+            </span>
+          </h1>
       <p className="text-lg md:text-xl lg:text-2xl text-gray-600 mb-8">
         Platform komunitas untuk membuat dan mengikuti tes pilihan ganda.
         Buat soal sendiri atau tantang diri dengan soal dari pengguna lain!
@@ -329,12 +373,12 @@ const LandingPage = () => {
       <div className="flex justify-center md:justify-start space-x-4">
         <Link
           href="/guestDashboard"
-          className="bg-[#0B61AA] text-white py-2 px-4 md:py-3 md:px-6 rounded-md shadow-md hover:bg-opacity-80 transition duration-300"
+          className="bg-[#0B61AA] text-white py-2 px-4 md:py-3 md:px-6 rounded-md shadow-md hover:bg-opacity-80 transition duration-300 animate-bounce"
         >
           Mulai Test Sekarang
         </Link>
         <Link
-          href="/buat-test"
+          href="/auth/registrasi"
           className="bg-transparent text-[#0B61AA] border border-[#0B61AA] py-2 px-4 md:py-3 md:px-6 rounded-md shadow-md hover:bg-[#0B61AA] hover:text-white transition duration-300"
         >
           Buat Test Sendiri
@@ -351,6 +395,29 @@ const LandingPage = () => {
       />
     </div>
   </div>
+  {/* Styles */}
+  <style jsx>{`
+        /* Animasi untuk teks */
+        .typing-effect {
+          display: inline-block;
+          white-space: nowrap;
+          overflow: hidden;
+          width: 0;
+          animation: typing 4s steps(40) 1s forwards, blink 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+          to {
+            width: 100%;
+          }
+        }
+
+        @keyframes blink {
+          50% {
+            border-color: transparent;
+          }
+        }
+      `}</style>
 </div>
 
       {/* Kategori Section */}
@@ -391,7 +458,7 @@ const LandingPage = () => {
   ].map((category, index) => (
     <div
       key={index}
-      className="bg-[#CAE6F9] p-6 rounded-lg shadow-md hover:shadow-lg flex flex-col items-center"
+      className="bg-[#CAE6F9] p-6 rounded-lg shadow-md hover:shadow-lg flex flex-col items-center transition-transform transform hover:-translate-y-2 hover:scale-105"
     >
       <div
         className="w-16 h-16 rounded-full flex items-center justify-center mb-4 overflow-hidden"
@@ -410,21 +477,20 @@ const LandingPage = () => {
 </div>
 </div>
 
-
       {/* Cara Kerja Section */}
-      <div id="cara-kerja" className="bg-gray-50 py-20 px-4">
+      <div id="cara-kerja" className="bg-gradient-to-r from-[#DEF6FF] to-[#0B61AA] py-36 px-4">
         <div className="container mx-auto flex flex-col lg:flex-row items-center lg:items-start">
-          <div className="lg:w-1/3 mb-6 lg:mb-0">
-            <Image
-              src="/images/Gambar 2.png"
-              alt="Cara Kerja"
-              width={500}
-              height={500}
-              className="w-full h-auto"
-            />
-          </div>
+        <div className="lg:w-1/3 mb-6 lg:mb-0">
+  <Image
+    src="/images/Gambar 2.png"
+    alt="Cara Kerja"
+    width={900}
+    height={900}
+    className="w-full h-auto"
+  />
+</div>
           <div className="lg:w-2/3 lg:ml-12">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-6">
               Cara Kerja Platform Komunitas
             </h1>
             <ul className="space-y-4">
@@ -446,7 +512,7 @@ const LandingPage = () => {
                   <span className="text-green-600 text-xl font-bold mr-3 mt-1">
                     ✓
                   </span>
-                  <span className="text-gray-800 text-base md:text-lg">
+                  <span className="text-gray-800 text-base md:text-xl">
                     <strong>{step.title}:</strong>
                     <br />
                     {step.desc}
@@ -496,14 +562,18 @@ const LandingPage = () => {
             index % 2 === 0 ? "md:order-1" : "md:order-2"
           }`}
         >
-          <h2 className="text-xl font-semibold text-gray-800">{benefit.title}</h2>
-          <p className="text-gray-600 mt-2">{benefit.desc}</p>
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
+              {benefit.title}
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600 mt-2">
+              {benefit.desc}
+          </p>
         </div>
         {/* Gambar di bawah teks untuk tampilan mobile */}
         <div
           className={`md:w-1/2 sm:order-2 ${
             index % 2 === 0 ? "md:order-2" : "md:order-1"
-          } bg-[#CAE6F9] p-6 rounded-lg shadow-md hover:shadow-lg mt-4 md:mt-0`}
+          } bg-[#CAE6F9] p-6 rounded-lg shadow-md hover:shadow-lg mt-4 md:mt-0 transform hover:scale-105 transition-transform duration-300`}
         >
           <Image
             src={benefit.img}
@@ -525,22 +595,21 @@ const LandingPage = () => {
       {/* Section Baru di Bawah Testimoni */}
       <CallToActionSection />
 
-{/* Footer */}
+      {/* Footer */}
 <footer className="bg-[#0B61AA] py-10 text-white">
   <div className="container mx-auto px-4">
-    <div className="flex flex-col md:flex-row justify-between items-start mb-8">
-      
-      {/* Box Kiri: 2/3 untuk Logo dan Deskripsi, 1/3 untuk Quick Links */}
-      <div className="md:w-1/2 flex flex-col md:flex-row mb-6 md:mb-0">
-        {/* Bagian Kiri 2/3: Logo dan Deskripsi */}
-        <div className="md:w-2/3 mb-4 md:mb-0">
+    {/* Layout Flex untuk Responsive */}
+    <div className="flex flex-col md:flex-row justify-between items-start space-y-8 md:space-y-0">
+      {/* Logo dan Deskripsi */}
+      <div className="w-full md:w-1/3">
+        <div className="mb-4 md:mb-0">
           {/* Logo */}
-          <div className="mb-4">
+          <div className="mb-2">
             <Image
               src="/images/Vector.png"
               alt="Etam Test Logo"
-              width={64}
-              height={64}
+              width={100}
+              height={100}
               className="mb-2"
             />
           </div>
@@ -549,68 +618,61 @@ const LandingPage = () => {
             Platform terbaik untuk membuat dan mengikuti tes online. Bergabunglah dengan komunitas kami untuk meningkatkan kemampuanmu!
           </p>
         </div>
-
-        {/* Bagian Kanan 1/3: Quick Links */}
-        <div className="md:w-1/3">
-          <ul className="text-sm text-gray-200">
-            <li>
-              <a href="#beranda" className="hover:text-white">Beranda</a>
-            </li>
-            <li>
-              <a href="#kategori" className="hover:text-white">Kategori</a>
-            </li>
-            <li>
-              <a href="#cara-kerja" className="hover:text-white">Cara Kerja</a>
-            </li>
-            <li>
-              <a href="#tentang-kami" className="hover:text-white">Tentang Kami</a>
-            </li>
-            <li>
-              <a href="#testimoni" className="hover:text-white">Testimoni</a>
-            </li>
-          </ul>
-        </div>
       </div>
 
-      {/* Box Kanan: Quotes dan Follow Us bersampingan */}
-      <div className="md:w-1/2 flex flex-row">
-        {/* 1/3: Quotes */}
-        <div className="md:w-1/2 mb-4">
+      {/* Quick Links dan Quotes (Sebelah di Mobile) */}
+      <div className="w-full flex flex-col sm:flex-row sm:space-x-8 md:w-1/2">
+        {/* Quick Links */}
+        <div className="w-full sm:w-1/2 mb-6 sm:mb-0">
+          <h3 className="text-lg font-semibold mb-2">Quick Links</h3>
+          <ul className="text-sm text-gray-200">
+            <li><a href="#beranda" className="hover:text-white">Beranda</a></li>
+            <li><a href="#kategori" className="hover:text-white">Kategori</a></li>
+            <li><a href="#cara-kerja" className="hover:text-white">Cara Kerja</a></li>
+            <li><a href="#tentang-kami" className="hover:text-white">Tentang Kami</a></li>
+            <li><a href="#testimoni" className="hover:text-white">Testimoni</a></li>
+          </ul>
+        </div>
+
+        {/* Quotes */}
+        <div className="w-full sm:w-1/2">
           <h3 className="text-lg font-semibold mb-2">Quotes</h3>
           <p className="text-sm text-gray-200 italic">
-            "If you think that math is hard, <br /> 
+            "If you think that math is hard, <br />
             <span className="mt-2 block">better try to do web design" - Trish Parr</span>
           </p>
         </div>
+      </div>
 
-        {/* 2/3: Follow Us */}
-        <div className="md:w-1/2">
-          <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
-          <div className="flex space-x-4">
-            <a href="https://www.facebook.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
-              Facebook
-            </a>
-            <a href="https://www.linkedin.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
-              LinkedIn
-            </a>
-            <a href="https://www.instagram.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
-              Instagram
-            </a>
-            <a href="https://www.tiktok.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
-              TikTok
-            </a>
-          </div>
+      {/* Follow Us */}
+      <div className="w-full md:w-1/4 text-center md:text-left">
+        <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
+        <div className="flex justify-center md:justify-start space-x-6">
+          <a href="https://www.facebook.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
+            <IoLogoFacebook className="inline-block text-4xl"/>
+          </a>
+          <a href="https://www.linkedin.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
+            <AiFillLinkedin className="inline-block text-4xl"/>
+          </a>
+          <a href="https://www.instagram.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
+            <AiFillInstagram className="inline-block text-4xl"/>
+          </a>
+          <a href="https://www.tiktok.com" className="text-gray-200 hover:text-white" target="_blank" rel="noopener noreferrer">
+            <AiFillTikTok className="inline-block text-4xl"/>
+          </a>
         </div>
       </div>
     </div>
 
-    <div className="border-t border-gray-600 mt-8 pt-4 text-sm text-gray-400 text-center">
+    {/* Copyright */}
+    <div className="border-t border-none mt-8 pt-4 text-sm text-gray-400 text-center">
       &copy; 2024 Etam Code. All Rights Reserved.
     </div>
   </div>
 </footer>
 
-    </div>
+</div>
+</div>
   );
 };
 

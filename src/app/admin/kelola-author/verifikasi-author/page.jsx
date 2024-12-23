@@ -5,6 +5,7 @@ import axios from "axios";
 import Link from 'next/link';
 import { FaSearch } from "react-icons/fa";
 import { IoPersonCircle } from "react-icons/io5";
+import { IoMenu } from "react-icons/io5";
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -16,106 +17,12 @@ const VerifikasiAuthor2 = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("semua"); // Filter untuk verifikasi
   const [data, setData] = useState([]); // Data dengan kelengkapan dokumen
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [token, setToken] = useState('');
-  const [userData, setUserData] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [userId, setUserId] = useState(null);
   const [error, setError] = useState(null);
   const [errorUser, setErrorUser] = useState(null);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value.toLowerCase());
-  };
-  
-
-  useEffect(() => {
-    const getUserIdFromToken = () => {
-      try {
-        setLoading(true);
-        // Pastikan kode ini hanya dijalankan di sisi klien
-        if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('token');
-          if (!token) {
-            throw new Error('Token tidak ditemukan');
-          }
-  
-          const decodedToken = jwtDecode(token);
-          if (!decodedToken.id) {
-            throw new Error('User ID tidak ditemukan dalam token');
-          }
-  
-          setUserId(decodedToken.id);
-        }
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        setError(error.message);
-        // Redirect ke halaman login jika token tidak valid
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    getUserIdFromToken();
-    }, []);
-  
-    useEffect(() => {
-      const fetchUserData = async () => {
-        let token;
-        if (typeof window !== 'undefined') {
-          token = localStorage.getItem('token');
-        }
-        
-        if (!token) {
-          setErrorUser('Token tidak ditemukan');
-          setLoadingUser(false);
-          return;
-        }
-  
-        try {
-          setLoadingUser(true);
-          const response = await fetch(`http://${URL}/user/profile`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-  
-          if (!response.ok) {
-            throw new Error('Failed to fetch user data');
-          }
-  
-          const data = await response.json();
-          if (data) {
-            setUserData(data);
-          } else {
-            throw new Error('Data pengguna tidak ditemukan');
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          setErrorUser('Gagal mengambil data pengguna');
-          if (error.message === 'Failed to fetch user data') {
-            // Token mungkin tidak valid atau kadaluarsa
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('token');
-            }
-            router.push('/login');
-          }
-        } finally {
-          setLoadingUser(false);
-        }
-      };
-  
-      fetchUserData();
-    }, []);
-  
-    useEffect(() => {
-      const storedToken = localStorage.getItem('token');
-      if (storedToken) {
-          setToken(storedToken);
-      }
-    }, []);
+  };  
 
   // Fetch authors from the backend
   useEffect(() => {
@@ -224,125 +131,143 @@ const VerifikasiAuthor2 = () => {
   };
 
   // Logout function
-const handleLogout = async () => {
-  try {
-      const response = await fetch(`http://${URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu
-          },
-      });
-      if (!response.ok) {
-          throw new Error('Logout failed');
-      }
+  const handleLogout = async () => {
+    try {
+        const response = await fetch(`http://${URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token jika perlu
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Logout failed');
+        }
 
-      localStorage.clear();
+        localStorage.clear();
 
-      window.location.href = '/auth/login-admin';
-  } catch (error) {
-      console.error('Error during logout:', error);
-  }
-};
+        window.location.href = '/auth/login-admin';
+    } catch (error) {
+        console.error('Error during logout:', error);
+    }
+  };
   
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+    if (!isSidebarOpen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+  };
+
+  const menus = [
+    {href:'/admin/dashboard', text: "Home"},
+    {href:'/admin/kelola-author', text: "Kelola Author"},
+    {href:'/auth/login-admin', text: "Logout"},
+  ]
+
   return (
       <>
-        
-        <div className="flex h-screen ">
-          <div className="flex h-screen">
-            <div className="w-[131px]  lg:w-[350px] bg-[#78AED6] p-4 flex flex-col items-center">
-              <div className="mb-5 flex items-center justify-center w-full">
-                <img src="/images/etamtest.png" alt="Etam Test Logo" className="object-contain lg:h-[50px]" />
-              </div>
-              <div className="mb-5 flex items-center">
-              <div className="relative inline-block">
-                  {userData?.userPhoto ? (
-                    <img
-                      src={userData.userPhoto}
-                      alt="User Profile"
-                      className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover"
-                      onMouseEnter={() => setDropdownOpen(true)}
-                      onMouseLeave={() => setDropdownOpen(false)}
-                    />
-                  ) : (
-                    <IoPersonCircle
-                      className="h-14 w-14 rounded-full cursor-pointer text-white mr-5"
-                      onMouseEnter={() => setDropdownOpen(true)}
-                      onMouseLeave={() => setDropdownOpen(false)}
-                    />
-                  )}
+        {/* Header */}
+        <header className="fixed p-3 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
+          <div className="mx-auto flex justify-between items-center font-poppins max-w-full ">
+            <div className="flex justify-between">
+              {/* Ikon Menu untuk mobile */}
+              <button onClick={toggleSidebar}>
+              <IoMenu  className="h-[30px] lg:hidden"/>
+              </button>
+  
+              <img 
+                src="/images/etamtest.png" 
+                alt="EtamTest" 
+                className="h-[30px] lg:h-10 pl-3" 
+              />
+  
+            </div>
+              <span className="text-white font-poppins font-bold mr-3">Verifikasi Author</span>
+          </div>
+        </header>
 
-                  {/* Dropdown */}
-                  {isDropdownOpen && (
-                    <div
-                      className="absolute right-2 mt-0 w-37 bg-white rounded-lg shadow-lg z-10 p-1 
-                      before:content-[''] before:absolute before:-top-4 before:right-8 before:border-8
-                      before:border-transparent before:border-b-white"
-                      onMouseEnter={() => setDropdownOpen(true)}
-                      onMouseLeave={() => setDropdownOpen(false)}
-                    >
-                      <Link legacyBehavior href={`/admin/edit-profile/${userId}`}>
-                        <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
-                          Ubah Profil
-                        </a>
-                      </Link>
-                      <Link legacyBehavior href="/auth/login-admin">
-                        <a
-                          onClick={handleLogout}
-                          className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
-                        >
-                          Logout
-                        </a>
-                      </Link>
-                    </div>
-                  )}
-
-                </div>
-                <div className="ml-3 text-white">
-                  <h3 className="font-poppins font-bold text-basic text-white text-[10px] lg:text-[24px] ">{userData?.name}</h3>
-                  <p className="text-[18px] font-poppins m-0">Administrator</p>
-                </div>
-              </div>
-              <div className="justify-start w-full ">
-                <Link href="/admin/dashboard"> 
-                  <button className="block font-poppins font-bold w-full py-2 px-2 bg-deepBlue bg-opacity-50  hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">
-                    Home
-                  </button>
-                </Link>
-                <Link href="/admin/kelola-author"> 
-                  <button className="block font-poppins font-bold w-full py-2 px-2 hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">
-                    Kelola Author
-                  </button>
-                </Link>
-              </div>
+       {/* Sidebar ketika tampilan mobile */}
+      <aside className={`fixed bg-[#78AED6] top-17 mt-5 pt-6 left-0 w-64 h-full transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden z-40`}>
+        <ul className="p-4 space-y-4 text-deepblue round-lg">
+          <div className="flex flex-col items-center text-center">
+            <li>
+              <IoPersonCircle className="h-14 w-14 cursor-pointer text-white"/>
+            </li>
+            <div className="text-white">
+              <p className="text-[18px] font-poppins">Administrator</p>
             </div>
           </div>
+          {menus.map((menu, index) => (
+            <li key={index}>
+              <Link legacyBehavior href={menu.href}>
+                <a className="block font-poppins font-bold w-full py-2 px-2 bg-opacity-50  hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">{menu.text}</a>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </aside> 
 
+        {/* Overlay untuk menutup sidebar */}
+        {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black opacity-50 lg:hidden z-30"
+              onClick={toggleSidebar}
+            ></div>
+          )}
+
+        <div className="col-span-3 h-full">
+          <div className={`fixed bg-[#78AED6] w-auto  lg:w-[350px] hidden lg:block top-15 mt-8 pt-6 left-0 w-64 h-full transition-transform transform z-40`}>
+            <ul className="p-4 space-y-4 text-deepblue round-lg">
+              <div className="flex flex-col items-center text-center">
+                <li>
+                  <IoPersonCircle className="text-8xl cursor-pointer text-white"/>
+                </li>
+                <div className="text-white">
+                  <p className="text-[18px] font-poppins">Administrator</p>
+                </div>
+              </div>
+              {menus.map((menu, index) => (
+                <li key={index}>
+                  <Link legacyBehavior href={menu.href}>
+                    <a className="block font-poppins font-bold w-full py-2 px-2 hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">{menu.text}</a>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        
+        
         {/* Main content */}
-        <div className="flex flex-col flex-1">
-          <nav className="bg-[#0B61AA] p-4 flex justify-center items-center">
-            <div className="flex items-center pr-5">
-              <span className="text-white text-[32px] font-poppins font-semibold mr-3">Verifikasi Author</span>
-            </div>
-          </nav>
-
+        <div className="flex flex-col flex-1 mt-8">
           {/* Search Bar Section */}
-          <div className="flex items-center px-8 py-5 bg-white gap-4 justify-between">
-            <div className="flex justify-end items-center w-2/3 max-w-lg bg-white px-4 py-2 rounded-full shadow">
-            <FaSearch className="h-5 w-5 text-gray-600" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="flex-1 border-none outline-none ml-4 text-lg"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
+          
+          <div className="flex flex-col lg:flex-row items-center justify-between px-2 md:px-7 lg:px-8 py-5 bg-white gap-4 font-poppins lg:pl-[380px] mt-[42px] md:mt-[50px] lg:mt-[60px]">
+            <div className="flex items-center max-w-lg bg-white rounded-full shadow  py-1 lg:py-3 px-3 md:px-8 lg:px-8  ">
+              <div>
+              <FaSearch className="text-[0.9rem] lg:text-basic text-gray-600 mr-0 md:mr-3 lg:mr-4"/>
+              </div>
+              <div>
+                <input
+                  type="text"
+                  placeholder="Cari Nama atau Email"
+                  className="flex-1 border-none outline-none ml-4 text-sm md:text-basic lg:text-basic"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
+              </div>
+
             </div>
 
             <div className="flex gap-4 items-center font-poppins">
               <button
                 onClick={() => setFilter("semua")}
-                className={`flex items-center justify-between w-[130px] px-4 py-2 text-black rounded-full ${filter === "semua" ? "bg-paleBlue" : "bg-abumuda"}`}
+                className={`flex items-center text-[0.7rem]  lg:text-basic justify-between w-[94px] lg:w-[130px] px-2 md:px-4 lg:px-4 py-4 md:py-2 lg:py-2 text-black rounded-full ${filter === "semua" ? "bg-paleBlue" : "bg-abumuda"}`}
               >
                 <span>Semua</span> 
                 <span className="text-red-600 font-semibold">{total}</span>
@@ -350,72 +275,79 @@ const handleLogout = async () => {
 
               <button
                 onClick={() => setFilter("belumVerifikasi")}
-                className={`flex items-center   w-auto   px-4 py-2 text-black rounded-full ${filter === "belumVerifikasi" ? "bg-paleBlue" : "bg-abumuda"}`}
+                className={`flex items-center text-[0.7rem] lg:text-basic  justify-between  w-[100px]  lg:w-[165px] px-2 md:px-4 py-2 text-black rounded-full ${filter === "belumVerifikasi" ? "bg-paleBlue" : "bg-abumuda"}`}
               > 
                 <div className="flex gap-4 justify-between items-center ">
                 <span>Belum Verifikasi</span>
-                <span>  </span>
                 <span className="text-red-600 font-semibold">{belumVerifikasi}</span>
                 </div>
               </button>
+
               <button
                 onClick={() => setFilter("sudahVerifikasi")}
-                className={`flex items-center px-4 py-2 text-black rounded-full ${filter === "sudahVerifikasi" ? "bg-paleBlue" : "bg-abumuda"}`}
+                className={`flex items-center text-[0.7rem] lg:text-basic  justify-between  w-[100px]  lg:w-[165px] px-2 md:px-4 py-2 text-black rounded-full ${filter === "sudahVerifikasi" ? "bg-paleBlue" : "bg-abumuda"}`}
                 >
-                 <div className="flex gap-4 justify-between items-center ">
+                < div className="flex gap-4 justify-between items-center ">
                   <span>Sudah Verifikasi </span>
                   <span className="text-red-600 font-semibold "> {sudahVerifikasi}</span>
                   </div>
               </button>
             </div>
           </div>
+          
 
           {/* Table Section */}
-          <div className="px-8 py-5 overflow-x-auto">
-            <table className="min-w-full border-collapse bg-white shadow-lg">
-              <thead>
-                <tr className="bg-powderBlue text-white">
-                  <th className="border p-2 sm:p-3">Tanggal</th>
-                  <th className="border p-2 sm:p-3">ID</th>
-                  <th className="border p-2 sm:p-3">Nama</th>
-                  <th className="border p-2 sm:p-3">Email</th>
-                  <th className="border p-2 sm:p-3">Verifikasi</th>
-                  <th className="border p-2 sm:p-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData().map((item, rowIndex) => (
-                  <tr key={item.id}>
-                    <td className="border p-2 sm:p-3 text-center">{new Date(item.createdAt).toLocaleDateString()}</td>
-                    <td className="border p-2 sm:p-3 text-center">{item.id}</td>
-                    <td className="border p-2 sm:p-3 text-center">{item.name}</td>
-                    <td className="border p-2 sm:p-3 text-center">{item.email}</td>
-                    <td className="border p-2 sm:p-3 text-center">
-                    <select
-                        value={item.isApproved ? "Yes" : "No"}
-                        onChange={(e) => handleUpdateVerifikasi(rowIndex, e.target.value)}
-                      >
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select>
-                    </td>
-                    <td className="border p-2 sm:p-3 text-center">
-                    <span className={`inline-block w-[151px] px-2 py-1 rounded-full ${
-                          item.status === 'Tidak Disetujui' ? 'bg-[#CF0000] text-white' : 
-                          item.status === 'Disetujui' ? 'bg-[#228804] text-white' : 
-                          '' // Default jika status tidak cocok
-                        }`}>
-                          {item.status}
-                        </span>
-                      </td>
-
+          <div className="p-3 overflow-x-auto item-center bg-white min-h-screen justify-center lg:pl-[355px]">
+            <div className="p-3 overflow-x-auto md:overflow-x-auto lg:overflow-visible">
+              <div className=" p-1 md:p-3 lg:p-5 -mx-3 md:-mx-7 lg:-mx-4">
+                
+                <table className="p-4 min-w-full text-left text-sm font-light table-auto">
+                  <thead className="border-b font-medium dark:border-neutral-500">
+                    <tr className="bg-powderBlue text-white text-center">
+                      <th className="border text-[0.5rem] lg:text-sm p-1 align-middle">Tanggal</th>
+                      <th className="border text-[0.5rem] lg:text-sm p-2 lg:block hidden align-middle">ID</th>
+                      <th className="border text-[0.5rem] lg:text-sm p-1 align-middle">Nama</th>
+                      <th className="border text-[0.5rem] lg:text-sm p-1 align-middle">Email</th>
+                      <th className="border text-[0.5rem] lg:text-sm p-1 align-middle">Verifikasi</th>
+                      <th className="border text-[0.5rem] lg:text-sm p-1 align-middle">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                  {filteredData().map((item, rowIndex) => (
+                    <tr key={item.id}>
+                      <td className="border text-[0.5rem] lg:text-sm p-1 text-center align-middle">{new Date(item.createdAt).toLocaleDateString()}</td>
+                      <td className="border text-[0.5rem] lg:text-sm p-2 text-center lg:block hidden align-middle">{item.id}</td>
+                      <td className="border text-[0.5rem] lg:text-sm p-1 text-center align-middle">{item.name}</td>
+                      <td className="border text-[0.5rem] lg:text-sm p-1 text-center align-middle">{item.email}</td>
+                      <td className="border text-[0.5rem] lg:text-sm p-1 text-center align-middle">
+                      <select
+                          value={item.isApproved ? "Yes" : "No"}
+                          onChange={(e) => handleUpdateVerifikasi(rowIndex, e.target.value)}
+                        >
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </td>
+                      <td className="border text-[0.5rem] lg:text-sm p-1 text-center align-middle">
+                          <span className={`inline-block  w-[75px] md:w-[120px]  lg:w-[151px] px-2  py-0 md:py-1 lg:py-1 rounded-full ${
+                              item.status === 'Tidak Disetujui' ? 'bg-[#CF0000] text-white' : 
+                              item.status === 'Disetujui' ? 'bg-[#228804] text-white' : 
+                              '' // Default jika status tidak cocok
+                            }`}>
+                            {item.status} 
+                          </span>
+                        </td>
+
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+              </div>
             </div>
           </div>
-        </div>
+          </div>
+        
       
     </>
   );

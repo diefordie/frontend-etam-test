@@ -106,7 +106,7 @@ const VerifikasiAuthor1 = () => {
           {menus.map((menu, index) => (
             <li key={index}>
               <Link legacyBehavior href={menu.href}>
-                <a className="block font-poppins font-bold w-full py-2 px-2 bg-deepBlue bg-opacity-50  hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">{menu.text}</a>
+                <a className="block font-poppins font-bold w-full py-2 px-2 bg-opacity-50  hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">{menu.text}</a>
               </Link>
             </li>
           ))}

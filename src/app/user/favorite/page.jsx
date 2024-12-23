@@ -25,7 +25,13 @@ export default function Favorite() {
   const [errorUser, setErrorUser] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [likedItems, setLikedItems] = useState({});
-    const [userId, setUserId] = useState(null);
+  const [userId, setUserId] = useState(null);
+  
+    const LoadingSpinner = () => (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-deepBlue"></div>
+      </div>
+    );
 
   useEffect(() => {
     const getUserIdFromToken = () => {
@@ -150,6 +156,7 @@ const toggleSidebar = () => {
 // Mengambil status like dari server saat komponen dimuat
 useEffect(() => {
   const fetchFavoritesData = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`https://${URL}/api/favorites`, {
         method: 'GET',
@@ -168,16 +175,19 @@ useEffect(() => {
         isHidden: false,
       }));
 
-      setFavorites(updatedFavoriteTests); // Update state favorites dengan data yang sudah ditambahkan isHidden
+      setFavorites(updatedFavoriteTests);
 
       // Inisialisasi status likedItems berdasarkan data favorit yang diambil
       const initialLikedState = {};
       updatedFavoriteTests.forEach((test) => {
         initialLikedState[test.id] = true;
       });
-      setLikedItems(initialLikedState); // Atur state likedItems setelah mendapatkan favorites
+      setLikedItems(initialLikedState);
     } catch (error) {
       console.error('Error fetching favorite tests:', error);
+      setError('Failed to fetch favorites. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -274,11 +284,15 @@ const handleLogout = async () => {
   }
 };
 
-
+if (loading) {
+  return <LoadingSpinner />;
+}
 
   return (
+
     <>
       {/* Header */}
+      
       <header className="sticky p-4 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
         <div className="mx-auto flex justify-between items-center font-poppins max-w-full ">
           <div className="flex justify-between">

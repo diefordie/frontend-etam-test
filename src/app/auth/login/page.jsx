@@ -26,7 +26,35 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); // Reset error sebelum mencoba login
+
+            
+        // Validasi input kosong
+        if (!email && !password) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Form Tidak Lengkap',
+                text: 'Email dan password tidak boleh kosong!',
+            });
+            return;
+        }
+        if (!email) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Email Kosong',
+                text: 'Silakan masukkan email Anda.',
+            });
+            return;
+        }
+        if (!password) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Password Kosong',
+                text: 'Silakan masukkan password Anda.',
+            });
+            return;
+        }
+
+        setError(''); 
     
         try {
             const response = await fetch(`https://${URL}/auth/login`, {
@@ -40,66 +68,51 @@ const Login = () => {
                 }),
             });
     
+            // Dapatkan data respons
             const data = await response.json();
     
             if (!response.ok) {
-                const userFriendlyError = getUserFriendlyErrorMessage(data.error || response.status.toString());
-                throw new Error(userFriendlyError);
+                // Menambahkan pengecekan untuk kesalahan "User Not Found"
+                if (response.status === 404) {
+                    throw new Error('Akun Anda tidak ditemukan. Pastikan email yang Anda masukkan sudah benar.');
+                }
+                if (response.status === 400) {
+                    throw new Error(data.error || 'Data yang Anda masukkan tidak valid.');
+                } else if (response.status === 401) {
+                    throw new Error('Password atau email Anda salah. Silakan coba lagi.');
+                } else if (response.status === 403) {
+                    throw new Error('Akses sebagai Author ditolak. Anda tidak memiliki hak akses, pastikan anda telah mengirimkan persyaratan yang dibutuhkan, dan tunggu sampai admin memverifikasi.');
+                    router.push('/auth/syarat');
+                } else {
+                    throw new Error('Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.');
+                }
             }
     
             console.log("Login berhasil:", data);
             localStorage.setItem('token', data.token);
             
-            Swal.fire({
-                icon: 'success',
-                title: 'Login Berhasil',
-                text: 'Anda berhasil masuk ke akun Anda.',
-                showConfirmButton: false,
-                timer: 1500
-            }).then(() => {
-                // Redirect berdasarkan role
-                if (data.user.role === 'AUTHOR') {
-                    router.push('/author/dashboard');
-                } else {
-                    router.push('/user/dashboard');
-                }
-            });
-    
+            // Redirect berdasarkan role
+            if (data.user.role === 'AUTHOR') {
+                router.push('/author/dashboard'); 
+            } else {
+                router.push('/user/dashboard'); 
+            }
         } catch (err) {
             console.error("Kesalahan login", err);
     
+            // Menampilkan pesan kesalahan sebagai popup
             Swal.fire({
                 icon: 'error',
-                title: 'Login Gagal',
-                text: err.message,
+                title: 'Error',
+                text: err.message, 
+            }).then(() => {
+                
             });
     
-            setError(err.message);
+            setError(err.message); // Simpan pesan error di state (opsional, jika perlu)
         }
     };
     
-    const getUserFriendlyErrorMessage = (errorCode) => {
-        switch (errorCode) {
-            case 'FIREBASE_ERROR: EMAIL_NOT_VERIFIED':
-                return 'Email Anda belum diverifikasi. Silakan periksa email Anda untuk link verifikasi.';
-            case 'FIREBASE_ERROR: USER_NOT_FOUND_IN_FIREBASE':
-                return 'Email tidak terdaftar. Silakan periksa kembali atau daftar akun baru.';
-            case 'FIREBASE_ERROR: WRONG_PASSWORD':
-                return 'Password salah. Silakan coba lagi.';
-            case 'FIREBASE_ERROR: INVALID_EMAIL':
-                return 'Format email tidak valid. Pastikan Anda memasukkan alamat email yang benar.';
-            case 'FIREBASE_ERROR: USER_DISABLED':
-                return 'Akun Anda telah dinonaktifkan. Silakan hubungi admin untuk bantuan.';
-            case '400':
-                return 'Data yang Anda masukkan tidak valid. Silakan periksa kembali.';
-            case '401':
-                return 'Kredensial tidak valid. Silakan coba lagi.';
-            case '403':
-                return 'Akses sebagai Author ditolak. Anda tidak memiliki hak akses, pastikan Anda telah mengirimkan persyaratan yang dibutuhkan, dan tunggu sampai admin memverifikasi.';
-            default:
-                return 'Terjadi kesalahan yang tidak diketahui. Silakan coba lagi nanti.';
-        }
-    };
 
     return (
         <div className="flex h-screen w-screen">
@@ -149,6 +162,9 @@ const Login = () => {
                     )}
                         </span>
                     </div>
+                    <p className="text-right mt-4 text-xs">
+                        <Link href="/auth/forgot-password" className="text-black  hover:underline">Lupa Password</Link>
+                    </p>
                     </div>
                     <div className="flex justify-center">
                         <button

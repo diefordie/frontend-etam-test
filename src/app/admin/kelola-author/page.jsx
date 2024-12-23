@@ -50,9 +50,9 @@ const VerifikasiAuthor1 = () => {
         </div>
       </header>
 
-      {/* Sidebar untuk mobile */}
+        {/* Sidebar ketika tampilan mobile */}
       <aside className={`fixed bg-[#78AED6] top-17 mt-5 pt-6 left-0 w-64 h-full transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden z-40`}>
-        <ul className="p-4 space-y-4 text-deepblue rounded-lg">
+        <ul className="p-4 space-y-4 text-deepblue round-lg">
           <div className="flex flex-col items-center text-center">
             <li>
               <IoPersonCircle className="h-14 w-14 cursor-pointer text-white"/>
@@ -63,13 +63,13 @@ const VerifikasiAuthor1 = () => {
           </div>
           {menus.map((menu, index) => (
             <li key={index}>
-              <Link href={menu.href} className="block font-poppins font-bold w-full py-2 px-2 bg-deepBlue bg-opacity-50 hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">
-                {menu.text}
+              <Link legacyBehavior href={menu.href}>
+                <a className="block font-poppins font-bold w-full py-2 px-2 bg-opacity-50  hover:bg-deepBlue text-white rounded-full text-sm lg:text-lg text-left">{menu.text}</a>
               </Link>
             </li>
           ))}
         </ul>
-      </aside>  
+      </aside> 
 
       {/* Overlay untuk menutup sidebar */}
       {isSidebarOpen && (

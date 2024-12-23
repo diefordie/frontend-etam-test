@@ -39,6 +39,17 @@ const Registrasi = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+    // Validasi apakah semua input kosong
+    if (!name.trim() && !email.trim() && !password.trim() && !role.trim()) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Form Kosong',
+            text: 'Harap isi data diri anda untuk melakukan registrasi',
+            confirmButtonText: 'OK',
+        });
+        return;
+    }
         try {
             const response = await fetch(`https://${URL}/auth/registrasi`, {
                 method: 'POST',
@@ -56,55 +67,49 @@ const Registrasi = () => {
             const data = await response.json();
     
             if (!response.ok) {
-                const userFriendlyMessage = getUserFriendlyErrorMessage(data.message);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: userFriendlyMessage,
-                });
+                if (response.status === 400 && data.errors) {
+                    const errorMessages = data.errors.map(err => `<p>${err.msg}</p>`).join('');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Gagal',
+                        html: errorMessages,
+                        confirmButtonText: 'OK',
+                    });
+                } else {
+                    const errorMessage = data.message || 'Terjadi kesalahan. Silakan coba lagi.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage,
+                        confirmButtonText: 'OK',
+                    });
+                }
                 return;
             }
     
-            
-    
             Swal.fire({
                 icon: 'success',
-                title: 'Berhasil',
-                text: 'Akun anda berhasil didaftarkan. Silakan periksa email anda untuk verifikasi',
-            });
-    
-            setTimeout(() => {
+                title: 'Registrasi Berhasil',
+                text: 'Akun Anda berhasil didaftarkan!. Silahkan cek email anda untuk lakukan konfirmasi',
+                confirmButtonText: 'OK',
+            }).then(() => {
                 if (role === 'AUTHOR') {
                     router.push('/auth/syarat');
                 } else {
                     router.push('/auth/login');
                 }
-            }, 3000);
+            });
         } catch (err) {
             console.error("Kesalahan registrasi", err);
             Swal.fire({
                 icon: 'error',
-                title: 'Gagal',
-                text: 'Terjadi kesalahan saat mendaftarkan akun. Silakan coba lagi nanti.',
+                title: 'Kesalahan',
+                text: err.message,
+                confirmButtonText: 'OK',
             });
         }
     };
     
-    // Function to translate backend error messages to user-friendly messages
-    const getUserFriendlyErrorMessage = (backendMessage) => {
-        switch (backendMessage) {
-            case 'FIREBASE_ERROR: EMAIL_ALREADY_REGISTERED_IN_FIREBASE':
-                return 'Email ini sudah terdaftar. Silakan gunakan email lain atau coba login.';
-            case 'INVALID_EMAIL_FORMAT':
-                return 'Format email tidak valid. Pastikan Anda memasukkan alamat email yang benar.';
-            case 'PASSWORD_TOO_WEAK':
-                return 'Password terlalu lemah. Gunakan kombinasi huruf, angka, dan karakter khusus.';
-            case 'MISSING_REQUIRED_FIELDS':
-                return 'Mohon lengkapi semua field yang diperlukan.';
-            default:
-                return 'Terjadi kesalahan saat mendaftarkan akun. Silakan coba lagi nanti.';
-        }
-    };
     
     return (
         <div className="flex h-screen w-screen">
