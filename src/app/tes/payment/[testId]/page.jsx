@@ -149,7 +149,6 @@ function TestPayment() {
         const token = localStorage.getItem('token'); // Ambil token dari localStorage
         
         // Ambil token dari backend
-        setLoading(true);
         const response = await fetch(`https://${URL}/api/payment/payment-process`, {
           method: 'POST',
           headers: {
@@ -184,11 +183,11 @@ function TestPayment() {
           });
         } else {
           console.error('Failed to get payment token:', data.error);
-          setLoading(false);
+          
         }
       } catch (error) {
         console.error('Error during payment:', error);
-        setLoading(false);
+        
       }
     } else {
       console.error('Test ID not found');

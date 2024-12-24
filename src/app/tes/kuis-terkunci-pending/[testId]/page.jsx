@@ -767,7 +767,7 @@ const startWorkTime = () => {
                               <p className="text-sm mb-4">
                                 Klik dibawah ini untuk mendapatkan akses soal
                               </p>
-                              <Link href={`/user/riwayat-transaksi/${testId}`}>
+                              <Link href={`/user/riwayat-transaksi`}>
                               <button
                                 className="px-4 py-2 bg-[#7BB3B4] text-white rounded-full shadow hover:bg-[#6A9DA3] transition duration-300 ease-in-out font-bold"
                                 onClick={() => alert("Silakan selesaikan pembelian.")}

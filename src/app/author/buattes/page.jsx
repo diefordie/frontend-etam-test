@@ -144,9 +144,9 @@ const BuatTes = () => {
       <div className="flex justify-center items-start mx-0 sm:mx-12">
         {activeTab === 'buatTes' && (
           <div className="bg-[#78AED6] p-8 rounded-md mx-auto w-full h-[750px] mt-[20px]">
-            <div className="flex justify-start pr-9">
+            <div className="flex justify-start mx-auto w-full">
               {/* Bagian Kiri, Teks Rata Kanan */}
-              <div className="text-left pr-8 ">
+              <div className="text-left mobile:hidden tablet:block">
                 <h3 className="font-poppins text-black sm:text-lg mb-7 mt-7 sm:mt-8 sm:pt-6 ">Jenis</h3>
                 <h3 className="font-poppins text-black sm:text-lg mb-4 mt-7 sm:mt-.6 sm:pt-12">Kategori</h3>
                 <h3 className="font-poppins text-black sm:text-lg mb-4 mt-16 sm:mt-2 sm:pt-12">Nama</h3>
@@ -154,7 +154,7 @@ const BuatTes = () => {
               </div>
 
               {/* Bar putih di samping */}
-              <div className="bg-white p-6 rounded-md shadow-lg w-full h-[550px] sm:mr-0 mr-10">
+              <div className="bg-white p-6 rounded-md shadow-lg w-full h-[550px] sm:mr-0 tablet:mx-4">
                 {/* Jenis Tes Langsung Pilihan Ganda */}
                 <div className="mb-4 sm:pt-4">
                   <input
@@ -242,11 +242,12 @@ const BuatTes = () => {
                 {/* Input Deskripsi */}
                 <div className="mb-4 sm:pt-12">
                   <textarea
-                    className="w-full border border-gray-300 p-2 rounded-md"
+                    className="w-full border border-gray-300 p-2 rounded-md resize-y"
                     rows="4"
                     placeholder="Deskripsi"
                     value={deskripsi}
                     onChange={(e) => setDeskripsi(e.target.value)}
+                    style={{height: "150px", minHeight: "150px", maxHeight: "300px"}}
                   />
                 </div>
 
@@ -255,7 +256,7 @@ const BuatTes = () => {
                 <div className="relative min-h-[600px] sm:min-h-[450px]">
                   <div className="absolute bottom-60 right-0 pb-10  mr-[-20px]">
                     <button
-                      className="bg-white text-black w-[150px] sm:w-[170px] px-6 py-2 rounded-md hover:bg-[#0B61AA] hover:text-white transition duration-300" 
+                      className="bg-white text-black w-[150px] sm:w-[170px] tablet:px-6 mx-auto py-2 rounded-md hover:bg-[#0B61AA] hover:text-white transition duration-300" 
                       onClick={handleSubmit}>
                       Selanjutnya
                     </button>

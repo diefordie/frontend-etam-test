@@ -34,8 +34,27 @@ export default function Home() {
     const [token, setToken] = useState('');
     const [authorProfit, setAuthorProfit] = useState(null);
     const [transactions, setTransactions] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const banks = ['BCA', 'BNI', 'MANDIRI', 'Bank Lainnya'];
+
+      const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
 
     useEffect(() => {
         if (showHistory) {
@@ -222,6 +241,8 @@ export default function Home() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                beneficiary_name: userData?.name,
+                beneficiary_email: userData?.email,
                 beneficiary_bank: selectedBank.toLowerCase(),
                 beneficiary_account: accountNumber,
                 amount: withdrawAmount,

@@ -353,7 +353,7 @@ const LandingPage = () => {
 >
   <div className="flex flex-col-reverse md:flex-row items-center w-full max-w-6xl">
     <div className="w-full md:w-2/3 mb-8 md:mb-0 text-center md:text-left">
-    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-5">
+    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-5" style={{ lineHeight: '1.3'}}>
             <span className="typing-effect">
               Tingkatkan Kemampuanmu
             </span>
