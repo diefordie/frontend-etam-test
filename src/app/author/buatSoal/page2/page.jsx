@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import MembuatSoalCPNS from './MembuatSoalCPNS';
+import MembuatSoalCPNS from './membuatSoalCPNS';
 
 export default function Page() {
   return (
