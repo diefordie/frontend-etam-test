@@ -7,11 +7,10 @@ import { useRouter } from 'next/navigation';
 import { storage } from "../../../firebase/config";
 import { v4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import dynamic from 'next/dynamic';
 import { AiOutlineCloseSquare } from 'react-icons/ai';
-const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false 
-});
+import { BsImage } from 'react-icons/bs';
+import dynamic from 'next/dynamic';
+const ReactQuill = dynamic(() => import('react-quill'), {ssr: false});
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -28,7 +27,12 @@ const MembuatSoal = () => {
   const [questionPhoto, setQuestionPhoto] = useState(null);
   const [weight, setWeight] = useState();
   const [discussion, setDiscussion] = useState('');
-  const [options, setOptions] = useState([{ optionDescription: '', isCorrect: false }]);
+  const [options, setOptions] = useState([{ 
+    optionDescription: '', 
+    optionPhoto: null,
+    points: '',
+    isCorrect: false 
+  }]);
   const [isOptionWeighted, setIsOptionWeighted] = useState(false);
   const [pages, setPages] = useState([{ questions: [] }]);
   const [error, setError] = useState(null);
@@ -82,14 +86,18 @@ const MembuatSoal = () => {
         setOptions(data.option);
         setIsOptionWeighted(data.isWeighted);
         setDiscussion(data.discussion);
-        if (data.questionPhoto) {
+        if (data.questionPhoto && data.questionPhoto !== "") {
           setQuestionPhoto(data.questionPhoto);
+          console.log("Loaded question photo URL:", data.questionPhoto);
+        } else {
+          setQuestionPhoto(null);
         }
 
         if (data.option && Array.isArray(data.option)) {
           setOptions(data.option.map(opt => ({
             id: opt.id,
             optionDescription: opt.optionDescription,
+            optionPhoto: opt.optionPhoto || null,
             points: parseFloat(opt.points), 
             isCorrect: opt.isCorrect,
           })));
@@ -104,46 +112,106 @@ const MembuatSoal = () => {
   }, [multiplechoiceId]);
   
   const addOption = () => {
-    setOptions([...options, { optionDescription: '',  points:'' }]);
-  };
-
-  const handleOptionChange = (index, field, value) => {
-    const newOptions = options.map((option, i) => 
-      i === index ? { ...option, [field]: value } : option
-    );
-    setOptions(newOptions);
-  };
-
-  const handleCorrectOptionChange = (index) => {
-    const newOptions = options.map((option, i) => ({
-      ...option,
-      isCorrect: i === index,  
-    }));
-    setOptions(newOptions);
-  };
-
-  const handleWeightChange = (e) => {
-    const value = e.target.value;
-    if (/^\d*\.?\d*$/.test(value)) {
-      setWeight(value); 
+    if (options.length < 6) {
+      setOptions([...options, { 
+        optionDescription: '', 
+        optionPhoto: null,
+        points: ''
+        // isCorrect: false 
+      }]);
     }
-  }
+  };
 
+  const handleOptionChange = async (index, content, type) => {
+    const newOptions = [...options];
+    const currentOption = { ...newOptions[index] };
+    
+    switch (type) {
+      case 'text':
+        currentOption.optionDescription = content;
+        currentOption.optionPhoto = null;
+        break;
+      case 'image':
+        try {
+          const imageRef = ref(storage, `options/${content.name + v4()}`);
+          const snapshot = await uploadBytes(imageRef, content);
+          const imageUrl = await getDownloadURL(snapshot.ref);
+          currentOption.optionDescription = '';
+          currentOption.optionPhoto = imageUrl;
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          return;
+        }
+        break;
+      case 'points':
+        currentOption.points = content;
+        break;
+    }
+    newOptions[index] = currentOption;
+    setOptions(newOptions);
+  };
+
+  const renderOptionContent = (option, index) => {
+    if (option.optionPhoto) {
+      return (
+        <div className="relative">
+          <img 
+            src={option.optionPhoto} 
+            alt={`Option ${index + 1}`} 
+            className="max-w-full h-auto"
+          />
+          <button
+            type="button"
+            onClick={() => handleOptionChange(index, '', 'text')}
+            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded"
+          >
+            <AiOutlineCloseSquare className="w-4 h-4" />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative w-full">
+        <textarea
+          value={option.optionDescription}
+          onChange={(e) => handleOptionChange(index, e.target.value, 'text')}
+          className="w-full p-2 border rounded min-h-[100px]"
+          placeholder="Tulis opsi jawaban atau masukkan gambar..."
+        />
+        <button
+          type="button"
+          onClick={() => document.getElementById(`optionInput-${index}`).click()}
+          className="absolute bottom-2 right-2 bg-gray-100 p-2 rounded"
+        >
+          <BsImage className="w-5 h-5" />
+        </button>
+        <input
+          id={`optionInput-${index}`}
+          type="file"
+          hidden
+          accept="image/*"
+          onChange={(e) => handleOptionChange(index, e.target.files[0], 'image')}
+        />
+      </div>
+    );
+  };
+    
   const loadPagesFromLocalStorage = () => {
     if (testId && typeof window !== 'undefined') {
-        const savedPages = localStorage.getItem(`pages_${testId}`);
-        if (savedPages) {
-          return JSON.parse(savedPages);
-        }
+      const savedPages = localStorage.getItem(`pages_${testId}`);
+      if (savedPages) {
+        return JSON.parse(savedPages);
+      }
     }
     return null;
   };
 
   useEffect(() => {
-      const savedPages = loadPagesFromLocalStorage();
-      if (savedPages) {
-          setPages(savedPages);
-      }
+    const savedPages = loadPagesFromLocalStorage();
+    if (savedPages) {
+        setPages(savedPages);
+    }
   }, [testId]); 
 
   const handleDelete = async () => {
@@ -195,7 +263,7 @@ const MembuatSoal = () => {
             console.log('Data setelah reorder:', pages); 
             pages = pages.filter(page => page.questions.length > 0);
             localStorage.setItem(localStorageKey, JSON.stringify(pages));   
-            console.log('Data final yang disimpan:', pages); // Debug
+            console.log('Data final yang disimpan:', pages); 
           }
         }
 
@@ -228,25 +296,30 @@ const MembuatSoal = () => {
         console.error('Error deleting option:', error);
     }
   };
-
+  
   const handleBack = () => {
-    router.push('/author/buatSoal');
+    if (testId) {
+      router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}`);
+    } else {
+      console.error('Test ID tidak ditemukan dalam respons:', result);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
   
     try {
-      let uploadedImageUrl = "";
+      let uploadedImageUrl = questionPhoto;
       if (questionPhoto) {
         const imageRef = ref(storage, `question/${questionPhoto.name + v4()}`);
         const snapshot = await uploadBytes(imageRef, questionPhoto);
-        uploadedImageUrl = await getDownloadURL(snapshot.ref); // Mendapatkan URL download gambar
+        uploadedImageUrl = await getDownloadURL(snapshot.ref); 
       }
 
       const formattedOptions = options.map(option => ({
         optionDescription: option.optionDescription,
-        points: parseFloat(option.points) || 0,
+        optionPhoto: option.optionPhoto,
+        points: parseFloat(option.points),
         isCorrect: null,
       }));
       
@@ -260,8 +333,6 @@ const MembuatSoal = () => {
         isWeighted: true,
         options: formattedOptions
       };
-
-      console.log("opt:", options);
 
       let response;
       let result;
@@ -392,12 +463,8 @@ const MembuatSoal = () => {
                       [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
                       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                       ['bold', 'italic', 'underline'],
-                      ['image'],
                       ['clean']
                     ],
-                    // handlers: {
-                    //   image: () => document.getElementById('imageUpload').click() // Trigger input file upload
-                    // }
                   }}
                   formats={[
                     'header',
@@ -409,7 +476,6 @@ const MembuatSoal = () => {
                     'underline',
                     'image',
                   ]}
-                  // onImageUpload={uploadImage}
                   className='bg-white shadow-md rounded-md border border-gray-500'
                   style={{ maxWidth: '1220px', height: '150px', overflow: 'hidden' }}
                   placeholder='Buat Soal di sini...'
@@ -419,45 +485,55 @@ const MembuatSoal = () => {
             </div>
 
             <div className="mb-4">
-              <input
-                type="file"
-                onChange={(event) => setQuestionPhoto(event.target.files[0])}
-                className="border p-2 w-full"
-                accept="image/*"
-              />
+              {typeof questionPhoto === 'string' && questionPhoto ? (
+                <div className="mb-2">
+                  <img 
+                    src={questionPhoto} 
+                    alt="Question" 
+                    className="max-w-md h-auto"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setQuestionPhoto(null)}
+                    className="mt-2 bg-red-500 text-white px-2 py-1 rounded"
+                  >
+                    Hapus Gambar
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  onChange={(event) => setQuestionPhoto(event.target.files[0])}
+                  className="border p-2 w-full"
+                  accept="image/*"
+                />
+              )}
             </div>
   
             <div>
               <h2 className="text-lg font-semi-bold mb-2">Jawaban</h2>
               {options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
-                    <input
-                        type="text"
-                        value={option.optionDescription}
-                        onChange={(e) => handleOptionChange(index, 'optionDescription', e.target.value)}
-                        placeholder="Tulis jawaban untuk opsi"
-                        className="p-2 w-full"
-                        theme='snow'
-                        required
-                    />
+                  <div key={index} className="flex items-center space-x-2 mb-2">
+                    <div className="w-full">
+                      {renderOptionContent(option, index)}
+                    </div>
                     <div className="flex items-center justify-between px-2 space-x-50 border border-black rounded-[10px]">
                     <label className="font-medium-bold mr-4">Bobot</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            id="weight"
-                            value={option.points}
-                            onChange={(e) => handleOptionChange(index, 'points', e.target.value)}
-                            className="border p-2 w-[100px]"
-                            required
-                        />
-                    <button
+                      <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={option.points}
+                          onChange={(e) => handleOptionChange(index, e.target.value, 'points')}
+                          className="border p-2 w-[100px]"
+                          required
+                      />
+                      <button
                         type="button"
                         onClick={() => handleDeleteJawaban(index, option.id)}
                         className="ml-4"
-                    >
-                      <AiOutlineCloseSquare className="w-6 h-6" />
+                      >
+                        <AiOutlineCloseSquare className="w-6 h-6" />
                     </button>
                   </div>
                 </div>
@@ -489,7 +565,6 @@ const MembuatSoal = () => {
                   'italic',
                   'underline',
                 ]}
-                // onImageUpload={uploadImage}
                 placeholder='Tulis kunci jawaban di sini...' />
             </div>
           </form>
@@ -503,7 +578,14 @@ const MembuatSoal = () => {
               </button>
               </div>
               <div className="flex justify-end space-x-2">
-                <button type="button" onClick={handleSubmit} className="bg-[#E8F4FF] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]">Simpan</button>
+                <button
+                  onClick={handleSubmit} 
+                  className="bg-[#E8F4FF] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
+                >
+                  Simpan
+                </button>
+              </div>
+              <div className="flex justify-end space-x-2">
                 <button
                   onClick={handleBack}
                   className="bg-[#A6D0F7] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
@@ -512,7 +594,6 @@ const MembuatSoal = () => {
                 </button>
               </div>
           </div>
-
         </div>
       </div>
     </div>
