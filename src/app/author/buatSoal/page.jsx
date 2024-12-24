@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import axios from 'axios'
 import dotenv from 'dotenv';
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -155,34 +154,14 @@ const KotakNomor = () => {
         return;
       }
 
-      const hasNextPages = pageIndex < pages.length - 1;
-      
-      if (hasNextPages) {
-        const numbersToUpdate = pages.slice(pageIndex + 1).reduce((acc, page) => {
-          return [...acc, ...(page.questions || [])];
-        }, []);
-  
-        numbersToUpdate.sort((a, b) => b - a);
-  
-        for (const number of numbersToUpdate) {
-          await updateQuestionNumberInDB(testId, number, number + 1);
-        }
-      }
+      await updateQuestionNumbersInDB(testId, maxQuestionNumber);
 
       setPages(prevPages => {
         const updatedPages = [...prevPages];
         const currentPage = { ...updatedPages[pageIndex] };
-        currentPage.questions = [...(currentPage.questions || []), maxQuestionNumber + 1];
-        currentPage.questions.sort((a, b) => a - b);
+        currentPage.questions = [...(currentPage.questions || []), getNextAvailableNumber(updatedPages)];
+        currentPage.questions.sort((a, b) => a - b);    
         updatedPages[pageIndex] = currentPage;
-
-        if (hasNextPages) {
-          for (let i = pageIndex + 1; i < updatedPages.length; i++) {
-            const nextPage = { ...updatedPages[i] };
-            nextPage.questions = (nextPage.questions || []).map(num => num + 1);
-            updatedPages[i] = nextPage;
-          }
-        }
 
         const finalPages = reorderAllPages(updatedPages);
         localStorage.setItem(`pages-${testId}`, JSON.stringify(finalPages));
@@ -190,17 +169,6 @@ const KotakNomor = () => {
       });
     } catch (error) {
       console.error('Error adding question:', error);
-    }
-  };
-
-  const updateQuestionNumberInDB = async (testId, oldNumber, newNumber) => {
-    try {
-      await axios.put(`https://${URL}/api/multiplechoice/${testId}/questions/${oldNumber}`, {
-        newQuestionNumber: newNumber
-      });
-    } catch (error) {
-      console.error('Error updating question number:', error);
-      throw error;
     }
   };
 
@@ -217,9 +185,8 @@ const KotakNomor = () => {
       console.log("Current category:", category); 
   
       setPages(prevPages => {
-        if (category === 'CPNS') {
-          const usedPageNames = new Set(prevPages.map(page => page.pageName));
-          const availablePageNames = pageNameOptions.filter(name => !usedPageNames.has(name));
+        const usedPageNames = new Set(prevPages.map(page => page.pageName));
+        const availablePageNames = pageNameOptions.filter(name => !usedPageNames.has(name));
         
         console.log("Available page names:", availablePageNames); 
         
@@ -232,7 +199,7 @@ const KotakNomor = () => {
           pageNumber: prevPages.length + 1,
           questions: [nextNumber],
           pageName: availablePageNames[0],
-          isCPNSPage: true
+          isCPNSPage: category === "CPNS"
         };
   
         console.log("New page created:", newPage); 
@@ -240,23 +207,11 @@ const KotakNomor = () => {
         const updatedPages = [...prevPages, newPage];
         localStorage.setItem(`pages-${testId}`, JSON.stringify(updatedPages));
         return updatedPages;
-      } else {
-        const newPage = {
-          pageNumber: prevPages.length + 1,
-          questions: [nextNumber],
-          pageName: 'Beri Nama Tes',
-          isCPNSPage: false
-        };
-        
-        const updatedPages = [...prevPages, newPage];
-        localStorage.setItem(`pages-${testId}`, JSON.stringify(updatedPages));
-        return updatedPages;
-      }
-    });
-  } catch (error) {
-    console.error('Error adding page:', error);
-  }
-};
+      });
+    } catch (error) {
+      console.error('Error adding page:', error);
+    }
+  };
 
   const toggleDropdown = (pageIndex) => {
     setPages(prevPages => 
