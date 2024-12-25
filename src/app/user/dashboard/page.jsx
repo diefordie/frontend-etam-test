@@ -455,10 +455,9 @@ export default function UserDashboard() {
   // Ambil status like dari local storage atau API saat komponen dimuat
   useEffect(() => {
     const fetchFavorites = async () => {
-      console.log('Token yang dikirim:', token);
       setLoading(true); // Memulai proses loading
       try {
-                const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
         if (!token) {
           throw new Error('Token not found');
         }
@@ -567,7 +566,7 @@ export default function UserDashboard() {
   return (
     <>
       {/* Header */}
-      <header className="fixed p-4 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
+      <header className="position:fixed p-4 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
         <div className="mx-auto flex justify-between items-center font-poppins max-w-full ">
           <div className="flex justify-between">
             <button onClick={toggleSidebar}>
@@ -1106,8 +1105,7 @@ export default function UserDashboard() {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
-                          />
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"                          />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
                         )}
