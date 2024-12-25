@@ -510,16 +510,17 @@ const saveWorkTime = (time) => {
 
       {/* judul hasil tes */}
       {user.map((user, index) => (
-        <div className='text-center font-poppins font-bold text-deepBlue p-5'> 
-          <h2 className="text-2xl font-bold ">Halo {userData.userName}!!</h2>
-            <p>
-              Hasil {userData.testTitle}
-            </p>
-            <p>
-            <span className="font-semibold">{formatDate(userData.createdAt)}</span>
-            </p>
-        </div>
-      ))}
+      <div key={user.id || index} className="text-center font-poppins font-bold text-deepBlue p-5"> 
+        <h2 className="text-2xl font-bold ">Halo {userData.userName}!!</h2>
+        <p>
+          Hasil {userData.testTitle}
+        </p>
+        <p>
+          <span className="font-semibold">{formatDate(userData.createdAt)}</span>
+        </p>
+      </div>
+    ))}
+
       
       <section className='bg-white p-8 text-bold'>
   <div>
@@ -527,29 +528,30 @@ const saveWorkTime = (time) => {
     <main className="bg-abumuda p-4 lg:p-8 rounded-2xl shadow-xl mt-0 w-full max-w-screen-xl mx-auto">
 
       {/* Score Progress Bar */}
-      <div className='mb-4 bg-deepBlue p-5 lg:p-8 rounded-xl'>
-        {user.map((user, index) => (
-          <div className="w-full bg-white h-8 rounded-full overflow-hidden">
-            <div
-              className="bg-paleBlue h-8 flex relative items-center justify-center text-deepBlue font-bold text-sm lg:text-lg transition-all duration-300"
-              style={{ width: getProgressWidth() }} // width sesuai dengan persentase
-            >
-              <div className='absolute right-0 bg-white text-deepBlue p-2 border border-grey shadow'>
-                {userData.score} {/* Menampilkan nilai total */}
-              </div>
+      <div className="mb-4 bg-deepBlue p-5 lg:p-8 rounded-xl">
+      {user.map((user, index) => (
+        <div key={user.id || index} className="w-full bg-white h-8 rounded-full overflow-hidden">
+          <div
+            className="bg-paleBlue h-8 flex relative items-center justify-center text-deepBlue font-bold text-sm lg:text-lg transition-all duration-300"
+            style={{ width: getProgressWidth() }}
+          >
+            <div className='absolute right-0 bg-white text-deepBlue p-2 border border-grey shadow'>
+              {userData.score}
             </div>
           </div>
-        ))}
+        </div>
+      ))}
       </div>
+
 
       {/* Flex container for Performance and Top Score */}
       <div className="flex flex-col md:flex-row justify-center items-center gap-8 pt-0 text-center w-full">
         {/* Performance Section */}
         {user.map((user, index) => (
-          <div className="bg-abumuda p-6 flex-1 flex flex-col items-center pr-5 pb-8 w-full md:w-1/2 xl:w-1/3">
-            <a href="#performa" className="text-xl sm:text-2xl lg:text-3xl font-semibold text-deepBlue">
+          <div key={user.id || index} className="bg-abumuda p-6 flex-1 flex flex-col items-center pr-5 pb-8 w-full md:w-1/2 xl:w-1/3">
+          <a href="#performa" className="text-xl sm:text-2xl lg:text-3xl font-semibold text-deepBlue">
             Performa
-            </a>
+          </a>
 
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-4 w-full">
               <div className="flex text-sm lg:text-2xl items-center justify-center text-black block font-semibold bg-white p-2 pr-4.5 rounded-lg w-full md:w-auto">

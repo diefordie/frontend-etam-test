@@ -399,6 +399,36 @@ export default function UTBK() {
     { href: "/faq", text: "FAQ" },
   ];
 
+  const handleHome = (event) => {
+    event.preventDefault(); // Mencegah perilaku default link
+  
+    // Ambil sessionId dari localStorage
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (sessionId) {
+      console.log('Session ID ditemukan:', sessionId);
+  
+      // Hapus data terkait sessionId dari localStorage
+      localStorage.removeItem('resultId');
+      localStorage.removeItem('answers');
+      localStorage.removeItem(`remainingTime_${sessionId}`);
+      localStorage.removeItem(`workTime_${sessionId}`);
+      localStorage.removeItem(`sessionId`);
+      localStorage.removeItem(`currentOption`);
+  
+      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
+    } else {
+      console.log('Session ID tidak ditemukan');
+    }
+  
+    // Redirect ke halaman dashboard
+    router.push('/user/dashboard');
+  };
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -553,11 +583,9 @@ export default function UTBK() {
               <nav className="hidden lg:block mt-2">
                 <ol className="list-reset flex space-x-2 ">
                   <li>
-                    <Link href="/user/dashboard" legacyBehavior>
-                      <a className="hover:text-orange font-poppins font-bold">
-                        Home
-                      </a>
-                    </Link>
+                  <Link href="/user/dashboard" legacyBehavior>
+                      <a onClick={handleHome} className="hover:text-orange font-poppins font-bold">Home</a>
+                  </Link>
                   </li>
                   <li>/</li>
                   <li>
