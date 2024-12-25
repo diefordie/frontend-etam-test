@@ -81,8 +81,6 @@ export default function Pemrograman() {
     getUserIdFromToken();
   }, []);
 
-  
-
   useEffect(() => {
     const fetchUserData = async () => {
       let token;
@@ -417,6 +415,10 @@ export default function Pemrograman() {
     const fetchFavorites = async () => {
       setLoading(true); // Mulai loading
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
         const response = await fetch(`https://${URL}/api/favorites`, {
           method: "GET",
           headers: {
@@ -767,16 +769,11 @@ export default function Pemrograman() {
           Paling Populer
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {popularTestsByCategory
-              .slice(
-                populercurrentIndex,
-                populercurrentIndex + populeritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {popularTestsByCategory.slice(populercurrentIndex, populercurrentIndex + populeritemsToShow).map((test, index) => (
+            <div
+              key={test.testId || index} // Using index as fallback
+              className="bg-abumuda shadow-lg p-1 relative group"
+            >
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -876,16 +873,13 @@ export default function Pemrograman() {
           Berbayar
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {berbayarTests
-              .slice(
-                berbayarcurrentIndex,
-                berbayarcurrentIndex + berbayaritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {berbayarTests
+            .slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow)
+            .map((test) => (
+              <div
+                key={test.testId}
+                className="bg-abumuda shadow-lg p-1 relative group"
+              >
                   {/* Overlay background abu-abu yang muncul saat hover */}
                 <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -987,9 +981,9 @@ export default function Pemrograman() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
             {freeTestsByCategory
               .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
-              .map((test) => (
+              .map((test, index) => (
                 <div
-                  key={test.testId}
+                  key={test.testId || `fallback-key-${index}`}
                   className="bg-abumuda shadow-lg p-1 relative group"
                 >
                   {/* Overlay background abu-abu yang muncul saat hover */}

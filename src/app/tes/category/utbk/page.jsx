@@ -55,21 +55,21 @@ export default function UTBK() {
       try {
         setLoading(true);
         // Pastikan kode ini hanya dijalankan di sisi klien
-        if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
+        if (typeof window !== 'undefined') {
+          const token = localStorage.getItem('token');
           if (!token) {
-            throw new Error("Token tidak ditemukan");
+            throw new Error('Token tidak ditemukan');
           }
 
           const decodedToken = jwtDecode(token);
           if (!decodedToken.id) {
-            throw new Error("User ID tidak ditemukan dalam token");
+            throw new Error('User ID tidak ditemukan dalam token');
           }
 
           setUserId(decodedToken.id);
         }
       } catch (error) {
-        console.error("Error decoding token:", error);
+        console.error('Error decoding token:', error);
         setError(error.message);
         // Redirect ke halaman login jika token tidak valid
       } finally {
@@ -417,6 +417,10 @@ export default function UTBK() {
     const fetchFavorites = async () => {
       setLoading(true); // Mulai loading
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
         const response = await fetch(`https://${URL}/api/favorites`, {
           method: "GET",
           headers: {
@@ -647,16 +651,13 @@ export default function UTBK() {
             Hasil Pencarian
             {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-              {searchResults
-                .slice(
-                  searchcurrentIndex,
-                  searchcurrentIndex + searchitemsToShow
-                )
-                .map((test) => (
-                  <div
-                    key={test.testId}
-                    className="bg-abumuda shadow-lg p-1 relative group"
-                  >
+            {searchResults
+              .slice(searchcurrentIndex, searchcurrentIndex + searchitemsToShow)
+              .map((test, index) => (
+                <div
+                  key={test.testId || `fallback-key-${index}`}
+                  className="bg-abumuda shadow-lg p-1 relative group"
+                >
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -795,17 +796,14 @@ export default function UTBK() {
           <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
             Paling Populer
             {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
-            <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {popularTestsByCategory
-                .slice(
-                  populercurrentIndex,
-                  populercurrentIndex + populeritemsToShow
-                )
-                .map((test) => (
-                  <div
-                    key={test.testId}
-                    className="bg-abumuda shadow-lg p-1 relative group"
-                  >
+            <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {popularTestsByCategory
+              .slice(populercurrentIndex, populercurrentIndex + populeritemsToShow)
+              .map((test, index) => (
+                <div
+                  key={test.testId || `test-${index}`} // Fallback to index if testId is missing or duplicate
+                  className="bg-abumuda shadow-lg p-1 relative group"
+                >
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -935,16 +933,8 @@ export default function UTBK() {
           Berbayar
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {berbayarTests
-              .slice(
-                berbayarcurrentIndex,
-                berbayarcurrentIndex + berbayaritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {berbayarTests.slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow).map((test, index) => (
+            <div key={test.testId || index} className="bg-abumuda shadow-lg p-1 relative group">
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -1072,13 +1062,8 @@ export default function UTBK() {
           Gratis
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {freeTestsByCategory
-              .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {freeTestsByCategory.slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow).map((test, index) => (
+            <div key={test.testId || index} className="bg-abumuda shadow-lg p-1 relative group">
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 

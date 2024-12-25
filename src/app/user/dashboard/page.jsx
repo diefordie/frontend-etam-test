@@ -53,7 +53,6 @@ export default function UserDashboard() {
     const getUserIdFromToken = () => {
       try {
         setLoading(true);
-        // Pastikan kode ini hanya dijalankan di sisi klien
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('token');
           if (!token) {
@@ -70,13 +69,12 @@ export default function UserDashboard() {
       } catch (error) {
         console.error('Error decoding token:', error);
         setError(error.message);
-        // Redirect ke halaman login jika token tidak valid
       } finally {
         setLoading(false);
       }
     };
 
-  getUserIdFromToken();
+    getUserIdFromToken();
   }, []);
 
   useEffect(() => {
@@ -460,6 +458,11 @@ export default function UserDashboard() {
       console.log('Token yang dikirim:', token);
       setLoading(true); // Memulai proses loading
       try {
+                const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
+    
         const response = await fetch(`https://${URL}/api/favorites`, {
           method: 'GET',
           headers: {
@@ -731,16 +734,9 @@ export default function UserDashboard() {
             Hasil Pencarian
             {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-              {searchResults
-                .slice(
-                  searchcurrentIndex,
-                  searchcurrentIndex + searchitemsToShow
-                )
-                .map((test) => (
-                  <div
-                    key={test.testId}
-                    className="bg-abumuda shadow-lg relative group"
-                  >
+            {searchResults
+            .slice(searchcurrentIndex, searchcurrentIndex + searchitemsToShow).map((test) => (
+              <div key={test.testId} className="bg-abumuda shadow-lg relative group">
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -880,22 +876,18 @@ export default function UserDashboard() {
           <div className="relative pt-2">
             {/* Container untuk kategori, hanya 3 kategori yang akan ditampilkan */}
             <div className="flex overflow-hidden w-full">
-              {categories
-                .slice(
-                  catagoriescurrentIndex,
-                  catagoriescurrentIndex + catagoriesitemsToShow
-                )
-                .map((category, index) => (
-                  <Link key={index} href={category.href} legacyBehavior>
-                    <a className="hover:text-gray-300 mx-2 relative w-full h-64">
-                      <Image
-                        src={category.src}
-                        alt={category.alt}
-                        fill // Mengganti layout="fill"
-                        style={{ objectFit: "cover" }} // Memindahkan objectFit ke style
-                        className="rounded-lg hover:scale-90 hover:shadow-lg hover:shadow-gray-400"
-                        priority
-                      />
+            {categories.slice(catagoriescurrentIndex, catagoriescurrentIndex + catagoriesitemsToShow).map((category, index) => (
+              <Link key={index} href={category.href} legacyBehavior>
+                <a className="hover:text-gray-300 mx-2 relative w-full h-64">
+                  <Image
+                    src={category.src}
+                    alt={category.alt}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    className="rounded-lg hover:scale-90 hover:shadow-lg hover:shadow-gray-400"
+                    sizes="(max-width: 768px) 100vw, 50vw" // Menyesuaikan ukuran gambar untuk responsivitas
+                    priority
+                  />
                     </a>
                   </Link>
                 ))}
@@ -933,16 +925,10 @@ export default function UserDashboard() {
             Paling Populer
             {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
             <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {popularTests
-                .slice(
-                  populercurrentIndex,
-                  populercurrentIndex + populeritemsToShow
-                )
-                .map((test) => (
-                  <div
-                    key={test.testId}
-                    className="bg-abumuda shadow-lg relative group"
-                  >
+            {popularTests
+            .slice(populercurrentIndex, populercurrentIndex + populeritemsToShow)
+            .map((test, index) => (
+              <div key={`${test.testId}-${index}`} className="bg-abumuda shadow-lg relative group">
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -1071,16 +1057,11 @@ export default function UserDashboard() {
           Berbayar
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {berbayarTests
-              .slice(
-                berbayarcurrentIndex,
-                berbayarcurrentIndex + berbayaritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg relative group"
-                >
+          {berbayarTests
+          .slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow)
+          .map((test, index) => (
+            <div key={test.testId || `test-${index}`} className="bg-abumuda shadow-lg relative group">
+
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -1207,13 +1188,8 @@ export default function UserDashboard() {
           Gratis
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {freeTests
-              .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg relative group"
-                >
+          {freeTests.slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow).map((test, index) => (
+            <div key={`${test.testId}-${index}`} className="bg-abumuda shadow-lg relative group">
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
