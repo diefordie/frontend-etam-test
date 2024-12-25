@@ -667,7 +667,30 @@ useEffect(() => {
 
     // Panggil `submitFinalAnswers` ketika tombol "Submit" diklik
     const handleSubmit = async () => {
-        // Check if there are any questions marked as doubtful
+        // Cek soal yang belum dijawab
+        const unansweredQuestions = questions
+            .filter((question) => !answers[question.id]) // Cek apakah soal tidak ada di jawaban
+            .map((question) => question.questionNumber); // Ambil nomor soal yang belum dijawab
+    
+        if (unansweredQuestions.length > 0) {
+            // Jika ada soal yang belum dijawab, tampilkan alert
+            await Swal.fire({
+                title: 'Soal Belum Lengkap!',
+                text: `Anda masih memiliki ${unansweredQuestions.length} soal yang belum dijawab (Nomor: ${unansweredQuestions.join(', ')}). Harap isi semua soal sebelum mengirim.`,
+                icon: 'warning',
+                confirmButtonText: 'OK',
+            });
+    
+            // Arahkan ke soal pertama yang belum dijawab
+            const firstUnansweredIndex = questions.findIndex(
+                (question) => unansweredQuestions.includes(question.questionNumber)
+            );
+    
+            setCurrentOption(firstUnansweredIndex + 1); // Arahkan ke soal tersebut
+            return; // Hentikan proses submit
+        }
+    
+        // Cek apakah ada soal ragu-ragu
         const doubtfulQuestions = doubtQuestions.map(index => index + 0);
     
         let confirmMessage = 'Apakah Anda yakin ingin mengirim jawaban?';
@@ -715,7 +738,6 @@ useEffect(() => {
             }
         }
     };
-    
     
 
     useEffect(() => {

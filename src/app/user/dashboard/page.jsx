@@ -458,37 +458,53 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchFavorites = async () => {
       console.log('Token yang dikirim:', token);
-      setLoading(true); // Memulai proses loading
+      setLoading(true);
       try {
+        if (!token) {
+          throw new Error('No token available');
+        }
+  
         const response = await fetch(`https://${URL}/api/favorites`, {
           method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`, // Menambahkan 'Bearer ' di depan token
           },
         });
   
+        if (response.status === 401) {
+          throw new Error('Unauthorized: Token might be invalid or expired');
+        }
+  
         if (!response.ok) {
-          throw new Error('Failed to fetch favorites');
+          throw new Error(`Failed to fetch favorites: ${response.status}`);
         }
   
         const favoriteTests = await response.json();
   
-        // Buat objek liked items berdasarkan favoriteTests
         const initialLikedItems = {};
         favoriteTests.forEach((test) => {
-          initialLikedItems[test.id] = true; // Asumsikan test.id adalah ID dari tes
+          initialLikedItems[test.id] = true;
         });
   
         setLikedItems(initialLikedItems);
       } catch (error) {
         console.error('Error fetching favorite tests:', error);
-        setError('Failed to fetch favorites'); // Atur error jika terjadi masalah
+        setError(error.message);
+        
+        if (error.message.includes('Unauthorized')) {
+          // Handle token expiration, e.g., redirect to login
+          // router.push('/login');
+        }
       } finally {
-        setLoading(false); // Mengakhiri proses loading
+        setLoading(false);
       }
     };
   
-    fetchFavorites();
+    if (token) {
+      fetchFavorites();
+    } else {
+      setError('No authentication token available');
+    }
   }, [token]);
 
   useEffect(() => {
@@ -927,6 +943,11 @@ export default function UserDashboard() {
       </section>
 
       {/* Bagian Paling Populer */}
+      
+      <div className="mt-5 overflow-x-auto"> 
+
+
+      </div>
       {popularTests.length > 0 && (
         <section className="mx-auto p-5 font-poppins relative">
           <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
@@ -1064,6 +1085,7 @@ export default function UserDashboard() {
           </div>
         </section>
       )}
+      
 
       {/* Bagian Berbayar */}
       <section className="block mx-auto p-5 font-poppins relative">

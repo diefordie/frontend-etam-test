@@ -10,7 +10,7 @@ import { FaEye } from "react-icons/fa";
 import { IoIosLock } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 import { useRouter } from 'next/navigation';
 import dotenv from 'dotenv';
 
@@ -442,7 +442,7 @@ useEffect(() => {
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
-                  <Link legacyBehavior href={`/author/edit-profile`}>
+                  <Link legacyBehavior href={`/author/edit-profile/${userId}`}>
                     <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
                       Ubah Profil
                     </a>

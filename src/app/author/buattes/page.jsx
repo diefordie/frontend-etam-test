@@ -87,8 +87,9 @@ const BuatTes = () => {
         console.log('Tes berhasil disimpan!');
         const result = await response.json();
         const testId = result.id;
-        if (testId) {
-          router.push(`/author/buatSoal?testId=${testId}`);
+        const testCategory = result.category;
+        if (testId && testCategory) {
+          router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}`);
         } else {
           console.error('Test ID tidak ditemukan dalam respons:', result);
         }
@@ -103,13 +104,13 @@ const BuatTes = () => {
   return (
     <>
     {/* Header dengan Warna Biru Kustom */}
-    <header className="bg-[#0B61AA] text-white p-6 font-poppins" style={{ maxWidth: '1440px', height: '108px' }}>
-  <div className="container mx-auto flex justify-start items-center max-w-7xl px-4">
+    <header className="bg-[#0B61AA] text-white p-6 font-poppins w-full" style={{ height: '108px' }}>
+  <div className="container ml-0 flex justify-start items-center max-w-7xl ">
     <Link href="/author/dashboard">
-      <IoMdArrowRoundBack className="text-white text-3xl sm:text-3xl lg:text-4xl ml-2" />
+      <IoMdArrowRoundBack className="text-white text-3xl sm:text-3xl lg:text-4xl ml-0" />
     </Link>
     <Link href="/author/dashboard">
-      <img src="/images/etamtest.png" alt="Etamtest" className="h-[50px] ml-4" style={{ maxWidth: '179px' }} />
+      <img src="/images/etamtest.png" alt="Etamtest" className="h-[50px] ml-2" style={{ maxWidth: '179px' }} />
     </Link>
   </div>
 </header>

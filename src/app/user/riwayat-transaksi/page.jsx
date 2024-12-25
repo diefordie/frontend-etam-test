@@ -217,7 +217,7 @@ if (loading) {
       
       {/* Header Utama */}
       <header className="sticky p-4 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
-        <div className="mx-auto flex justify-between items-center font-poppins max-w-full">
+        <div className="mx-auto flex justify-between items-center font-poppins max-w-none">
           <div className="flex justify-between">
           <button onClick={toggleSidebar}>
             <IoMenu className="h-[30px] w-8 h-8 lg:hidden"/> {/* Gunakan IoMenu sebagai ikon */}
@@ -300,12 +300,12 @@ if (loading) {
       )}
 
       <nav className="w-full h-[51px] sm:h-[68px] bg-white shadow-md ">
-        <div className="container mx-auto flex flex-nowrap justify-start space-x-2 py-2 sm:py-2">
+        <div className="justify-center flex flex-nowrap justify-start  space-x-2 py-2 sm:py-2  overflow-x-auto whitespace-nowrap">
           {['Belum Bayar', 'Berhasil (Belum Dikerjakan)', 'Selesai (Sudah Dikerjakan)', 'Tidak Berhasil'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`text-lg px-4 pb-2 sm:text-lg ${activeTab === tab ? 'text-[#0B61AA] border-b-4 border-[#0B61AA]' : 'text-gray-500'} hover:text-[#0B61AA]`}
+              className={`text-sm sm:text-lg px-4 pb-2 ${activeTab === tab ? 'text-[#0B61AA] border-b-4 border-[#0B61AA]' : 'text-gray-500'} hover:text-[#0B61AA]`}
             >
               {formatStatus(tab)}
             </button>

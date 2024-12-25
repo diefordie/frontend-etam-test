@@ -170,16 +170,10 @@ const MembuatSoal = () => {
   const handleCorrectOptionChange = (index) => {
     const newOptions = options.map((option, i) => ({
       ...option,
-      isCorrect: i === index, // Set `true` untuk index yang dipilih, lainnya `false`
+      isCorrect: i === index, 
     }));
     console.log('Options setelah perubahan isCorrect:', newOptions);
     setOptions(newOptions);
-  };
-  
-  const validateForm = () => {
-    const allOptionsFilled = options.every(option => option.optionDescription.trim() !== '');
-    const atLeastOneCorrect = options.some(option => option.isCorrect);
-    return allOptionsFilled && atLeastOneCorrect;
   };
 
   const handleWeightChange = (e) => {
@@ -222,7 +216,6 @@ const MembuatSoal = () => {
           
         }
   
-        // 2. Ambil data pages dari localStorage
         const savedPages = localStorage.getItem(localStorageKey);
         console.log('Data sebelum dihapus:', savedPages);
   
@@ -323,18 +316,50 @@ const MembuatSoal = () => {
     router.push(`/author/buatSoal?testId=${testId}`);
   };
 
+  const validateForm = () => {
+    const validationErrors = [];
+    if (!question.trim()) {
+      validationErrors.push("Soal wajib diisi");
+    }
+    if (!weight || weight <= 0) {
+      validationErrors.push("Bobot harus diisi dengan nilai lebih dari 0");
+    }
+    if (options.length < 2) {
+      validationErrors.push("Minimal harus ada 2 opsi jawaban");
+    } else {
+      const emptyOptions = options.filter((option, index) => 
+        !option.optionDescription.trim() && !option.optionPhoto
+      );
+      
+      if (emptyOptions.length > 0) {
+        validationErrors.push("Semua opsi jawaban harus diisi");
+      }
+    }
+    const correctOptionsCount = options.filter(option => option.isCorrect).length;
+    if (correctOptionsCount === 0) {
+      validationErrors.push("Pilih salah satu jawaban yang benar");
+    } else if (correctOptionsCount > 1) {
+      validationErrors.push("Hanya boleh memilih satu jawaban yang benar");
+    }
+    return {
+      isValid: validationErrors.length === 0,
+      errors: validationErrors
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
     const valid = validateForm();
-    setIsValid(valid);
+    // setIsValid(valid);
 
-    if (!valid) {
-      // Ganti alert dengan SweetAlert
+    if (!valid.isValid) {
       Swal.fire({
         icon: 'error',
-        title: 'Oops...',
-        text: 'Semua opsi harus diisi dan satu opsi harus ditandai sebagai benar.',
+        title: 'Gagal Membuat Soal',
+        html: valid.errors.map(error => `• ${error}`).join('<br>'),
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#0B61AA',
       });
       return;
     }
@@ -389,7 +414,7 @@ const MembuatSoal = () => {
           localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
         }
       } else {
-        response = await fetch('https://${URL}/api/multiplechoice/add-questions', {
+        response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -423,9 +448,23 @@ const MembuatSoal = () => {
       } else {
         console.error('Failed to process request:', response.statusText);
       }
-  
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Soal berhasil disimpan!',
+        confirmButtonColor: '#0B61AA',
+      }).then(() => {
+        const encodedPageName = encodeURIComponent(pageName);
+        router.push(`/author/buatSoal?testId=${testId}&pageName=${encodedPageName}`);
+      });
     } catch (error) {
       console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Terjadi kesalahan saat menyimpan soal. Silakan coba lagi.',
+        confirmButtonColor: '#0B61AA',
+      });
     }
   };
 

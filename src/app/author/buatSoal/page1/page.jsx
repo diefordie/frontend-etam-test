@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
-import MembuatSoalClient from './MembuatSoalClient';
+import MembuatSoal from './MembuatSoal';
 
 export default function Page() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <MembuatSoalClient />
+      <MembuatSoal />
     </Suspense>
   );
 }

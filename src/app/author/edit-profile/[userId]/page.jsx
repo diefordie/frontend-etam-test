@@ -64,7 +64,7 @@ export default function EditProfile({ params }) {
           return;
         }
     
-        const response = await fetch(`http://localhost:2000/user/profile/handphoneNum/${userId}`, {
+        const response = await fetch(`https://${URL}/user/profile/handphoneNum/${userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export default function EditProfile({ params }) {
           return;
         }
 
-        const response = await fetch(`http://localhost:2000/user/profile`, {
+        const response = await fetch(`https://${URL}/user/profile`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export default function EditProfile({ params }) {
       }
   
       // Make the DELETE request to the backend to remove the profile photo
-      const response = await fetch('http://localhost:2000/user/profile/author/photo', {
+      const response = await fetch(`https://${URL}/user/profile/author/photo`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -215,7 +215,7 @@ export default function EditProfile({ params }) {
     const token = localStorage.getItem("token");
 
     try {
-      await fetch(`http://localhost:2000/user/profile/author/name`, {
+      await fetch(`https://${URL}/user/profile/author/name`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +224,7 @@ export default function EditProfile({ params }) {
         body: JSON.stringify({ name: `${formData.firstName} ${formData.lastName}` }),
       });
 
-      await fetch(`http://localhost:2000/user/profile/author/handphone`, {
+      await fetch(`https://${URL}/user/profile/author/handphone`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -235,7 +235,7 @@ export default function EditProfile({ params }) {
         }),
       });
 
-      await fetch(`http://localhost:2000/user/profile/email`, {
+      await fetch(`https://${URL}/user/profile/email`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -248,7 +248,7 @@ export default function EditProfile({ params }) {
         const profileImageData = new FormData();
         profileImageData.append("profileImage", selectedFile);
 
-        await fetch(`http://localhost:2000/user/profile/author/photo`, {
+        await fetch(`https://${URL}/user/profile/author/photo`, {
           method: "PATCH",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -258,7 +258,7 @@ export default function EditProfile({ params }) {
       }
 
       if (formData.currentPassword && formData.newPassword) {
-        const passwordResponse = await fetch(`http://localhost:2000/user/profile/password`, {
+        const passwordResponse = await fetch(`https://${URL}/user/profile/password`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",

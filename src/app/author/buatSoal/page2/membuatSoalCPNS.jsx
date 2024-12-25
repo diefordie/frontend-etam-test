@@ -1,15 +1,16 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { storage } from "../../../firebase/config";
 import { v4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { AiOutlineCloseSquare } from 'react-icons/ai';
+import { IoMdArrowRoundBack } from "react-icons/io";
 import { BsImage } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
+import Swal from 'sweetalert2'; 
 const ReactQuill = dynamic(() => import('react-quill'), {ssr: false});
 import dotenv from 'dotenv';
 
@@ -18,6 +19,8 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const MembuatSoal = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [testId, setTestId] = useState('');
   const [category, setCategory] = useState('');
   const [multiplechoiceId, setMultiplechoiceId] = useState('');
@@ -37,14 +40,14 @@ const MembuatSoal = () => {
   const [pages, setPages] = useState([{ questions: [] }]);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('');
+  const [isValid, setIsValid] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const testIdFromUrl = params.get("testId");
-    const categoryFromUrl = params.get("category");
-    const multiplechoiceIdFromUrl = params.get("multiplechoiceId");
-    const pageNameFromUrl = params.get("pageName");
-    const numberFromUrl = params.get("nomor");
+    const testIdFromUrl = searchParams.get("testId");
+    const categoryFromUrl = searchParams.get("category");
+    const multiplechoiceIdFromUrl = searchParams.get("multiplechoiceId");
+    const pageNameFromUrl = searchParams.get("pageName");
+    const numberFromUrl = searchParams.get("nomor");
 
     console.log("Fetched testId:", testIdFromUrl); 
     console.log("Fetched category:", categoryFromUrl);
@@ -66,7 +69,7 @@ const MembuatSoal = () => {
       setMultiplechoiceId(multiplechoiceIdFromUrl); 
     }
     if (numberFromUrl) setNumber(numberFromUrl);
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!multiplechoiceId) return;
@@ -299,14 +302,63 @@ const MembuatSoal = () => {
   
   const handleBack = () => {
     if (testId) {
-      router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}`);
+      router.push(`/author/buatSoal?testId=${testId}&category=${category}`);
     } else {
       console.error('Test ID tidak ditemukan dalam respons:', result);
     }
   };
 
+const validateForm = () => {
+  const validationErrors = [];
+  if (!question.trim()) {
+    validationErrors.push("Soal wajib diisi");
+  }
+  if (options.length < 2) {
+    validationErrors.push("Minimal harus ada 2 opsi jawaban");
+  } else if (options.length > 5) {
+    validationErrors.push("Jumlah opsi jawaban tidak boleh lebih dari 5");
+  } else {
+    const emptyOptions = options.filter((option) => 
+      !option.optionDescription.trim() && !option.optionPhoto
+    );
+    if (emptyOptions.length > 0) {
+      validationErrors.push("Semua opsi jawaban harus diisi");
+    }
+
+    const pointsOutOfRange = options.filter(option => 
+      !option.points || option.points < 1 || option.points > 5
+    );
+    if (pointsOutOfRange.length > 0) {
+      validationErrors.push("Points harus diisi dan berada dalam rentang 1–5");
+    }
+
+    const uniquePoints = new Set(options.map(option => option.points));
+    if (uniquePoints.size !== options.length) {
+      validationErrors.push("Tidak boleh ada opsi dengan points yang sama");
+    }
+  }
+
+  return {
+    isValid: validationErrors.length === 0,
+    errors: validationErrors
+  };
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const valid = validateForm();
+
+    if (!valid.isValid) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Membuat Soal',
+        html: valid.errors.map(error => `• ${error}`).join('<br>'),
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#0B61AA',
+      });
+      return;
+    }
   
     try {
       let uploadedImageUrl = questionPhoto;
@@ -359,7 +411,7 @@ const MembuatSoal = () => {
           localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
         }
       } else {
-        response = await fetch('https://${URL}/api/multiplechoice/add-questions', {
+        response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -393,9 +445,23 @@ const MembuatSoal = () => {
       } else {
         console.error('Failed to process request:', response.statusText);
       }
-  
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Soal berhasil disimpan!',
+        confirmButtonColor: '#0B61AA',
+      }).then(() => {
+        const encodedPageName = encodeURIComponent(pageName);
+        router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
+      });
     } catch (error) {
       console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Terjadi kesalahan saat menyimpan soal. Silakan coba lagi.',
+        confirmButtonColor: '#0B61AA',
+      });
     }
   };
 
@@ -521,8 +587,8 @@ const MembuatSoal = () => {
                     <label className="font-medium-bold mr-4">Bobot</label>
                       <input
                           type="number"
-                          step="0.01"
-                          min="0"
+                          step="0"
+                          min="1"
                           value={option.points}
                           onChange={(e) => handleOptionChange(index, e.target.value, 'points')}
                           className="border p-2 w-[100px]"
