@@ -144,10 +144,8 @@ const TopScore = () => {
     
       // Ambil sessionId dari localStorage
       const sessionId = localStorage.getItem('sessionId');
-      
-      if (sessionId) {
-        console.log('Session ID ditemukan:', sessionId);
     
+      if (sessionId) {
         // Hapus data terkait sessionId dari localStorage
         localStorage.removeItem('resultId');
         localStorage.removeItem('answers');
@@ -155,10 +153,6 @@ const TopScore = () => {
         localStorage.removeItem(`workTime_${sessionId}`);
         localStorage.removeItem(`sessionId`);
         localStorage.removeItem(`currentOption`);
-    
-        console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
-      } else {
-        console.log('Session ID tidak ditemukan');
       }
     
       // Redirect ke halaman dashboard

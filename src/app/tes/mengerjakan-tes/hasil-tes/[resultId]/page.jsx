@@ -103,28 +103,32 @@ export default function Pemrograman() {
   }, []);
 
   useEffect(() => {
+    const sessionId = localStorage.getItem('sessionId');
+    
     if (!sessionId) {
-        console.warn('Session ID tidak tersedia');
-        return;
+      console.warn('Session ID tidak tersedia');
+      return;
     }
-
+  
     // Ambil workTime dari localStorage berdasarkan sessionId
     const savedWorkTime = localStorage.getItem(`workTime_${sessionId}`);
     if (savedWorkTime) {
-        setWorkTime(parseInt(savedWorkTime, 10)); 
+      setWorkTime(parseInt(savedWorkTime, 10)); 
     } else {
-        console.warn('Work time tidak ditemukan untuk sessionId:', sessionId);
+      console.warn('Work time tidak ditemukan untuk sessionId:', sessionId);
     }
-}, [sessionId]);
-
-const saveWorkTime = (time) => {
-  if (!sessionId) {
+  }, []); // Pastikan effect hanya dijalankan sekali saat komponen pertama kali dimuat
+  
+  const saveWorkTime = (time) => {
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (!sessionId) {
       console.error('Session ID tidak ditemukan. Tidak dapat menyimpan waktu.');
       return;
-  }
-
-  localStorage.setItem(`workTime_${sessionId}`, time.toString());
-};
+    }
+  
+    localStorage.setItem(`workTime_${sessionId}`, time.toString());
+  };
 
   useEffect(() => {
     const fetchTestDataAndLeaderboard = async () => {
@@ -372,9 +376,8 @@ const saveWorkTime = (time) => {
   
     // Ambil sessionId dari localStorage
     const sessionId = localStorage.getItem('sessionId');
-    
-    if (sessionId) {
   
+    if (sessionId) {
       // Hapus data terkait sessionId dari localStorage
       localStorage.removeItem('resultId');
       localStorage.removeItem('answers');
@@ -382,9 +385,6 @@ const saveWorkTime = (time) => {
       localStorage.removeItem(`workTime_${sessionId}`);
       localStorage.removeItem(`sessionId`);
       localStorage.removeItem(`currentOption`);
-
-    } else {
-      console.log('Session ID tidak ditemukan');
     }
   
     // Redirect ke halaman dashboard

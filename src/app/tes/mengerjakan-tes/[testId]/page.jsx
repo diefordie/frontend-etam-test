@@ -297,6 +297,7 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
 
         if (currentQuestionId && answers[currentQuestionId]) {
             setSelectedOption(answers[currentQuestionId].optionLabel);
+        
         } else {
             setSelectedOption(null);
         }
@@ -451,7 +452,7 @@ useEffect(() => {
     const updateDraftAnswer = async (resultId, oldOptionId, newOptionId, newAnswer) => {
         try {
 
-            const response = await fetch(`https://${URL}/answer/tests/${testId}/update`, {
+            const response = await fetch(`httsp://${URL}/answer/tests/${testId}/update`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -472,7 +473,6 @@ useEffect(() => {
             }
 
             const responseData = await response.json();
-    
             return responseData.resultId;
         } catch (error) {
             console.error('Error in updateDraftAnswer:', error.message);
@@ -586,7 +586,6 @@ useEffect(() => {
     
                 // Simpan jawaban baru ke localStorage
                 localStorage.setItem('answers', JSON.stringify(updatedAnswers));
-    
             } catch (error) {
                 console.error('Gagal menyimpan draft:', error);
             }
@@ -624,10 +623,14 @@ useEffect(() => {
         setMarkedReview((prevState) => {
             const updatedState = [...prevState];
             updatedState[currentOption - 1] = !updatedState[currentOption - 1];
-            
             return updatedState;
         });
     };
+    
+    useEffect(() => {
+    }, [doubtQuestions]);
+    
+    
 
     const handleAnswerInput = (optionIndex) => {
         setAnsweredOptions(prev => {
@@ -725,13 +728,12 @@ useEffect(() => {
         
         if (storedAnswers) {
             const parsedAnswers = JSON.parse(storedAnswers);
-            setAnswers(parsedAnswers); 
+            setAnswers(parsedAnswers);
         }
     }, []);
     
 
     const currentQuestion = questions.length > 0 ? questions[currentOption - 1] : null;
-
 
     // UseEffect untuk melacak perubahan state
     useEffect(() => {
