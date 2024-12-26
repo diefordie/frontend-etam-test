@@ -13,6 +13,7 @@ import { SlBookOpen } from "react-icons/sl";
 import { FaEye } from "react-icons/fa";
 import dotenv from 'dotenv';
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { useRouter } from 'next/navigation';
 
 
 dotenv.config();
@@ -32,6 +33,7 @@ export default function Psikotes() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [errorUser, setErrorUser] = useState(null);
   const [userId, setUserId] = useState(null);
+  const router = useRouter();
 
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
@@ -385,7 +387,6 @@ export default function Psikotes() {
     {href:'/', text: "Home"},
     {href:'/fav', text: "Favorit"},
     {href:'/transaksi', text: "Transaksi"},
-    {href:'/faq', text: "FAQ"},
 
   ]
 
@@ -516,16 +517,13 @@ export default function Psikotes() {
     return <LoadingAnimation />;
   }
 
-
   const handleHome = (event) => {
     event.preventDefault(); // Mencegah perilaku default link
   
     // Ambil sessionId dari localStorage
     const sessionId = localStorage.getItem('sessionId');
-    
-    if (sessionId) {
-      console.log('Session ID ditemukan:', sessionId);
   
+    if (sessionId) {
       // Hapus data terkait sessionId dari localStorage
       localStorage.removeItem('resultId');
       localStorage.removeItem('answers');
@@ -533,19 +531,16 @@ export default function Psikotes() {
       localStorage.removeItem(`workTime_${sessionId}`);
       localStorage.removeItem(`sessionId`);
       localStorage.removeItem(`currentOption`);
-  
-      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
-    } else {
-      console.log('Session ID tidak ditemukan');
     }
   
     // Redirect ke halaman dashboard
     router.push('/user/dashboard');
   };
-
+  
   if (loading) {
     return <LoadingAnimation />;
   }
+  
   
   return (
     <>
