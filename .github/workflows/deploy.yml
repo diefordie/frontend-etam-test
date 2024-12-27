@@ -33,8 +33,8 @@ jobs:
         script: |
           cd /home/${{ secrets.VPS_USERNAME }}/online-test-platform
             
-            docker ps -q -f "ancestor=your_old_container_image" | xargs -r docker stop
-            docker ps -q -f "ancestor=your_old_container_image" | xargs -r docker rm
+            docker ps -q -f "ancestor=online-test-platform-frontend-1" | xargs -r docker stop
+            docker ps -q -f "ancestor=online-test-platform-frontend-1" | xargs -r docker rm
             
             docker compose pull
             docker compose up -d
