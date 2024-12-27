@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import MembuatSoal from './MembuatSoal';
+import MembuatSoal from './membuatSoal';
 
 export default function Page() {
   return (
