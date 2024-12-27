@@ -394,39 +394,47 @@ export default function CPNS() {
   
   const [likedItems, setLikedItems] = useState({});
 
-  // Ambil status like dari local storage atau API saat komponen dimuat
   useEffect(() => {
     const fetchFavorites = async () => {
-      setLoading(true); // Mulai loading
+      setLoading(true);
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
+  
         const response = await fetch(`https://${URL}/api/favorites`, {
-          method: "GET",
+          method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+  
         if (!response.ok) {
-          throw new Error("Failed to fetch favorites");
+          const errorData = await response.json();
+          console.error('API Error:', errorData);
+          throw new Error(errorData.message || 'Failed to fetch favorites');
         }
+  
         const favoriteTests = await response.json();
-
-        // Buat objek liked items berdasarkan favoriteTests
+  
+        // Create an object of liked items
         const initialLikedItems = {};
         favoriteTests.forEach((test) => {
-          initialLikedItems[test.id] = true; // Asumsikan test.id adalah ID dari tes
+          initialLikedItems[test.id] = true;
         });
-
+  
         setLikedItems(initialLikedItems);
       } catch (error) {
-        console.error("Error fetching favorite tests:", error);
+        console.error('Error fetching favorite tests:', error);
       } finally {
-        setLoading(false); // Akhiri loading
+        setLoading(false);
       }
     };
-
-    // Memanggil fetchFavorites untuk mendapatkan favorit dari server
+  
     fetchFavorites();
   }, [token, URL]);
+  
   
   // Mengambil status like dari local storage saat pertama kali komponen dimuat
   useEffect(() => {
@@ -503,6 +511,36 @@ export default function CPNS() {
   if (loading) {
     return <LoadingAnimation />;
   }
+
+  const handleHome = (event) => {
+    event.preventDefault(); // Mencegah perilaku default link
+  
+    // Ambil sessionId dari localStorage
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (sessionId) {
+      console.log('Session ID ditemukan:', sessionId);
+  
+      // Hapus data terkait sessionId dari localStorage
+      localStorage.removeItem('resultId');
+      localStorage.removeItem('answers');
+      localStorage.removeItem(`remainingTime_${sessionId}`);
+      localStorage.removeItem(`workTime_${sessionId}`);
+      localStorage.removeItem(`sessionId`);
+      localStorage.removeItem(`currentOption`);
+  
+      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
+    } else {
+      console.log('Session ID tidak ditemukan');
+    }
+  
+    // Redirect ke halaman dashboard
+    router.push('/user/dashboard');
+  };
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
   
   return (
     <>
@@ -530,9 +568,9 @@ export default function CPNS() {
                   <nav className="hidden lg:block mt-2">
                       <ol className="list-reset flex space-x-2 ">
                       <li>
-                          <Link href="/user/dashboard" legacyBehavior>
-                          <a className="hover:text-orange font-poppins font-bold">Home</a>
-                          </Link>
+                      <Link href="/user/dashboard" legacyBehavior>
+                        <a onClick={handleHome} className="hover:text-orange font-poppins font-bold">Home</a>
+                      </Link>
                       </li>
                       <li>/</li>
                       <li>
@@ -628,8 +666,13 @@ export default function CPNS() {
             Hasil Pencarian
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {searchResults.slice(searchcurrentIndex, searchcurrentIndex + searchitemsToShow).map((test) => (
-              <div key={test.testId} className="bg-abumuda shadow-lg p-1 relative group">
+            {searchResults
+              .slice(searchcurrentIndex, searchcurrentIndex + searchitemsToShow)
+              .map((test, index) => (
+                <div
+                  key={test.testId || `fallback-key-${index}`} // Gunakan fallback jika testId undefined
+                  className="bg-abumuda shadow-lg p-1 relative group"
+                >
                                 {/* Overlay background abu-abu yang muncul saat hover */}
                                 <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -733,11 +776,18 @@ export default function CPNS() {
         <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
           Paling Populer
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
-          <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {popularTestsByCategory.slice(populercurrentIndex, populercurrentIndex + populeritemsToShow).map((test) => (
-              <div key={test.testId} className="bg-abumuda shadow-lg p-1 relative group">
-                
-                {/* Overlay background abu-abu yang muncul saat hover */}
+          <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {popularTestsByCategory
+            .slice(
+              populercurrentIndex,
+              populercurrentIndex + populeritemsToShow
+            )
+            .map((test, index) => (
+              <div
+                key={test.testId || index}  // Fallback to index if test.testId is missing
+                className="bg-abumuda shadow-lg p-1 relative group"
+              >
+          {/* Overlay background abu-abu yang muncul saat hover */}
                 <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
 <div className="flex justify-between items-center group-hover:blur-[2px] transition-opacity duration-300 z-10">
@@ -771,8 +821,7 @@ export default function CPNS() {
         <img
           src={test.author.authorPhoto}
           alt={test.category}
-          className="h-3 lg:h-6 object-contain"
-        />
+          className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"        />
       ) : (
         <IoPersonCircle className="h-3 lg:h-6 text-white" />
       )}
@@ -831,8 +880,13 @@ export default function CPNS() {
           Berbayar
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {berbayarTests.slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow).map((test) => (
-              <div key={test.testId} className="bg-abumuda shadow-lg p-1 relative group">
+            {berbayarTests
+              .slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow)
+              .map((test, index) => (
+                <div
+                  key={test.testId || `fallback-key-${index}`} // Fallback untuk key
+                  className="bg-abumuda shadow-lg p-1 relative group"
+                >
                 {/* Overlay background abu-abu yang muncul saat hover */}
                 <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -926,8 +980,13 @@ export default function CPNS() {
           Gratis
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {freeTestsByCategory.slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow).map((test) => (
-              <div key={test.testId} className="bg-abumuda shadow-lg p-1 relative group">
+            {freeTestsByCategory
+              .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
+              .map((test, index) => (
+                <div
+                  key={test.testId || `fallback-key-${index}`}
+                  className="bg-abumuda shadow-lg p-1 relative group"
+                >
                 {/* Overlay background abu-abu yang muncul saat hover */}
                 <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 

@@ -81,8 +81,6 @@ export default function Pemrograman() {
     getUserIdFromToken();
   }, []);
 
-  
-
   useEffect(() => {
     const fetchUserData = async () => {
       let token;
@@ -417,6 +415,10 @@ export default function Pemrograman() {
     const fetchFavorites = async () => {
       setLoading(true); // Mulai loading
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
         const response = await fetch(`https://${URL}/api/favorites`, {
           method: "GET",
           headers: {
@@ -522,6 +524,36 @@ export default function Pemrograman() {
     return <LoadingAnimation />;
   }
 
+  const handleHome = (event) => {
+    event.preventDefault(); // Mencegah perilaku default link
+  
+    // Ambil sessionId dari localStorage
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (sessionId) {
+      console.log('Session ID ditemukan:', sessionId);
+  
+      // Hapus data terkait sessionId dari localStorage
+      localStorage.removeItem('resultId');
+      localStorage.removeItem('answers');
+      localStorage.removeItem(`remainingTime_${sessionId}`);
+      localStorage.removeItem(`workTime_${sessionId}`);
+      localStorage.removeItem(`sessionId`);
+      localStorage.removeItem(`currentOption`);
+  
+      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
+    } else {
+      console.log('Session ID tidak ditemukan');
+    }
+  
+    // Redirect ke halaman dashboard
+    router.push('/user/dashboard');
+  };
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   return (
     <>
       <header className="relative flex w-full bg-deepBlue text-white p-3 items-center z-50">
@@ -550,11 +582,9 @@ export default function Pemrograman() {
               <nav className="hidden lg:block mt-2">
                 <ol className="list-reset flex space-x-2 ">
                   <li>
-                    <Link href="/user/dashboard" legacyBehavior>
-                      <a className="hover:text-orange font-poppins font-bold">
-                        Home
-                      </a>
-                    </Link>
+                  <Link href="/user/dashboard" legacyBehavior>
+                    <a onClick={handleHome} className="hover:text-orange font-poppins font-bold">Home</a>
+                  </Link>
                   </li>
                   <li>/</li>
                   <li>
@@ -693,7 +723,7 @@ export default function Pemrograman() {
           <img
             src={test.author.authorPhoto}
             alt={test.category}
-            className="h-3 lg:h-6 object-contain"
+            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
           />
         ) : (
           <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -767,16 +797,11 @@ export default function Pemrograman() {
           Paling Populer
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {popularTestsByCategory
-              .slice(
-                populercurrentIndex,
-                populercurrentIndex + populeritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {popularTestsByCategory.slice(populercurrentIndex, populercurrentIndex + populeritemsToShow).map((test, index) => (
+            <div
+              key={test.testId || index} // Using index as fallback
+              className="bg-abumuda shadow-lg p-1 relative group"
+            >
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -811,7 +836,7 @@ export default function Pemrograman() {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
                           />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -876,16 +901,13 @@ export default function Pemrograman() {
           Berbayar
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {berbayarTests
-              .slice(
-                berbayarcurrentIndex,
-                berbayarcurrentIndex + berbayaritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {berbayarTests
+            .slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow)
+            .map((test) => (
+              <div
+                key={test.testId}
+                className="bg-abumuda shadow-lg p-1 relative group"
+              >
                   {/* Overlay background abu-abu yang muncul saat hover */}
                 <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -920,7 +942,7 @@ export default function Pemrograman() {
           <img
             src={test.author.authorPhoto}
             alt={test.category}
-            className="h-3 lg:h-6 object-contain"
+            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
           />
         ) : (
           <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -987,9 +1009,9 @@ export default function Pemrograman() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
             {freeTestsByCategory
               .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
-              .map((test) => (
+              .map((test, index) => (
                 <div
-                  key={test.testId}
+                  key={test.testId || `fallback-key-${index}`}
                   className="bg-abumuda shadow-lg p-1 relative group"
                 >
                   {/* Overlay background abu-abu yang muncul saat hover */}
@@ -1026,7 +1048,7 @@ export default function Pemrograman() {
           <img
             src={test.author.authorPhoto}
             alt={test.category}
-            className="h-3 lg:h-6 object-contain"
+            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
           />
         ) : (
           <IoPersonCircle className="h-3 lg:h-6 text-white" />

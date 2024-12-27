@@ -55,21 +55,21 @@ export default function UTBK() {
       try {
         setLoading(true);
         // Pastikan kode ini hanya dijalankan di sisi klien
-        if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
+        if (typeof window !== 'undefined') {
+          const token = localStorage.getItem('token');
           if (!token) {
-            throw new Error("Token tidak ditemukan");
+            throw new Error('Token tidak ditemukan');
           }
 
           const decodedToken = jwtDecode(token);
           if (!decodedToken.id) {
-            throw new Error("User ID tidak ditemukan dalam token");
+            throw new Error('User ID tidak ditemukan dalam token');
           }
 
           setUserId(decodedToken.id);
         }
       } catch (error) {
-        console.error("Error decoding token:", error);
+        console.error('Error decoding token:', error);
         setError(error.message);
         // Redirect ke halaman login jika token tidak valid
       } finally {
@@ -399,6 +399,36 @@ export default function UTBK() {
     { href: "/faq", text: "FAQ" },
   ];
 
+  const handleHome = (event) => {
+    event.preventDefault(); // Mencegah perilaku default link
+  
+    // Ambil sessionId dari localStorage
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (sessionId) {
+      console.log('Session ID ditemukan:', sessionId);
+  
+      // Hapus data terkait sessionId dari localStorage
+      localStorage.removeItem('resultId');
+      localStorage.removeItem('answers');
+      localStorage.removeItem(`remainingTime_${sessionId}`);
+      localStorage.removeItem(`workTime_${sessionId}`);
+      localStorage.removeItem(`sessionId`);
+      localStorage.removeItem(`currentOption`);
+  
+      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
+    } else {
+      console.log('Session ID tidak ditemukan');
+    }
+  
+    // Redirect ke halaman dashboard
+    router.push('/user/dashboard');
+  };
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -417,6 +447,10 @@ export default function UTBK() {
     const fetchFavorites = async () => {
       setLoading(true); // Mulai loading
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
         const response = await fetch(`https://${URL}/api/favorites`, {
           method: "GET",
           headers: {
@@ -549,11 +583,9 @@ export default function UTBK() {
               <nav className="hidden lg:block mt-2">
                 <ol className="list-reset flex space-x-2 ">
                   <li>
-                    <Link href="/user/dashboard" legacyBehavior>
-                      <a className="hover:text-orange font-poppins font-bold">
-                        Home
-                      </a>
-                    </Link>
+                  <Link href="/user/dashboard" legacyBehavior>
+                      <a onClick={handleHome} className="hover:text-orange font-poppins font-bold">Home</a>
+                  </Link>
                   </li>
                   <li>/</li>
                   <li>
@@ -647,16 +679,13 @@ export default function UTBK() {
             Hasil Pencarian
             {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-              {searchResults
-                .slice(
-                  searchcurrentIndex,
-                  searchcurrentIndex + searchitemsToShow
-                )
-                .map((test) => (
-                  <div
-                    key={test.testId}
-                    className="bg-abumuda shadow-lg p-1 relative group"
-                  >
+            {searchResults
+              .slice(searchcurrentIndex, searchcurrentIndex + searchitemsToShow)
+              .map((test, index) => (
+                <div
+                  key={test.testId || `fallback-key-${index}`}
+                  className="bg-abumuda shadow-lg p-1 relative group"
+                >
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -701,7 +730,7 @@ export default function UTBK() {
                             <img
                               src={test.author.authorPhoto}
                               alt={test.category}
-                              className="h-3 lg:h-6 object-contain"
+                              className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
                             />
                           ) : (
                             <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -795,17 +824,14 @@ export default function UTBK() {
           <div className="mx-auto mt-5 font-bold font-poppins text-deepBlue">
             Paling Populer
             {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
-            <div className=" mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {popularTestsByCategory
-                .slice(
-                  populercurrentIndex,
-                  populercurrentIndex + populeritemsToShow
-                )
-                .map((test) => (
-                  <div
-                    key={test.testId}
-                    className="bg-abumuda shadow-lg p-1 relative group"
-                  >
+            <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {popularTestsByCategory
+              .slice(populercurrentIndex, populercurrentIndex + populeritemsToShow)
+              .map((test, index) => (
+                <div
+                  key={test.testId || `test-${index}`} // Fallback to index if testId is missing or duplicate
+                  className="bg-abumuda shadow-lg p-1 relative group"
+                >
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -850,7 +876,7 @@ export default function UTBK() {
                             <img
                               src={test.author.authorPhoto}
                               alt={test.category}
-                              className="h-3 lg:h-6 object-contain"
+                              className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
                             />
                           ) : (
                             <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -935,16 +961,8 @@ export default function UTBK() {
           Berbayar
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {berbayarTests
-              .slice(
-                berbayarcurrentIndex,
-                berbayarcurrentIndex + berbayaritemsToShow
-              )
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {berbayarTests.slice(berbayarcurrentIndex, berbayarcurrentIndex + berbayaritemsToShow).map((test, index) => (
+            <div key={test.testId || index} className="bg-abumuda shadow-lg p-1 relative group">
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -989,7 +1007,7 @@ export default function UTBK() {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
                           />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -1072,13 +1090,8 @@ export default function UTBK() {
           Gratis
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {freeTestsByCategory
-              .slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow)
-              .map((test) => (
-                <div
-                  key={test.testId}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+          {freeTestsByCategory.slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow).map((test, index) => (
+            <div key={test.testId || index} className="bg-abumuda shadow-lg p-1 relative group">
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -1123,7 +1136,7 @@ export default function UTBK() {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"
                           />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />

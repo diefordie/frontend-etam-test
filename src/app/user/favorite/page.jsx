@@ -167,6 +167,11 @@ useEffect(() => {
   const fetchFavoritesData = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token not found');
+      }
+      
       const response = await fetch(`https://${URL}/api/favorites`, {
         method: 'GET',
         headers: {
@@ -308,7 +313,7 @@ const toggleLike = async (id) => {
     <>
       {/* Header */}
       
-      <header className="sticky p-4 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
+      <header className="position:sticky p-4 bg-deepBlue top-0 left-0 right-0 text-white w-full font-poppins lg:p-3 z-50">
         <div className="mx-auto flex justify-between items-center font-poppins max-w-full ">
           <div className="flex justify-between">
             {/* Ikon Menu untuk mobile */}
@@ -449,14 +454,16 @@ const toggleLike = async (id) => {
           {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {favorites.length === 0 || favorites.filter((test) => !test.isHidden).length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center text-center text-gray-500 h-screen">
-                  <TbFileSad className="text-6xl lg:text-8xl  -mt-20" />
-                  <p className="mt-2">Tidak ada tes favorite</p>
-                </div>
-              ) : (
-            favorites.filter((test) => !test.isHidden).map((test) => (
-              <div key={test.testId} className="bg-abumuda shadow-lg relative group">
-                
+              <div className="col-span-full flex flex-col items-center justify-center text-center text-gray-500 h-screen">
+                <TbFileSad className="text-6xl lg:text-8xl -mt-20" />
+                <p className="mt-2">Tidak ada data ditemukan</p>
+              </div>
+            ) : (
+              favorites
+                .filter((test) => !test.isHidden)
+                .map((test, index) => (
+                  <div key={test.testId || test.name || index} className="bg-abumuda shadow-lg relative group">
+              
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
