@@ -12,6 +12,8 @@ import { IoSadOutline } from "react-icons/io5";
 import { SlBookOpen } from "react-icons/sl";
 import { FaEye } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { useRouter } from 'next/navigation';
+
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -31,6 +33,7 @@ export default function CPNS() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [errorUser, setErrorUser] = useState(null);
   const [userId, setUserId] = useState(null);
+  const router = useRouter();
 
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
@@ -517,10 +520,8 @@ export default function CPNS() {
   
     // Ambil sessionId dari localStorage
     const sessionId = localStorage.getItem('sessionId');
-    
-    if (sessionId) {
-      console.log('Session ID ditemukan:', sessionId);
   
+    if (sessionId) {
       // Hapus data terkait sessionId dari localStorage
       localStorage.removeItem('resultId');
       localStorage.removeItem('answers');
@@ -528,19 +529,16 @@ export default function CPNS() {
       localStorage.removeItem(`workTime_${sessionId}`);
       localStorage.removeItem(`sessionId`);
       localStorage.removeItem(`currentOption`);
-  
-      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
-    } else {
-      console.log('Session ID tidak ditemukan');
     }
   
     // Redirect ke halaman dashboard
     router.push('/user/dashboard');
   };
-
+  
   if (loading) {
     return <LoadingAnimation />;
   }
+  
   
   return (
     <>

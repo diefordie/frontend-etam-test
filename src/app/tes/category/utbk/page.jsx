@@ -13,6 +13,7 @@ import { SlBookOpen } from "react-icons/sl";
 import { FaEye } from "react-icons/fa";
 import { IoIosLock } from "react-icons/io";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { useRouter } from 'next/navigation';
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -32,6 +33,7 @@ export default function UTBK() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [errorUser, setErrorUser] = useState(null);
   const [userId, setUserId] = useState(null);
+  const router = useRouter();
 
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
@@ -399,36 +401,6 @@ export default function UTBK() {
     { href: "/faq", text: "FAQ" },
   ];
 
-  const handleHome = (event) => {
-    event.preventDefault(); // Mencegah perilaku default link
-  
-    // Ambil sessionId dari localStorage
-    const sessionId = localStorage.getItem('sessionId');
-    
-    if (sessionId) {
-      console.log('Session ID ditemukan:', sessionId);
-  
-      // Hapus data terkait sessionId dari localStorage
-      localStorage.removeItem('resultId');
-      localStorage.removeItem('answers');
-      localStorage.removeItem(`remainingTime_${sessionId}`);
-      localStorage.removeItem(`workTime_${sessionId}`);
-      localStorage.removeItem(`sessionId`);
-      localStorage.removeItem(`currentOption`);
-  
-      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
-    } else {
-      console.log('Session ID tidak ditemukan');
-    }
-  
-    // Redirect ke halaman dashboard
-    router.push('/user/dashboard');
-  };
-
-  if (loading) {
-    return <LoadingAnimation />;
-  }
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -479,6 +451,8 @@ export default function UTBK() {
     // Memanggil fetchFavorites untuk mendapatkan favorit dari server
     fetchFavorites();
   }, [token, URL]);
+
+
 
   // Mengambil status like dari local storage saat pertama kali komponen dimuat
   useEffect(() => {
@@ -554,6 +528,31 @@ export default function UTBK() {
   if (loading) {
     return <LoadingAnimation />;
   }
+
+  const handleHome = (event) => {
+    event.preventDefault(); // Mencegah perilaku default link
+  
+    // Ambil sessionId dari localStorage
+    const sessionId = localStorage.getItem('sessionId');
+  
+    if (sessionId) {
+      // Hapus data terkait sessionId dari localStorage
+      localStorage.removeItem('resultId');
+      localStorage.removeItem('answers');
+      localStorage.removeItem(`remainingTime_${sessionId}`);
+      localStorage.removeItem(`workTime_${sessionId}`);
+      localStorage.removeItem(`sessionId`);
+      localStorage.removeItem(`currentOption`);
+    }
+  
+    // Redirect ke halaman dashboard
+    router.push('/user/dashboard');
+  };
+  
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+  
   
   return (
     <>
@@ -584,8 +583,8 @@ export default function UTBK() {
                 <ol className="list-reset flex space-x-2 ">
                   <li>
                   <Link href="/user/dashboard" legacyBehavior>
-                      <a onClick={handleHome} className="hover:text-orange font-poppins font-bold">Home</a>
-                  </Link>
+                        <a onClick={handleHome} className="hover:text-orange font-poppins font-bold">Home</a>
+                        </Link>
                   </li>
                   <li>/</li>
                   <li>
@@ -679,13 +678,16 @@ export default function UTBK() {
             Hasil Pencarian
             {/* Container untuk kategori, menambahkan grid layout yang konsisten */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-            {searchResults
-              .slice(searchcurrentIndex, searchcurrentIndex + searchitemsToShow)
-              .map((test, index) => (
-                <div
-                  key={test.testId || `fallback-key-${index}`}
-                  className="bg-abumuda shadow-lg p-1 relative group"
-                >
+              {searchResults
+                .slice(
+                  searchcurrentIndex,
+                  searchcurrentIndex + searchitemsToShow
+                )
+                .map((test) => (
+                  <div
+                    key={test.testId}
+                    className="bg-abumuda shadow-lg p-1 relative group"
+                  >
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -832,6 +834,7 @@ export default function UTBK() {
                   key={test.testId || `test-${index}`} // Fallback to index if testId is missing or duplicate
                   className="bg-abumuda shadow-lg p-1 relative group"
                 >
+
                     {/* Overlay background abu-abu yang muncul saat hover */}
                     <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 
@@ -1092,6 +1095,7 @@ export default function UTBK() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
           {freeTestsByCategory.slice(gratiscurrentIndex, gratiscurrentIndex + gratisitemsToShow).map((test, index) => (
             <div key={test.testId || index} className="bg-abumuda shadow-lg p-1 relative group">
+
                   {/* Overlay background abu-abu yang muncul saat hover */}
                   <div className="absolute inset-0 bg-gray-500 opacity-0 group-hover:opacity-40 transition-opacity duration-300 z-10"></div>
 

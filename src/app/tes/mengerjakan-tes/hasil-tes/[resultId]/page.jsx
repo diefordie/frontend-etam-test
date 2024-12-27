@@ -45,7 +45,6 @@ export default function HasilTes() {
       try {
         const decodedToken = jwtDecode(token);
         setUserId(decodedToken.id);
-        console.log('User ID set:', decodedToken.id);
       } catch (error) {
         console.error('Error decoding token:', error);
       }
@@ -104,30 +103,32 @@ export default function HasilTes() {
   }, []);
 
   useEffect(() => {
+    const sessionId = localStorage.getItem('sessionId');
+    
     if (!sessionId) {
-        console.warn('Session ID tidak tersedia');
-        return;
+      console.warn('Session ID tidak tersedia');
+      return;
     }
-
+  
     // Ambil workTime dari localStorage berdasarkan sessionId
     const savedWorkTime = localStorage.getItem(`workTime_${sessionId}`);
     if (savedWorkTime) {
-        setWorkTime(parseInt(savedWorkTime, 10)); // Konversi ke angka
-        console.log('Work time diambil:', savedWorkTime);
+      setWorkTime(parseInt(savedWorkTime, 10)); 
     } else {
-        console.warn('Work time tidak ditemukan untuk sessionId:', sessionId);
+      console.warn('Work time tidak ditemukan untuk sessionId:', sessionId);
     }
-}, [sessionId]);
-
-const saveWorkTime = (time) => {
-  if (!sessionId) {
+  }, []); // Pastikan effect hanya dijalankan sekali saat komponen pertama kali dimuat
+  
+  const saveWorkTime = (time) => {
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (!sessionId) {
       console.error('Session ID tidak ditemukan. Tidak dapat menyimpan waktu.');
       return;
-  }
-
-  localStorage.setItem(`workTime_${sessionId}`, time.toString());
-  console.log('Work time disimpan:', time);
-};
+    }
+  
+    localStorage.setItem(`workTime_${sessionId}`, time.toString());
+  };
 
   useEffect(() => {
     const fetchTestDataAndLeaderboard = async () => {
@@ -162,12 +163,10 @@ const saveWorkTime = (time) => {
         setLeaderboardData(leaderboardData.data);
 
         const userRankData = leaderboardData.data.find(item => item.userId === userId);
-        console.log('User rank data:', userRankData);
         if (userRankData) {
           setUserRank(userRankData.ranking);
-          console.log('User rank set:', userRankData.ranking);
         } else {
-          console.log('User rank not found in leaderboard data');
+          setUserRank(null);
         }
 
       } catch (error) {
@@ -245,7 +244,6 @@ const saveWorkTime = (time) => {
   };
 
   const handleSubmit = async () => {
-    console.log("Feedback:", feedback);
   
     // Ambil token dari localStorage
     const token = localStorage.getItem('token');
@@ -270,7 +268,6 @@ const saveWorkTime = (time) => {
   
       if (response.ok) {
         const data = await response.json();
-        console.log("Testimoni berhasil dikirim:", data);
         // Tambahkan logika untuk menangani respons sukses, misalnya menampilkan pesan sukses
       } else {
         const errorData = await response.json();
@@ -379,10 +376,8 @@ const saveWorkTime = (time) => {
   
     // Ambil sessionId dari localStorage
     const sessionId = localStorage.getItem('sessionId');
-    
-    if (sessionId) {
-      console.log('Session ID ditemukan:', sessionId);
   
+    if (sessionId) {
       // Hapus data terkait sessionId dari localStorage
       localStorage.removeItem('resultId');
       localStorage.removeItem('answers');
@@ -390,16 +385,11 @@ const saveWorkTime = (time) => {
       localStorage.removeItem(`workTime_${sessionId}`);
       localStorage.removeItem(`sessionId`);
       localStorage.removeItem(`currentOption`);
-  
-      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
-    } else {
-      console.log('Session ID tidak ditemukan');
     }
   
     // Redirect ke halaman dashboard
     router.push('/user/dashboard');
   };
-  
 
   return (
     <>

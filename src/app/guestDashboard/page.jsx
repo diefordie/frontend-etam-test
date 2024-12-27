@@ -523,11 +523,10 @@ export default function GuestDashboard() {
                             <img
                               src={test.author.authorPhoto}
                               alt={test.category}
-                              className="h-3 w-3 lg:h-6 lg:w-6 object-contain rounded-full"
-                            />
+                              className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"                            />
                           ) : (
                             <IoPersonCircle className="h-3 lg:h-6 text-white" />
-                          )}  
+                          )}
                           <span className="text-[0.375rem] lg:text-sm font-semibold">
                             {test.author.name}
                           </span>
