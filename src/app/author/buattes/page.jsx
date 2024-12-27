@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import dotenv from 'dotenv';
+import Swal from 'sweetalert2';
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -63,54 +64,84 @@ const BuatTes = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const newTest = {
-      authorId: authorId,
-      type: jenisTes, 
-      category: kategoriTes,
-      title: namaTes,
-      testDescription: deskripsi
-    };
-  
-    try {
-      const response = await fetch(`https://${URL}/test/tests`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newTest)
-      });
-  
-      if (response.ok) {
-        console.log('Tes berhasil disimpan!');
-        const result = await response.json();
-        const testId = result.id;
-        const testCategory = result.category;
-        if (testId && testCategory) {
-          router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}`);
-        } else {
-          console.error('Test ID tidak ditemukan dalam respons:', result);
-        }
-      } else {
-        console.error('Gagal menyimpan tes.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
+
+    // Validasi apakah semua data sudah diisi
+    if (!jenisTes || !kategoriTes || !namaTes || !deskripsi) {
+        // Tampilkan SweetAlert jika ada data yang belum diisi
+        await Swal.fire({
+            title: 'Data Tidak Lengkap!',
+            text: 'Harap isi semua data sebelum melanjutkan.',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+        });
+        return; // Hentikan proses jika ada data yang belum diisi
     }
-  };  
+
+    const newTest = {
+        authorId: authorId,
+        type: jenisTes, 
+        category: kategoriTes,
+        title: namaTes,
+        testDescription: deskripsi,
+    };
+
+    try {
+        const response = await fetch(`https://${URL}/test/tests`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newTest),
+        });
+
+        if (response.ok) {
+            console.log('Tes berhasil disimpan!');
+            const result = await response.json();
+            const testId = result.id;
+            if (testId) {
+                await Swal.fire({
+                    title: 'Berhasil!',
+                    text: 'Tes berhasil disimpan. Anda akan diarahkan ke halaman selanjutnya.',
+                    icon: 'success',
+                    confirmButtonText: 'Lanjutkan',
+                });
+                router.push(`/author/buatSoal?testId=${testId}?category=${kategoriTes}`);
+            } else {
+                console.error('Test ID tidak ditemukan dalam respons:', result);
+            }
+        } else {
+            console.error('Gagal menyimpan tes.');
+            await Swal.fire({
+                title: 'Terjadi Kesalahan!',
+                text: 'Gagal menyimpan tes. Silakan coba lagi.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        await Swal.fire({
+            title: 'Terjadi Kesalahan!',
+            text: 'Kesalahan saat menyimpan tes. Silakan coba lagi.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+        });
+    }
+};
+
 
   return (
     <>
     {/* Header dengan Warna Biru Kustom */}
-    <header className="bg-[#0B61AA] text-white p-6 font-poppins w-full" style={{ height: '108px' }}>
-  <div className="container ml-0 flex justify-start items-center max-w-7xl ">
+    <header className="bg-[#0B61AA] text-white p-6 font-poppins w-auto" style={{height: '108px' }}>
+  <div className="container mx-auto flex justify-start items-center max-w-7xl px-4">
     <Link href="/author/dashboard">
-      <IoMdArrowRoundBack className="text-white text-3xl sm:text-3xl lg:text-4xl ml-0" />
+      <IoMdArrowRoundBack className="text-white text-3xl sm:text-3xl lg:text-4xl ml-2" />
     </Link>
     <Link href="/author/dashboard">
-      <img src="/images/etamtest.png" alt="Etamtest" className="h-[50px] ml-2" style={{ maxWidth: '179px' }} />
+      <img src="/images/etamtest.png" alt="Etamtest" className="h-[50px] ml-4" style={{ maxWidth: '179px' }} />
     </Link>
   </div>
 </header>
@@ -145,9 +176,9 @@ const BuatTes = () => {
       <div className="flex justify-center items-start mx-0 sm:mx-12">
         {activeTab === 'buatTes' && (
           <div className="bg-[#78AED6] p-8 rounded-md mx-auto w-full h-[750px] mt-[20px]">
-            <div className="flex justify-start mx-auto w-full">
+            <div className="flex justify-start pr-9">
               {/* Bagian Kiri, Teks Rata Kanan */}
-              <div className="text-left mobile:hidden tablet:block">
+              <div className="text-left pr-8 ">
                 <h3 className="font-poppins text-black sm:text-lg mb-7 mt-7 sm:mt-8 sm:pt-6 ">Jenis</h3>
                 <h3 className="font-poppins text-black sm:text-lg mb-4 mt-7 sm:mt-.6 sm:pt-12">Kategori</h3>
                 <h3 className="font-poppins text-black sm:text-lg mb-4 mt-16 sm:mt-2 sm:pt-12">Nama</h3>
@@ -255,7 +286,7 @@ const BuatTes = () => {
 
                 {/* Tombol Simpan */}
                 <div className="relative min-h-[600px] sm:min-h-[450px]">
-                  <div className="absolute bottom-60 right-0 pb-10  mr-[-20px]">
+                  <div className="absolute bottom-80 right-0 pb-10  mr-[-20px]">
                     <button
                       className="bg-white text-black w-[150px] sm:w-[170px] tablet:px-6 mx-auto py-2 rounded-md hover:bg-[#0B61AA] hover:text-white transition duration-300" 
                       onClick={handleSubmit}>

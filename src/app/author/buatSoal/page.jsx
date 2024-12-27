@@ -2,29 +2,32 @@
 
 import { useEffect, useState } from "react";
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import dotenv from 'dotenv';
+import dynamic from 'next/dynamic';
+
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
-const KotakNomor = () => {
-  const router = useRouter();
+const SearchParamsWrapper = ({ children }) => {
   const searchParams = useSearchParams();
-  
-  // Mengambil nilai dari query parameters
-  const testId = searchParams.get('testId');
-  const category = searchParams.get('category');
-  const multiplechoiceId = searchParams.get('multiplechoiceId');
-  const pageName = searchParams.get('pageName');
+  return children(searchParams);
+};
 
+const KotakNomorInner = ({ searchParams }) => {
+  const router = useRouter();
+
+  const [testId, setTestId] = useState('');
+  const [category, setCategory] = useState('');
   const [pages, setPages] = useState([]);
+  const [multiplechoiceId, setMultiplechoiceId] = useState('');
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState(null);
   const [isRenaming, setIsRenaming] = useState(null);
   const [renameValue, setRenameValue] = useState('');
   const [activeTab, setActiveTab] = useState('');
   const [usedPageNames, setUsedPageNames] = useState(new Set());
+  const [pagesWithContent, setPagesWithContent] = useState(new Set());
 
   const [pageNameOptions] = useState([
     'Tes Wawasan Kebangsaan',
@@ -33,27 +36,54 @@ const KotakNomor = () => {
   ]);
 
   useEffect(() => {
-    if (testId && category) {
-      fetchPagesFromDB(testId);
+    const savedPages = localStorage.getItem(`pages-${testId}`);
+    if (savedPages) {
+      setPages(JSON.parse(savedPages));
+    } else {
+      const initialPages = [{
+        pageNumber: 1,
+        questions: [1],
+        pageName: category === 'CPNS' ? 'Tes Wawasan Kebangsaan' : 'Beri Nama Tes',
+        isCPNSPage: category === 'CPNS'
+      }];
+      setPages(initialPages);
+      localStorage.setItem(`pages-${testId}`, JSON.stringify(initialPages));
     }
   }, [testId, category]);
 
-  const getMaxQuestionNumberInPage = (page) => {
-    if (Array.isArray(page.questions)) {
-      return Math.max(...page.questions);
-    }
-    return 0;
-  };
+  useEffect(() => {
+    const testIdFromUrl = searchParams.get("testId");
+    const categoryFromUrl = searchParams.get("category");
+    const multiplechoiceIdFromUrl = searchParams.get("multiplechoiceId");
+    const pageNameFromUrl = searchParams.get("pageName");
+  
+    console.log("Fetched category:", categoryFromUrl);
 
-  const getAllUsedNumbers = (pages) => {
-    const usedNumbers = new Set();
-    pages.forEach(page => {
-      if (Array.isArray(page.questions)) {
-        page.questions.forEach(num => usedNumbers.add(num));
+    if (testIdFromUrl) {
+      setTestId(testIdFromUrl);
+      if (categoryFromUrl) {
+        setCategory(categoryFromUrl);
+        localStorage.setItem(`category-${testIdFromUrl}`, categoryFromUrl);
+      } else {
+        const savedCategory = localStorage.getItem(`category-${testIdFromUrl}`);
+        if (savedCategory) {
+          setCategory(savedCategory);
+        }
       }
-    });
-    return Array.from(usedNumbers).sort((a, b) => a - b);
-  };
+      fetchPagesFromDB(testIdFromUrl);
+    }
+  
+    if (multiplechoiceIdFromUrl) {
+      setMultiplechoiceId(multiplechoiceIdFromUrl);
+    }
+  
+    if (pageNameFromUrl) {
+      setPages((prevPages) => prevPages.map((page) => ({
+        ...page,
+        pageName: decodeURIComponent(pageNameFromUrl),
+      })));
+    }
+  }, [searchParams]);
 
   const getNextAvailableNumber = (pages) => {
     const usedNumbers = getAllUsedNumbers(pages);
@@ -108,28 +138,50 @@ const KotakNomor = () => {
     }
   };
 
+  const getMaxQuestionNumberInPage = (page) => {
+    if (Array.isArray(page.questions)) {
+      return Math.max(...page.questions);
+    }
+    return 0;
+  };
+
   const addQuestion = async (pageIndex) => {
     try {
       const maxQuestionNumber = getMaxQuestionNumberInPage(pages[pageIndex]);
       const multiplechoiceId = await fetchMultipleChoiceId(testId, maxQuestionNumber);
-  
+
       if (!multiplechoiceId) {
         alert(`Silakan isi nomor soal ${maxQuestionNumber} terlebih dahulu.`);
         return;
       }
-  
       const hasNextPages = pageIndex < pages.length - 1;
-      if (hasNextPages) {
-        await updateQuestionNumbersInDB(testId, maxQuestionNumber);
-      }
       
+      if (hasNextPages) {
+        const numbersToUpdate = pages.slice(pageIndex + 1).reduce((acc, page) => {
+          return [...acc, ...(page.questions || [])];
+        }, []);
+        numbersToUpdate.sort((a, b) => b - a);
+
+        for (const number of numbersToUpdate) {
+          try {
+            const questionId = await fetchMultipleChoiceId(testId, number);
+            console.log("questionId add question:", questionId);
+            if (questionId) {
+              await updateQuestionNumberInDB(testId, number, number + 1);
+            }
+          } catch (err) {
+            console.warn(`Gagal update nomor soal ${number}:`, err);
+            continue;
+          }
+        }
+      }
+
       setPages(prevPages => {
         const updatedPages = [...prevPages];
         const currentPage = { ...updatedPages[pageIndex] };
         currentPage.questions = [...(currentPage.questions || []), maxQuestionNumber + 1];
         currentPage.questions.sort((a, b) => a - b);
         updatedPages[pageIndex] = currentPage;
-  
         if (hasNextPages) {
           for (let i = pageIndex + 1; i < updatedPages.length; i++) {
             const nextPage = { ...updatedPages[i] };
@@ -147,6 +199,17 @@ const KotakNomor = () => {
     }
   };
 
+  const updateQuestionNumberInDB = async (testId, oldNumber, newNumber) => {
+    try {
+      await axios.put(`https://${URL}/api/multiplechoice/${testId}/questions/${oldNumber}`, {
+        newQuestionNumber: newNumber
+      });
+    } catch (error) {
+      console.error('Error updating question number:', error);
+      throw error;
+    }
+  };
+
   const addPage = async () => {
     try {
       const nextNumber = getNextAvailableNumber(pages);
@@ -160,8 +223,9 @@ const KotakNomor = () => {
       console.log("Current category:", category); 
   
       setPages(prevPages => {
-        const usedPageNames = new Set(prevPages.map(page => page.pageName));
-        const availablePageNames = pageNameOptions.filter(name => !usedPageNames.has(name));
+        if (category === 'CPNS') {
+          const usedPageNames = new Set(prevPages.map(page => page.pageName));
+          const availablePageNames = pageNameOptions.filter(name => !usedPageNames.has(name));
         
         console.log("Available page names:", availablePageNames); 
         
@@ -174,7 +238,7 @@ const KotakNomor = () => {
           pageNumber: prevPages.length + 1,
           questions: [nextNumber],
           pageName: availablePageNames[0],
-          isCPNSPage: category === "CPNS"
+          isCPNSPage: true
         };
   
         console.log("New page created:", newPage); 
@@ -182,10 +246,22 @@ const KotakNomor = () => {
         const updatedPages = [...prevPages, newPage];
         localStorage.setItem(`pages-${testId}`, JSON.stringify(updatedPages));
         return updatedPages;
-      });
-    } catch (error) {
-      console.error('Error adding page:', error);
-    }
+      } else {
+        const newPage = {
+          pageNumber: prevPages.length + 1,
+          questions: [nextNumber],
+          pageName: 'Beri Nama Tes',
+          isCPNSPage: false
+        };
+        
+        const updatedPages = [...prevPages, newPage];
+        localStorage.setItem(`pages-${testId}`, JSON.stringify(updatedPages));
+        return updatedPages;
+      }
+    });
+  } catch (error) {
+    console.error('Error adding page:', error);
+  }
   };
 
   const toggleDropdown = (pageIndex) => {
@@ -197,7 +273,50 @@ const KotakNomor = () => {
     );
   };
 
-  const handleRename = (pageIndex) => {
+  const checkPageContent = async (pageIndex) => {
+    const page = pages[pageIndex];
+    if (!page || !page.questions) return false;
+
+    try {
+      // Check if any question in the page has content
+      for (const questionNumber of page.questions) {
+        const multiplechoiceId = await fetchMultipleChoiceId(testId, questionNumber);
+        if (multiplechoiceId) {
+          return true; // Page has at least one question with content
+        }
+      }
+      return false; // No questions have content
+    } catch (error) {
+      console.error('Error checking page content:', error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const updatePagesWithContent = async () => {
+      const newPagesWithContent = new Set();
+      
+      for (let i = 0; i < pages.length; i++) {
+        const hasContent = await checkPageContent(i);
+        if (hasContent) {
+          newPagesWithContent.add(i);
+        }
+      }
+      
+      setPagesWithContent(newPagesWithContent);
+    };
+
+    updatePagesWithContent();
+  }, [pages, testId]);
+
+  const handleRename = async (pageIndex) => {
+    const hasContent = await checkPageContent(pageIndex);
+
+    if (hasContent) {
+      alert('Halaman ini sudah memiliki soal. Nama halaman tidak dapat diubah.');
+      return;
+    }
+
     if (category === 'CPNS') {
       setIsRenaming(pageIndex);
       setRenameValue(pages[pageIndex].pageName);
@@ -247,8 +366,6 @@ const KotakNomor = () => {
       }
       console.log("currentPage:", currentPage);
       console.log("currentPage.questions:", currentPage?.questions);
-  
-      // Update pageName for each question in the current page
       const questionUpdates = currentPage.questions.map((questionNumber) => {
         console.log("Updating questionNumber:", questionNumber);
         return fetch(`https://${URL}/api/multiplechoice/update-question`, {
@@ -281,40 +398,127 @@ const KotakNomor = () => {
     }
   };
 
-  const deletePage = (pageIndex) => {
-    if (confirm("Apakah Anda yakin ingin menghapus tes ini?")) {
-      setPages((prevPages) => {
-        const pageToDelete = prevPages[pageIndex];
-        const updatedPages = prevPages.filter((_, index) => index !== pageIndex);
-
-        setUsedPageNames(prev => {
-          const updated = new Set(prev);
-          updated.delete(pageToDelete.pageName);
-          return updated;
-        });
-        
-        const finalPages = updatedPages.reduce((acc, page, idx) => {
-          if (idx === 0) return [page];   
-          const prevPageLastNumber = Math.max(...acc[idx - 1].questions);
-          const numQuestions = page.questions.length;
-          const newQuestions = Array.from(
-            { length: numQuestions },
-            (_, i) => prevPageLastNumber + i + 1
-          );
-          
-          acc.push({
-            ...page,
-            questions: newQuestions
-          });
-          
-          return acc;
-        }, []);
-
-        localStorage.setItem(`pages-${testId}`, JSON.stringify(finalPages));
-        return finalPages;
+  const deleteMultipleChoice = async (multiplechoiceId) => {
+    try {
+      const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
+        method: 'DELETE',
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete question with ID: ${multiplechoiceId}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      return false;
     }
   };
+
+  const deletePageService = async (testId, pageName) => {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const questionsToDelete = await tx.multiplechoice.findMany({
+          where: {
+            testId: testId,
+            pageName: pageName
+          }
+        });
+
+        await tx.option.deleteMany({
+          where: {
+            multiplechoiceId: {
+              in: questionsToDelete.map(q => q.id)
+            }
+          }
+        });
+
+        await tx.multiplechoice.deleteMany({
+          where: {
+            testId: testId,
+            pageName: pageName
+          }
+        });
+
+        return { success: true };
+    });
+    } catch (error) {
+        console.error('Error in deletePageService:', error);
+        throw error;
+    }
+  };
+
+  const deletePage = async (pageIndex) => {
+    if (confirm("Apakah Anda yakin ingin menghapus tes ini?")) {
+      try {
+        const pageToDelete = pages[pageIndex];
+        
+        // 1. Hapus halaman dan datanya
+        const deleteResponse = await fetch(`https://${URL}/api/multiplechoice/delete-page`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            testId: testId,
+            pageName: pageToDelete.pageName
+          })
+        });
+  
+        if (!deleteResponse.ok) {
+          throw new Error('Failed to delete page');
+        }
+  
+        // 2. Dapatkan nomor soal yang perlu diperbarui
+        const remainingPages = pages.slice(pageIndex + 1);
+        const questionsToUpdate = remainingPages.flatMap(page => page.questions);
+  
+        // 3. Perbarui nomor soal di backend
+        for (const question of questionsToUpdate) {
+          try {
+            const newNumber = question - pageToDelete.questions.length;
+            
+            await fetch(`https://${URL}/api/multiplechoice/update-number`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                testId: testId,
+                oldNumber: question,
+                newNumber: newNumber
+              })
+            });
+          } catch (error) {
+            console.error(`Error updating question number ${question}:`, error);
+          }
+        }
+  
+        // 4. Perbarui state frontend
+        setPages(prevPages => {
+          const updatedPages = prevPages
+            .filter((_, index) => index !== pageIndex)
+            .map((page, index) => {
+              if (index >= pageIndex) {
+                return {
+                  ...page,
+                  questions: page.questions.map(num => num - pageToDelete.questions.length)
+                };
+              }
+              return page;
+            });
+          
+          localStorage.setItem(`pages-${testId}`, JSON.stringify(updatedPages));
+          return updatedPages;
+        });
+  
+      } catch (error) {
+        console.error('Error deleting page:', error);
+        alert('Terjadi kesalahan saat menghapus halaman.');
+      }
+    }
+  };
+  
 
   const fetchPagesFromDB = async (testId) => {
     try {
@@ -324,22 +528,25 @@ const KotakNomor = () => {
       if (response.ok) {
         const savedCategory = localStorage.getItem(`category-${testId}`);
         
+        // Get pages from localStorage as backup
+        const localPages = JSON.parse(localStorage.getItem(`pages-${testId}`) || '[]');
+        
         if (data.pages && Array.isArray(data.pages)) {
-          const processedPages = data.pages.map((page, index) => {
-            // For first page in CPNS category, always set to 'Tes Wawasan Kebangsaan'
-            const pageName = savedCategory === 'CPNS' && index === 0 ? 
-              'Tes Wawasan Kebangsaan' : 
-              (page.pageName || 'Beri Nama Tes');
-              
+          // Merge database pages with localStorage pages
+          const mergedPages = localPages.map((localPage, index) => {
+            const dbPage = data.pages.find(p => p.pageNumber === localPage.pageNumber);
             return {
-              ...page,
+              ...localPage,
+              ...dbPage,
               isCPNSPage: savedCategory === 'CPNS',
-              pageName: pageName
+              pageName: savedCategory === 'CPNS' && index === 0 ? 
+                'Tes Wawasan Kebangsaan' : 
+                (dbPage?.pageName || localPage.pageName || 'Beri Nama Tes')
             };
           });
           
-          setPages(processedPages);
-          localStorage.setItem(`pages-${testId}`, JSON.stringify(processedPages));
+          setPages(mergedPages);
+          localStorage.setItem(`pages-${testId}`, JSON.stringify(mergedPages));
           
           // Save initial page name to database
           if (savedCategory === 'CPNS') {
@@ -358,28 +565,39 @@ const KotakNomor = () => {
             });
           }
         } else {
-          const initialPages = [{
-            pageNumber: 1,
-            questions: [1],
-            pageName: savedCategory === 'CPNS' ? 'Tes Wawasan Kebangsaan' : 'Beri Nama Tes',
-            isCPNSPage: savedCategory === 'CPNS'
-          }];
-          setPages(initialPages);
-          localStorage.setItem(`pages-${testId}`, JSON.stringify(initialPages));
+          // If no pages in database, use localStorage pages
+          if (localPages.length > 0) {
+            setPages(localPages);
+          } else {
+            // If no pages anywhere, create initial page
+            const initialPages = [{
+              pageNumber: 1,
+              questions: [1],
+              pageName: savedCategory === 'CPNS' ? 'Tes Wawasan Kebangsaan' : 'Beri Nama Tes',
+              isCPNSPage: savedCategory === 'CPNS'
+            }];
+            setPages(initialPages);
+            localStorage.setItem(`pages-${testId}`, JSON.stringify(initialPages));
+          }
         }
       }
     } catch (error) {
       console.error("Failed to fetch pages from DB:", error);
-      // Set default page with correct initial name
-      const savedCategory = localStorage.getItem(`category-${testId}`);
-      const initialPages = [{
-        pageNumber: 1,
-        questions: [1],
-        pageName: savedCategory === 'CPNS' ? 'Tes Wawasan Kebangsaan' : 'Beri Nama Tes',
-        isCPNSPage: savedCategory === 'CPNS'
-      }];
-      setPages(initialPages);
-      localStorage.setItem(`pages-${testId}`, JSON.stringify(initialPages));
+      // Use localStorage as fallback
+      const localPages = JSON.parse(localStorage.getItem(`pages-${testId}`) || '[]');
+      if (localPages.length > 0) {
+        setPages(localPages);
+      } else {
+        const savedCategory = localStorage.getItem(`category-${testId}`);
+        const initialPages = [{
+          pageNumber: 1,
+          questions: [1],
+          pageName: savedCategory === 'CPNS' ? 'Tes Wawasan Kebangsaan' : 'Beri Nama Tes',
+          isCPNSPage: savedCategory === 'CPNS'
+        }];
+        setPages(initialPages);
+        localStorage.setItem(`pages-${testId}`, JSON.stringify(initialPages));
+      }
     }
   };
 
@@ -402,7 +620,7 @@ const KotakNomor = () => {
       console.error('Error fetching multiplechoiceId:', error);
       return null; 
     }
-  };  
+  }; 
 
   const handleQuestionSelect = async (questionNumber, pageIndex) => {
     if (!testId) {
@@ -411,8 +629,7 @@ const KotakNomor = () => {
     }
     
     const multiplechoiceId = await fetchMultipleChoiceId(testId, questionNumber);
-    const currentPage = pages[pageIndex];
-    const pageName = currentPage?.pageName || '';
+    const pageName = pages[pageIndex]?.pageName || '';
 
     console.log("Current pageName:", pageName);
     console.log("Page Index:", pageIndex);
@@ -425,6 +642,7 @@ const KotakNomor = () => {
     console.log("Selected baseUrl:", baseUrl);
 
     if (multiplechoiceId !== "null") {
+      console.log("multiplechoiceId not found. You can create a new one.");
       router.push(`${baseUrl}?testId=${testId}&category=${category}&multiplechoiceId=${multiplechoiceId}&nomor=${questionNumber}&pageName=${encodeURIComponent(pageName)}`);
     }
   
@@ -447,6 +665,8 @@ const KotakNomor = () => {
     console.log("Page:", page);
     console.log("Is CPNS check:", category === 'CPNS' || page.isCPNSPage);
 
+    const hasContent = pagesWithContent.has(pageIndex);
+
     if (category === 'CPNS') {
       const usedPageNames = new Set(
         pages
@@ -463,6 +683,11 @@ const KotakNomor = () => {
           <select
             value={page.pageName}
             onChange={(e) => {
+              if (hasContent) {
+                alert('Halaman ini sudah memiliki soal. Nama halaman tidak dapat diubah.');
+                return;
+              }
+              
               const newPageName = e.target.value;
               setPages(prevPages => {
                 const updatedPages = prevPages.map((p, idx) => {
@@ -496,7 +721,10 @@ const KotakNomor = () => {
                 console.error("Error updating pageName:", error);
               });
             }}
-            className="text-black bg-white border rounded-md p-2"
+            className={`text-black bg-white border rounded-md p-2 ${
+              hasContent ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            disabled={hasContent}
           >
             {availableOptions.map((option) => (
               <option key={option} value={option}>
@@ -514,21 +742,82 @@ const KotakNomor = () => {
               type="text"
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
-              className="text-black p-1 border border-gray-300 rounded-md"
+              className={`text-black p-1 border border-gray-300 rounded-md ${
+                hasContent ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={hasContent}
             />
             <button
               onClick={() => saveRename(pageIndex)}
-              className="ml-2 bg-white text-black px-2 py-1 rounded-md"
+              className={`ml-2 bg-white text-black px-2 py-1 rounded-md ${
+                hasContent ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={hasContent}
             >
               Save
             </button>
           </div>
         );
       } else {
-        return <h2 className="text-lg">{page.pageName}</h2>;
+        return (
+          <div className="flex items-center">
+            <h2 className="text-lg">{page.pageName}</h2>
+            {!hasContent && (
+              <button
+                onClick={() => handleRename(pageIndex)}
+                className="ml-2 text-sm text-gray-400 hover:text-gray-300"
+              >
+                ✏️
+              </button>
+            )}
+          </div>
+        );
       }
     }
   };  
+
+  const renderDropdownMenu = (pageIndex) => {
+    const hasContent = pagesWithContent.has(pageIndex);
+
+    return (
+      <div
+        className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg z-10 p-1
+        before:content-[''] before:absolute before:-top-4 before:right-5 before:border-8
+        before:border-transparent before:border-b-white"
+        onMouseEnter={() => setDropdownOpen(true)}
+        onMouseLeave={() => setDropdownOpen(false)}
+      >
+        {category === 'CPNS' ? (
+          <button
+            onClick={() => deletePage(pageIndex)}
+            className="block px-4 py-2 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+          >
+            Delete page
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => handleRename(pageIndex)}
+              className={`block px-4 py-2 text-deepBlue text-sm text-gray-700 ${
+                hasContent 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'hover:bg-deepBlue hover:text-white'
+              } rounded-md`}
+              disabled={hasContent}
+            >
+              Rename
+            </button>
+            <button
+              onClick={() => deletePage(pageIndex)}
+              className="block px-4 py-2 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+            >
+              Delete page
+            </button>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="w-full p-4">
@@ -592,19 +881,22 @@ const KotakNomor = () => {
                       </button>
                     ) : (
                       <>
-                      <button
-                        onClick={() => handleRename(pageIndex)}
-                        className="block px-4 py-2 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
-                      >
-                        Rename
-                      </button>
-                      <button
-                        onClick={() => deletePage(pageIndex)}
-                        className="block px-4 py-2 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
-                      >
-                        Delete page
-                      </button>
-                    </>
+                        <button
+                          onClick={() => handleRename(pageIndex)}
+                          className={`block px-4 py-2 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md w-full text-left ${
+                            pagesWithContent.has(pageIndex) ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          disabled={pagesWithContent.has(pageIndex)}
+                        >
+                          Rename
+                        </button>
+                        <button
+                          onClick={() => deletePage(pageIndex)}
+                          className="block px-4 py-2 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+                        >
+                          Delete page
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
@@ -659,5 +951,13 @@ const KotakNomor = () => {
     </div>
   );
 };
+const KotakNomor = dynamic(() => 
+  Promise.resolve(({ searchParams }) => (
+    <SearchParamsWrapper>
+      {(params) => <KotakNomorInner searchParams={params} />}
+    </SearchParamsWrapper>
+  )),
+  { ssr: false }
+);
 
 export default KotakNomor;

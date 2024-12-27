@@ -1,9 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { storage } from "../../../firebase/config";
 import { v4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -22,6 +21,8 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const MembuatSoal = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [testId, setTestId] = useState('');
   const [category, setCategory] = useState('');
   const [multiplechoiceId, setMultiplechoiceId] = useState('');
@@ -38,14 +39,14 @@ const MembuatSoal = () => {
   const [isValid, setIsValid] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const testIdFromUrl = params.get("testId");
-    const categoryFromUrl = params.get("category");
-    const multiplechoiceIdFromUrl = params.get("multiplechoiceId");
-    const pageNameFromUrl = params.get("pageName");
-    const numberFromUrl = params.get("nomor");
+    const testIdFromUrl = searchParams.get("testId");
+    const categoryFromUrl = searchParams.get("category");
+    const multiplechoiceIdFromUrl = searchParams.get("multiplechoiceId");
+    const pageNameFromUrl = searchParams.get("pageName");
+    const numberFromUrl = searchParams.get("nomor");
 
     console.log("Fetched testId:", testIdFromUrl); 
+    console.log("Fetched category:", categoryFromUrl);
     console.log("Fetched multiplechoiceId:", multiplechoiceIdFromUrl); 
     console.log("Raw pageName from URL:", pageNameFromUrl);
 
@@ -57,11 +58,14 @@ const MembuatSoal = () => {
     if (testIdFromUrl) {
       setTestId(testIdFromUrl);
     }
+    if (categoryFromUrl) {
+      setCategory(categoryFromUrl);
+    }
     if (multiplechoiceIdFromUrl) {
       setMultiplechoiceId(multiplechoiceIdFromUrl); 
     }
     if (numberFromUrl) setNumber(numberFromUrl);
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!multiplechoiceId) return;
@@ -235,49 +239,24 @@ const MembuatSoal = () => {
   
           if (deletedNumber !== null) {
             const allNumbers = pages.reduce((acc, page) => [...acc, ...page.questions], []);
-        
-            // Cek apakah ada soal dengan nomor yang lebih besar
-            const hasLaterQuestions = allNumbers.some(num => num > deletedNumber);
-            
-            if (hasLaterQuestions) {
-              const updatePromises = [];
-              pages.forEach(page => {
-                page.questions.forEach(originalNum => {
-                  if (originalNum > deletedNumber) {
-                    const newNum = originalNum - 1;
-                    updatePromises.push(
-                      fetch(`https://${URL}/api/multiplechoice/question/update-number`, {
-                        method: 'PUT',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          testId: testId,
-                          oldNumber: originalNum,
-                          newNumber: newNum
-                        })
-                      })
-                    );
-                  }
-                });
-              });
-    
-              // Tunggu semua update selesai
-              await Promise.all(updatePromises);
 
-              pages = pages.map(page => ({
-                ...page,
-                questions: page.questions.map(num => 
-                  num > deletedNumber ? num - 1 : num
-                ).sort((a, b) => a - b)
-              }));
-            }
+            pages = pages.map(page => ({
+              ...page,
+              questions: page.questions.map(num => 
+                num > deletedNumber ? num - 1 : num
+              ).sort((a, b) => a - b)
+            }));
+  
+            console.log('Data setelah reorder:', pages); 
+            pages = pages.filter(page => page.questions.length > 0);
+            localStorage.setItem(localStorageKey, JSON.stringify(pages));   
+            console.log('Data final yang disimpan:', pages); 
     
             // Hapus halaman yang kosong
-            pages = pages.filter(page => page.questions.length > 0);
+            // pages = pages.filter(page => page.questions.length > 0);
             
-            // Simpan perubahan ke localStorage
-            localStorage.setItem(localStorageKey, JSON.stringify(pages));
+            // // Simpan perubahan ke localStorage
+            // localStorage.setItem(localStorageKey, JSON.stringify(pages));
           }
         }
   

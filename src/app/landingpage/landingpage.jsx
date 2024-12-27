@@ -20,6 +20,23 @@ const TestimonialsSection = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
 
+  const LoadingAnimation = () => (
+    <div className="flex items-center justify-center h-screen bg-white duration-300">
+      <div className="relative">
+        {/* Roket */}
+        <img
+          src="/images/rocket.png"
+          alt="Rocket Loading"
+          className="w-20 md:w-40 lg:w-55 animate-rocket"
+        />
+        {/* Tulisan */}
+        <p className="text-center text-deepBlue mt-2 text-lg font-bold">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     const fetchTestimonies = async () => {
       try {
@@ -56,7 +73,7 @@ const TestimonialsSection = () => {
     );
   };
 
-  if (testimonials.length === 0) return <p>Loading testimonials...</p>;
+  if (testimonials.length === 0) return <LoadingAnimation />;
 
   const {
     user: { name, userPhoto },
@@ -204,11 +221,13 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
     <div style={{ scrollBehavior: "smooth" }}>
-      {/* Navbar */}
+        {/* Navbar */}
       <nav className="bg-birutua shadow-md fixed top-0 left-0 w-full z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center max-w-full">
           <div className="flex items-center space-x-4">
+            {/* Tombol Hamburger untuk layar kecil */}
             <div className="md:hidden">
+              {/* Tombol ini muncul hanya pada layar kecil */}
               <button
                 className="focus:outline-none text-white"
                 onClick={toggleSidebar}
@@ -231,49 +250,55 @@ const LandingPage = () => {
               </button>
             </div>
 
+            {/* Logo */}
             <div className="text-2xl font-bold text-white">
-            <Link href="/">
-              <img
-                src="/images/etamtest.png"
-                alt="EtamTest"
-                className="h-[30px] lg:h-10 pl-3"
-              />
-            </Link>
+              <Link href="/">
+                <img
+                  src="/images/etamtest.png"
+                  alt="EtamTest"
+                  className="h-[30px] lg:h-10 pl-2"
+                />
+              </Link>
             </div>
           </div>
 
-          <ul className="hidden md:flex space-x-6">
-  {["Beranda", "Kategori", "Cara Kerja", "Tentang Kami", "Testimoni"].map(
-    (item) => (
-      <li key={item}>
-        <a
-          href={`#${item.toLowerCase().replace(" ", "-")}`}
-          className="text-white hover:text-gray-300"
-          onClick={(e) => {
-            e.preventDefault(); // Mencegah navigasi default
-            const targetId = item.toLowerCase().replace(" ", "-");
-            const targetElement = document.getElementById(targetId);
-            if (targetElement) {
-              targetElement.scrollIntoView({ behavior: "smooth" });
-            }
-          }}
-        >
-          {item}
-        </a>
-      </li>
-    )
-  )}
-</ul>
+          {/* Menu Navigasi */}
+          <ul className="hidden md:flex flex-wrap space-x-6">
+            {/* Tambahkan flex-wrap agar item tidak saling bertumpuk */}
+            {["Beranda", "Kategori", "Cara Kerja", "Tentang Kami", "Testimoni"].map(
+              (item) => (
+                <li key={item} className="whitespace-nowrap">
+                  {/* whitespace-nowrap: Mencegah teks pecah ke baris baru */}
+                  <a
+                    href={`#${item.toLowerCase().replace(" ", "-")}`}
+                    className="text-white hover:text-gray-300 text-xs md:text-sm lg:text-base"
+                    onClick={(e) => {
+                      e.preventDefault(); // Mencegah navigasi default
+                      const targetId = item.toLowerCase().replace(" ", "-");
+                      const targetElement = document.getElementById(targetId);
+                      if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }}
+                  >
+                    {item}
+                  </a>
+                </li>
+              )
+            )}
+          </ul>
+
+          {/* Tombol "Masuk" dan "Daftar" */}
           <div className="hidden md:flex space-x-4">
             <Link
               href="/auth/login"
-              className="bg-transparent text-white border border-white py-2 px-4 rounded-md shadow-sm hover:bg-white hover:text-birutua transition duration-300"
+              className="bg-transparent text-white border border-white py-2 px-4 rounded-md shadow-sm hover:bg-white hover:text-birutua transition duration-300 text-sm md:text-base"
             >
               Masuk
             </Link>
             <Link
               href="/auth/registrasi"
-              className="bg-birulangit text-white py-2 px-4 rounded-md shadow-sm hover:bg-opacity-80 transition duration-300"
+              className="bg-birulangit text-white py-2 px-4 rounded-md shadow-sm hover:bg-opacity-80 transition duration-300 text-sm md:text-base"
             >
               Daftar
             </Link>
@@ -289,10 +314,10 @@ const LandingPage = () => {
           <div className="p-4 flex flex-col space-y-6">
             <div className="flex justify-between items-center mb-4">
               <Image
-                src="/images/Vector.png"
-                alt="Avatar"
-                width={64}
-                height={64}
+                src="/images/etamtest.png"
+                alt="EtamTest"
+                width={85}
+                height={85}
                 className="rounded-full"
               />
               <button onClick={toggleSidebar} className="text-white">
@@ -353,7 +378,7 @@ const LandingPage = () => {
 >
   <div className="flex flex-col-reverse md:flex-row items-center w-full max-w-6xl">
     <div className="w-full md:w-2/3 mb-8 md:mb-0 text-center md:text-left">
-    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-5" style={{ lineHeight: '1.3'}}>
+          <h1 className="text-lg md:text-4xl lg:text-5xl font-bold text-gray-800 mb-5" style={{ lineHeight: '1.3'}}>
             <span className="typing-effect">
               Tingkatkan Kemampuanmu
             </span>
@@ -366,7 +391,7 @@ const LandingPage = () => {
               Terlengkap
             </span>
           </h1>
-      <p className="text-lg md:text-xl lg:text-2xl text-gray-600 mb-8">
+      <p className="text-1 md:text-xl lg:text-2xl text-gray-600 mb-8">
         Platform komunitas untuk membuat dan mengikuti tes pilihan ganda.
         Buat soal sendiri atau tantang diri dengan soal dari pengguna lain!
       </p>
@@ -606,8 +631,8 @@ const LandingPage = () => {
           {/* Logo */}
           <div className="mb-2">
             <Image
-              src="/images/logo.svg"
-              alt="Etam Test Logo"
+              src="/images/etamtest.png"
+              alt="EtamTest"
               width={100}
               height={100}
               className="mb-2"

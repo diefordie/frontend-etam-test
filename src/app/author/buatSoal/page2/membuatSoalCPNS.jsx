@@ -302,47 +302,51 @@ const MembuatSoal = () => {
   
   const handleBack = () => {
     if (testId) {
-      router.push(`/author/buatSoal?testId=${testId}&category=${category}`);
+      router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}`);
     } else {
       console.error('Test ID tidak ditemukan dalam respons:', result);
     }
   };
 
-const validateForm = () => {
-  const validationErrors = [];
-  if (!question.trim()) {
-    validationErrors.push("Soal wajib diisi");
-  }
-  if (options.length < 2) {
-    validationErrors.push("Minimal harus ada 2 opsi jawaban");
-  } else if (options.length > 5) {
-    validationErrors.push("Jumlah opsi jawaban tidak boleh lebih dari 5");
-  } else {
-    const emptyOptions = options.filter((option) => 
-      !option.optionDescription.trim() && !option.optionPhoto
-    );
-    if (emptyOptions.length > 0) {
-      validationErrors.push("Semua opsi jawaban harus diisi");
+  const validateForm = () => {
+    const validationErrors = [];
+    if (!question.trim()) {
+      validationErrors.push("Soal wajib diisi");
     }
-
-    const pointsOutOfRange = options.filter(option => 
-      !option.points || option.points < 1 || option.points > 5
-    );
-    if (pointsOutOfRange.length > 0) {
-      validationErrors.push("Points harus diisi dan berada dalam rentang 1–5");
+    if (!points || points <= 0) {
+      validationErrors.push("Bobot harus diisi dengan nilai lebih dari 0");
     }
-
-    const uniquePoints = new Set(options.map(option => option.points));
-    if (uniquePoints.size !== options.length) {
-      validationErrors.push("Tidak boleh ada opsi dengan points yang sama");
+    if (options.length < 2) {
+      validationErrors.push("Minimal harus ada 2 opsi jawaban");
+    } else if (options.length > 5) {
+      validationErrors.push("Jumlah opsi jawaban tidak boleh lebih dari 5");
+    } else {
+      const emptyOptions = options.filter((option) => 
+        !option.optionDescription.trim() && !option.optionPhoto
+      );
+      if (emptyOptions.length > 0) {
+        validationErrors.push("Semua opsi jawaban harus diisi");
+      }
+  
+      const pointsOutOfRange = options.filter(option => 
+        option.points < 1 || option.points > 5
+      );
+      if (pointsOutOfRange.length > 0) {
+        validationErrors.push("Points harus berada dalam rentang 1–5");
+      }
+  
+      const uniquePoints = new Set(options.map(option => option.points));
+      if (uniquePoints.size !== options.length) {
+        validationErrors.push("Tidak boleh ada opsi dengan points yang sama");
+      }
     }
-  }
+    const correctOptionsCount = options.filter(option => option.isCorrect).length;
 
-  return {
-    isValid: validationErrors.length === 0,
-    errors: validationErrors
+    return {
+      isValid: validationErrors.length === 0,
+      errors: validationErrors
+    };
   };
-};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -452,7 +456,7 @@ const validateForm = () => {
         confirmButtonColor: '#0B61AA',
       }).then(() => {
         const encodedPageName = encodeURIComponent(pageName);
-        router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
+        router.push(`/author/buatSoal?testId=${testId}&pageName=${encodedPageName}`);
       });
     } catch (error) {
       console.error('Error:', error);
@@ -587,8 +591,8 @@ const validateForm = () => {
                     <label className="font-medium-bold mr-4">Bobot</label>
                       <input
                           type="number"
-                          step="0"
-                          min="1"
+                          step="0.01"
+                          min="0"
                           value={option.points}
                           onChange={(e) => handleOptionChange(index, e.target.value, 'points')}
                           className="border p-2 w-[100px]"
