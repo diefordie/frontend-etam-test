@@ -23,11 +23,9 @@ const Login = () => {
         setShowPassword(!showPassword);
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-            
+    
         // Validasi input kosong
         if (!email && !password) {
             Swal.fire({
@@ -53,9 +51,9 @@ const Login = () => {
             });
             return;
         }
-
-        setError(''); 
     
+        setError('');
+        
         try {
             const response = await fetch(`https://${URL}/auth/login`, {
                 method: 'POST',
@@ -103,13 +101,9 @@ const Login = () => {
                     router.push('/user/dashboard');
                 }
             });
-
-            
-            
-        } catch (err) {
-            console.error("Kesalahan login", err);
     
-            // Menampilkan pesan kesalahan sebagai popup
+        } catch (err) {
+            // Menghapus console.error, hanya menampilkan pesan error
             Swal.fire({
                 icon: 'error',
                 title: 'Error',

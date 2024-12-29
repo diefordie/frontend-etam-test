@@ -41,6 +41,7 @@ const MengerjakanTes = () => {
     const router = useRouter();
     const [activeQuestion, setActiveQuestion] = useState(1); // Default ke soal pertama
     const [answeredSoals, setAnsweredSoals] = useState([]);
+    const [category, setCategory] = useState('');
     
     
      // State untuk opsi yang dipilih
@@ -185,6 +186,7 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
                 const data = await response.json();
                 const { title: testTitle, questions } = data;
                 setTitle(testTitle);
+                setCategory(data.category);
         
                 // Mengurutkan questions berdasarkan questionNumber
                 const sortedQuestions = questions.sort((a, b) => a.questionNumber - b.questionNumber);
@@ -452,7 +454,7 @@ useEffect(() => {
     const updateDraftAnswer = async (resultId, oldOptionId, newOptionId, newAnswer) => {
         try {
 
-            const response = await fetch(`httsp://${URL}/answer/tests/${testId}/update`, {
+            const response = await fetch(`https://${URL}/answer/tests/${testId}/update`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -708,7 +710,7 @@ useEffect(() => {
                 localStorage.removeItem(`doubtQuestions_${testId}`);
                 localStorage.removeItem(`currentOption_${testId}`);
     
-                router.push(`/tes/mengerjakan-tes/hasil-tes/${resultId}`);
+                router.push(`/tes/mengerjakan-tes/hasil-tes/${resultId}&category=${category}`);
             } catch (error) {
                 console.error('Error submitting final answers:', error);
     

@@ -706,7 +706,7 @@ export default function Psikotes() {
           <img
             src={test.author.authorPhoto}
             alt={test.category}
-            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"          />
+            className="h-3 w-3 lg:h-6 lg:w-6 object-cover rounded-full"          />
         ) : (
           <IoPersonCircle className="h-3 lg:h-6 text-white" />
         )}
@@ -815,7 +815,7 @@ export default function Psikotes() {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-cover rounded-full"
                           />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -916,7 +916,7 @@ export default function Psikotes() {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-cover rounded-full"
                           />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
@@ -1017,7 +1017,7 @@ export default function Psikotes() {
                           <img
                             src={test.author.authorPhoto}
                             alt={test.category}
-                            className="h-3 lg:h-6 object-contain"
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-cover rounded-full"
                           />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />

@@ -35,21 +35,19 @@ const Registrasi = () => {
         setRole(selectedRole);
         setDropdownVisible(false);
     };
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-    // Validasi apakah semua input kosong
-    if (!name.trim() && !email.trim() && !password.trim() && !role.trim()) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Form Kosong',
-            text: 'Harap isi data diri anda untuk melakukan registrasi',
-            confirmButtonText: 'OK',
-        });
-        return;
-    }
+    
+        if (!name.trim() || !email.trim() || !password.trim() || !role.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Form Kosong',
+                text: 'Harap isi data diri anda untuk melakukan registrasi',
+                confirmButtonText: 'OK',
+            });
+            return;
+        }
+    
         try {
             const response = await fetch(`https://${URL}/auth/registrasi`, {
                 method: 'POST',
@@ -71,7 +69,7 @@ const Registrasi = () => {
                     const errorMessages = data.errors.map(err => `<p>${err.msg}</p>`).join('');
                     Swal.fire({
                         icon: 'error',
-                        title: 'Validasi Gagal',
+                        title: 'Terjadi Kesalahan',
                         html: errorMessages,
                         confirmButtonText: 'OK',
                     });
@@ -100,11 +98,13 @@ const Registrasi = () => {
                 }
             });
         } catch (err) {
-            console.error("Kesalahan registrasi", err);
+            if (process.env.NODE_ENV !== 'production') {
+                console.error("Kesalahan registrasi", err);
+            }
             Swal.fire({
                 icon: 'error',
                 title: 'Kesalahan',
-                text: err.message,
+                text: err.message || 'Terjadi kesalahan pada sistem.',
                 confirmButtonText: 'OK',
             });
         }
