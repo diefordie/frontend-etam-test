@@ -495,8 +495,8 @@ useEffect(() => {
             }
     
             // Kirim request ke backend dengan resultId di body
-            const response = await fetch(`https://${URL}/answer/tests/submit`, {
-                method: 'PATCH',
+            const response = await fetch(`https://${URL}/answer/tests/${resultId}/submit`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`, // Sertakan token di header
