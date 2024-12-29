@@ -710,7 +710,7 @@ useEffect(() => {
                 localStorage.removeItem(`doubtQuestions_${testId}`);
                 localStorage.removeItem(`currentOption_${testId}`);
     
-                router.push(`/tes/mengerjakan-tes/hasil-tes/${resultId}&category=${category}`);
+                router.push(`/tes/mengerjakan-tes/hasil-tes/${resultId}?category=${category}`);
             } catch (error) {
                 console.error('Error submitting final answers:', error);
     
