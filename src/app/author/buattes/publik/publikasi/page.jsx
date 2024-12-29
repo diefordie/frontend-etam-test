@@ -1,38 +1,37 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import dotenv from 'dotenv';
+import { Suspense } from 'react';
+
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function PublikasiPage() {
+
+function PublikasiContent() {
   const [namaTes, setNamaTes] = useState('');
-  const [testId, setTestId] = useState(null);
+
   const [durasiTes, setDurasiTes] = useState('')
   const [hargaTes, setHargaTes] = useState('');
   const [prediksiKemiripan, setPrediksiKemiripan] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [title, setTitle] = useState('');
+  const [editableTitle, setEditableTitle] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
-    const testIdFromUrl = params.get("testId");
-    
-    if (testIdFromUrl) {
-      setTestId(testIdFromUrl);
-    }
-  }, []);
+  const testId = searchParams.get('testId');
+
+
 
   useEffect(() => {
     const fetchTestDetails = async () => {
       try {
-        const response = await fetch(`https://${URL}/test/test-detail/${testId}`);
+        const response = await fetch(`http://localhost:2000/test/test-detail/${testId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch test details');
         }
@@ -53,44 +52,45 @@ export default function PublikasiPage() {
     const priceAsInteger = parseInt(hargaTes.replace(/[^\d]/g, ''), 10);
 
     const payload = {
-        title: title,
         price: priceAsInteger,
         similarity: parseFloat(prediksiKemiripan),
         worktime: totalMinutes
     };
 
     // Validasi input
-    if (!payload.title || !payload.price || isNaN(payload.similarity) || isNaN(payload.worktime)) {
-        alert("Semua field harus diisi untuk publikasi.");
+    if (!payload.price || isNaN(payload.similarity) || !payload.worktime) {
+        alert("Semua field harus diisi dengan benar untuk publikasi.");
         return;
     }
 
     try {
-        const response = await fetch(`https://${URL}/test/tests/${testId}/publish`, {
+        const response = await fetch(`http://localhost:2000/test/tests/${testId}/publish`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+             // Tambahkan token autentikasi jika diperlukan
             },
             body: JSON.stringify(payload)
         });
 
-        if (response.ok) {
-            console.log('Tes berhasil disimpan!');
-            setShowSuccessPopup(true); 
-            setShowErrorPopup(false);
-            
-            setTimeout(() => {
-                router.push('/author/dashboard');
-            }, 2000); 
-        } else {
-            console.error('Gagal menyimpan tes.', await response.text());
-            setShowErrorPopup(true);
-            setShowSuccessPopup(false);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Gagal menyimpan tes.');
         }
+
+        const updatedTest = await response.json();
+        console.log('Tes berhasil dipublikasi!', updatedTest);
+        setShowSuccessPopup(true); 
+        setShowErrorPopup(false);
+        
+        setTimeout(() => {
+            router.push('/author/dashboard');
+        }, 2000); 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error:', error.message);
         setShowErrorPopup(true);
         setShowSuccessPopup(false);
+        alert(error.message); // Menampilkan pesan error kepada pengguna
     }
 };
 
@@ -276,5 +276,13 @@ const handleHargaTes = (e) => {
       </div>
     )}
       </div>
+  );
+}
+
+export default function PublikasiPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PublikasiContent />
+    </Suspense>
   );
 }

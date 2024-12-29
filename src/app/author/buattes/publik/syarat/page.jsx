@@ -13,8 +13,7 @@ export default function Page() {
   const router = useRouter(); 
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
+    const params = new URLSearchParams(window.location.search);
     const testIdFromUrl = params.get("testId"); // Ambil testId dari URL
     if (testIdFromUrl) {
       setTestId(testIdFromUrl); // Set testId ke state
@@ -38,7 +37,7 @@ export default function Page() {
         <div className="container flex items-center">
           <div className="flex space-x-4 w-full">
             <Link href="/homeAuthor">
-              <img src="/images/Vector.png" alt="Vector" className="h-6 sm:h-9 absolute left-16 top-5" style={{ maxWidth: '279px' }} />
+              <img src="/images/logo.svg" alt="Vector" className="h-6 sm:h-9 absolute left-16 top-5" style={{ maxWidth: '279px' }} />
             </Link>
           </div>
         </div>

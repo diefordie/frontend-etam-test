@@ -71,7 +71,6 @@ export default function DashboardAuthor() {
           setUserId(decodedToken.id);
         }
       } catch (error) {
-        console.error("Error decoding token:", error);
         setError(error.message);
         // Redirect ke halaman login jika token tidak valid
       } finally {
@@ -115,7 +114,6 @@ export default function DashboardAuthor() {
           throw new Error("Data pengguna tidak ditemukan");
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
         if (error.message === "Failed to fetch user data") {
           // Token mungkin tidak valid atau kadaluarsa
           if (typeof window !== "undefined") {
@@ -159,7 +157,6 @@ export default function DashboardAuthor() {
       } catch (err) {
         setError("Failed to fetch author tests");
         setLoading(false);
-        console.error("Error fetching author tests:", err);
       }
     };
 
@@ -184,7 +181,6 @@ export default function DashboardAuthor() {
       } catch (err) {
         setError("Failed to fetch author tests");
         setLoading(false);
-        console.error("Error fetching author tests:", err);
       }
     };
 
@@ -212,7 +208,6 @@ export default function DashboardAuthor() {
       } catch (err) {
         setError("Failed to fetch author tests");
         setLoading(false);
-        console.error("Error fetching author tests:", err);
       }
     };
 
@@ -236,7 +231,6 @@ export default function DashboardAuthor() {
       } catch (err) {
         setError("Failed to fetch author data");
         setLoading(false);
-        console.error("Error fetching author data:", err);
       }
     };
 
@@ -273,7 +267,6 @@ export default function DashboardAuthor() {
       const data = await response.json();
       setSearchResults(data.data || []);
     } catch (error) {
-      console.error("Error searching tests:", error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -421,9 +414,7 @@ export default function DashboardAuthor() {
       localStorage.clear();
 
       window.location.href = "/auth/login";
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
+    } catch (error) {}
   };
 
   if (loading) {
@@ -476,7 +467,7 @@ export default function DashboardAuthor() {
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
-                  <Link legacyBehavior href={`/author/edit-profile`}>
+                  <Link legacyBehavior href={`/author/edit-profile/${userId}`}>
                     <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
                       Ubah Profil
                     </a>

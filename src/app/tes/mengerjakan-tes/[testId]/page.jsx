@@ -203,7 +203,8 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
                         id: opt.id,
                         label: opt.description,
                         value: opt.description,
-                        isCorrect: opt.isCorrect
+                        isCorrect: opt.isCorrect,
+                        optionPhoto: opt.optionPhoto
                     })),
                 }));
         
@@ -833,13 +834,13 @@ useEffect(() => {
                         <>
                             <div className="mb-6 sm:mb-4 bg-white p-4 sm:p-2 rounded-[15px] shadow">
                                 <p className="text-lg font-poppins mb-6 sm:mb-4">{currentQuestion.questionText}</p>
-                                {questions[currentOption - 1]?.questionPhoto && (
-                                <img 
-                                  src={questions[currentOption - 1]?.questionPhoto} 
-                                  alt={`Question ${questions[currentOption - 1]?.questionNumber}`}
-                                  className="h-64 w-64 aspect-square rounded-lg object-cover mx-auto my-3"
-                                />
-                            )}
+                                {currentQuestion.questionPhoto && (
+                                    <img 
+                                        src={currentQuestion.questionPhoto} 
+                                        alt={`Question ${currentQuestion.questionNumber}`}
+                                        className="h-64 w-64 aspect-square rounded-lg object-cover mx-auto my-3"
+                                    />
+                                )}
                             </div>
                             {currentQuestion.options.map((option) => (
                                 <div key={option.id} className="mb-4 sm:mb-2 bg-white p-4 sm:p-2 font-poppins rounded-lg shadow-lg">
@@ -852,7 +853,15 @@ useEffect(() => {
                                         onChange={() => handleOption(option.id, option.value, currentQuestion)}
                                         className="mr-2"
                                     />
-                                    <label htmlFor={option.id} className="text-xs sm:text-sm md:text-base">{option.label}</label>
+                                    {option.optionPhoto ? (
+                                        <img 
+                                            src={option.optionPhoto} 
+                                            alt={`Option ${option.id}`}
+                                            className="h-32 w-32 aspect-square rounded-lg object-cover ml-3 mb-2"
+                                        />
+                                    ) : (
+                                        <label htmlFor={option.id} className="text-xs sm:text-sm md:text-base">{option.label}</label>
+                                    )}
                                 </div>
                             ))}
                         </>

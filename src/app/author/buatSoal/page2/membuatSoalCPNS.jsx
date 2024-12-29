@@ -1,26 +1,26 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import 'react-quill/dist/quill.snow.css';
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { storage } from "../../../firebase/config";
 import { v4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { AiOutlineCloseSquare } from 'react-icons/ai';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { BsImage } from 'react-icons/bs';
-import dynamic from 'next/dynamic';
 import Swal from 'sweetalert2'; 
+import dynamic from 'next/dynamic';
 const ReactQuill = dynamic(() => import('react-quill'), {ssr: false});
 import dotenv from 'dotenv';
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
-const MembuatSoal = () => {
+const MembuatSoalCPNS = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
   const [testId, setTestId] = useState('');
   const [category, setCategory] = useState('');
   const [multiplechoiceId, setMultiplechoiceId] = useState('');
@@ -30,29 +30,27 @@ const MembuatSoal = () => {
   const [questionPhoto, setQuestionPhoto] = useState(null);
   const [weight, setWeight] = useState();
   const [discussion, setDiscussion] = useState('');
-  const [options, setOptions] = useState([{ 
-    optionDescription: '', 
-    optionPhoto: null,
-    points: '',
-    isCorrect: false 
-  }]);
+  const [options, setOptions] = useState(
+    Array(5).fill({ 
+      optionDescription: '', 
+      optionPhoto: null, 
+      points: '', 
+      isCorrect: false 
+    })
+  );
   const [isOptionWeighted, setIsOptionWeighted] = useState(false);
   const [pages, setPages] = useState([{ questions: [] }]);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('');
+  const [activeTab, setActiveTab] = useState('buattes');
   const [isValid, setIsValid] = useState(true);
 
   useEffect(() => {
-    const testIdFromUrl = searchParams.get("testId");
-    const categoryFromUrl = searchParams.get("category");
-    const multiplechoiceIdFromUrl = searchParams.get("multiplechoiceId");
-    const pageNameFromUrl = searchParams.get("pageName");
-    const numberFromUrl = searchParams.get("nomor");
-
-    console.log("Fetched testId:", testIdFromUrl); 
-    console.log("Fetched category:", categoryFromUrl);
-    console.log("Fetched multiplechoiceId:", multiplechoiceIdFromUrl); 
-    console.log("Raw pageName from URL:", pageNameFromUrl);
+    const params = new URLSearchParams(window.location.search);
+    const testIdFromUrl = params.get("testId");
+    const categoryFromUrl = params.get("category");
+    const multiplechoiceIdFromUrl = params.get("multiplechoiceId");
+    const pageNameFromUrl = params.get("pageName");
+    const numberFromUrl = params.get("nomor");
 
     if (pageNameFromUrl) {
       const decodedPageName = decodeURIComponent(pageNameFromUrl);
@@ -63,13 +61,15 @@ const MembuatSoal = () => {
       setTestId(testIdFromUrl);
     }
     if (categoryFromUrl) {
-      setCategory(categoryFromUrl);
+      setCategory(categoryFromUrl);      
     }
     if (multiplechoiceIdFromUrl) {
       setMultiplechoiceId(multiplechoiceIdFromUrl); 
+      console.log('multiplechoiceId type:', typeof multiplechoiceIdFromUrl);
+      console.log('multiplechoiceId value:', multiplechoiceIdFromUrl);
     }
     if (numberFromUrl) setNumber(numberFromUrl);
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     if (!multiplechoiceId) return;
@@ -91,7 +91,6 @@ const MembuatSoal = () => {
         setDiscussion(data.discussion);
         if (data.questionPhoto && data.questionPhoto !== "") {
           setQuestionPhoto(data.questionPhoto);
-          console.log("Loaded question photo URL:", data.questionPhoto);
         } else {
           setQuestionPhoto(null);
         }
@@ -125,34 +124,63 @@ const MembuatSoal = () => {
     }
   };
 
-  const handleOptionChange = async (index, content, type) => {
-    const newOptions = [...options];
-    const currentOption = { ...newOptions[index] };
-    
-    switch (type) {
-      case 'text':
-        currentOption.optionDescription = content;
-        currentOption.optionPhoto = null;
-        break;
-      case 'image':
-        try {
-          const imageRef = ref(storage, `options/${content.name + v4()}`);
-          const snapshot = await uploadBytes(imageRef, content);
-          const imageUrl = await getDownloadURL(snapshot.ref);
-          currentOption.optionDescription = '';
-          currentOption.optionPhoto = imageUrl;
-        } catch (error) {
-          console.error('Error uploading image:', error);
-          return;
-        }
-        break;
-      case 'points':
-        currentOption.points = content;
-        break;
+  // Fungsi untuk menangani perubahan kategori
+  const handleKategoriChange = (event) => {
+    const selectedKategori = event.target.value;
+    setKategori(selectedKategori);
+
+    // Jika kategori adalah TKP, munculkan 5 opsi
+    if (selectedKategori === "TKP") {
+      setOptions(["Opsi 1", "Opsi 2", "Opsi 3", "Opsi 4", "Opsi 5"]);
+    } else {
+      setOptions([]); // Kosongkan opsi jika kategori lain dipilih
     }
-    newOptions[index] = currentOption;
-    setOptions(newOptions);
   };
+
+  const handleOptionChange = async (index, content, type) => {
+    try {
+      const newOptions = [...options]; // Salin array opsi
+      const currentOption = { ...newOptions[index] }; // Salin objek opsi tertentu
+  
+      switch (type) {
+        case 'text':
+          currentOption.optionDescription = content || '';
+          currentOption.optionPhoto = null;
+          break;
+  
+        case 'image':
+          try {
+            const imageRef = ref(storage, `options/${content.name + v4()}`);
+            const snapshot = await uploadBytes(imageRef, content);
+            const imageUrl = await getDownloadURL(snapshot.ref);
+            currentOption.optionDescription = '';
+            currentOption.optionPhoto = imageUrl;
+          } catch (error) {
+            console.error('Error uploading image:', error);
+            return; // Keluar jika terjadi error saat upload
+          }
+          break;
+  
+        case 'points':
+          if (!isNaN(content) && content >= 0) {
+            currentOption.points = parseInt(content, 10);
+          } else {
+            console.warn('Invalid points value:', content);
+            currentOption.points = 0; // Default jika input invalid
+          }
+          break;
+  
+        default:
+          console.warn('Unknown type:', type);
+      }
+  
+      newOptions[index] = currentOption; // Update opsi pada indeks tertentu
+      setOptions(newOptions); // Update state
+    } catch (error) {
+      console.error('Error handling option change:', error);
+    }
+  };
+   
 
   const renderOptionContent = (option, index) => {
     if (option.optionPhoto) {
@@ -222,7 +250,7 @@ const MembuatSoal = () => {
       try {
         const localStorageKey = `pages-${testId}`;
         
-        if (multiplechoiceId) {
+        if (multiplechoiceId && multiplechoiceId !== "null") {
           const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
             method: 'DELETE',
           });
@@ -302,7 +330,7 @@ const MembuatSoal = () => {
   
   const handleBack = () => {
     if (testId) {
-      router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}`);
+      router.push(`/author/buatSoal?testId=${testId}&category=${category}`);
     } else {
       console.error('Test ID tidak ditemukan dalam respons:', result);
     }
@@ -310,49 +338,48 @@ const MembuatSoal = () => {
 
   const validateForm = () => {
     const validationErrors = [];
+
     if (!question.trim()) {
       validationErrors.push("Soal wajib diisi");
-    }
-    if (!points || points <= 0) {
-      validationErrors.push("Bobot harus diisi dengan nilai lebih dari 0");
     }
     if (options.length < 2) {
       validationErrors.push("Minimal harus ada 2 opsi jawaban");
     } else if (options.length > 5) {
       validationErrors.push("Jumlah opsi jawaban tidak boleh lebih dari 5");
     } else {
-      const emptyOptions = options.filter((option) => 
-        !option.optionDescription.trim() && !option.optionPhoto
-      );
-      if (emptyOptions.length > 0) {
-        validationErrors.push("Semua opsi jawaban harus diisi");
-      }
-  
-      const pointsOutOfRange = options.filter(option => 
-        option.points < 1 || option.points > 5
-      );
-      if (pointsOutOfRange.length > 0) {
-        validationErrors.push("Points harus berada dalam rentang 1–5");
-      }
-  
+      options.forEach((option, index) => {
+        if (!option.optionDescription.trim() && !option.optionPhoto) {
+          validationErrors.push(`Opsi ${index + 1} harus memiliki deskripsi atau foto`);
+        }
+        if (!option.points || option.points < 1 || option.points > 5) {
+          validationErrors.push(`Bobot pada opsi ${index + 1} harus diisi dan berada dalam rentang 1–5`);
+        }
+      });
+
       const uniquePoints = new Set(options.map(option => option.points));
       if (uniquePoints.size !== options.length) {
-        validationErrors.push("Tidak boleh ada opsi dengan points yang sama");
+        validationErrors.push("Tidak boleh ada opsi dengan bobot (points) yang sama");
       }
     }
-    const correctOptionsCount = options.filter(option => option.isCorrect).length;
+    if (!discussion.trim()) {
+      validationErrors.push("Pembahasan wajib diisi");
+    }
+    if (!number || isNaN(number) || number <= 0) {
+      validationErrors.push("Nomor soal harus diisi dengan angka valid");
+    }
 
     return {
       isValid: validationErrors.length === 0,
-      errors: validationErrors
+      errors: validationErrors,
     };
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const valid = validateForm();
-
+  
     if (!valid.isValid) {
       Swal.fire({
         icon: 'error',
@@ -363,6 +390,21 @@ const MembuatSoal = () => {
       });
       return;
     }
+
+    const duplicatePoints = options.some((option, index) => 
+      options.findIndex(o => o.points === option.points) !== index
+    );
+  
+    if (duplicatePoints) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Duplikasi Bobot',
+        text: 'Nilai bobot tidak boleh sama pada opsi yang berbeda!',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#FF0000',
+      });
+      return; 
+    }
   
     try {
       let uploadedImageUrl = questionPhoto;
@@ -371,14 +413,14 @@ const MembuatSoal = () => {
         const snapshot = await uploadBytes(imageRef, questionPhoto);
         uploadedImageUrl = await getDownloadURL(snapshot.ref); 
       }
-
+  
       const formattedOptions = options.map(option => ({
         optionDescription: option.optionDescription,
         optionPhoto: option.optionPhoto,
         points: parseFloat(option.points),
         isCorrect: null,
       }));
-      
+  
       const questionData = {
         pageName,
         question: question,
@@ -389,10 +431,10 @@ const MembuatSoal = () => {
         isWeighted: true,
         options: formattedOptions
       };
-
+  
       let response;
       let result;
-
+  
       if (multiplechoiceId !== "null") {
         response = await fetch(`https://${URL}/api/multiplechoice/update-question/${multiplechoiceId}`, {
           method: 'PUT',
@@ -405,7 +447,7 @@ const MembuatSoal = () => {
         if (response.ok) {
           result = await response.json();
           console.log('Update successful:', result);
-
+  
           const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
           const updatedPages = existingPages.map(page => 
             page.id === multiplechoiceId 
@@ -431,7 +473,7 @@ const MembuatSoal = () => {
           console.log('Response dari API:', result);
           const newMultiplechoiceId = result.data[0].id;
           console.log('MultiplechoiceId:', newMultiplechoiceId);
- 
+  
           localStorage.setItem('pageName', pageName);
           const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
           const newQuestion = { 
@@ -468,73 +510,182 @@ const MembuatSoal = () => {
       });
     }
   };
+  
 
   return (
-    <div className="container mx-auto p-0" style={{ maxWidth: '1440px' }}>
-      <header className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins" style={{ maxWidth: '1440px', height: '108px' }}>
-        <div className="container mx-auto flex justify-start items-center">
-          <Link href="/">
-            <img src="/img/Vector.png" alt="Vector" className="h-[50px]" style={{ maxWidth: '179px' }} />
+    <div className="container mx-auto p-0" style={{ maxWidth: '1978px' }}>
+      <header 
+        className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins w-full"
+        style={{ height: 'auto' }}
+      >
+        <div className="flex items-center max-w-[1978px] w-full px-2 sm:px-4 mx-auto">
+          <Link href="/author/buatSoal" className="flex items-center space-x-2 sm:space-x-4">
+            <IoMdArrowRoundBack className="text-white text-2xl sm:text-3xl lg:text-4xl" />
+            <img src="/images/etamtest.png" alt="Etamtest" className="h-[40px] sm:h-[50px]" />
           </Link>
         </div>
       </header>
   
-      <nav className="bg-[#FFFF] text-black p-4 sm:p-6">
-        <ul className="flex space-x-6 sm:space-x-20">
-          <li>
-            <button
-              className={`w-[120px] sm:w-[220px] h-[48px] rounded-[20px] shadow-md font-bold font-poppins ${activeTab === 'buatTes' ? 'bg-[#78AED6]' : ''}`}
-              onClick={() => setActiveTab('buatTes')}
+      <div className="w-full p-2">
+        <nav className="bg-[#FFFFFF] text-black p-4">
+          <ul className="grid grid-cols-2 gap-2 sm:flex sm:justify-around sm:gap-10">
+            <li>
+              <button
+                className={`w-[100px] sm:w-[140px] md:w-[180px] px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-xl font-bold font-poppins text-xs sm:text-sm md:text-base ${
+                  activeTab === 'buattes' ? 'bg-[#78AED6]' : ''
+                }`}
+                onClick={() => setActiveTab('buattes')}
               >
-              Buat Soal
-            </button>
-          </li> 
-          <li>
-            <button
-              className={`w-[120px] sm:w-[220px] h-[48px] rounded-[20px] shadow-md font-bold font-poppins ${activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''}`}
-              onClick={() => setActiveTab('publikasi')}
+                Buat Soal
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-[100px] sm:w-[140px] md:w-[180px] px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-xl font-bold font-poppins text-xs sm:text-sm md:text-base ${
+                  activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''
+                }`}
               >
-              Publikasi
-            </button>
-          </li>
-        </ul>
-      </nav>
-  
-      <div className="container mx-auto lg: p-2 p-4 w-full" style={{ maxWidth: '1309px' }}>
-        <header className='bg-[#0B61AA] font-bold font-poppins text-white p-4'>
-          <div className="flex items-center justify-between">
-            <span>{pageName}</span>
-          </div>
-        </header>
-  
-        <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6 " >
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className='mb-4'>
-              <label htmlFor="soal">No.      </label>
-              <input
-                type="number"
-                value={number}
-                onChange={(e) => setNumber(e.target.value)}
-                required
-              />
+                Publikasi
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <div className="container mx-auto lg: p-2 p-4 w-full" style={{ maxWidth: '100%', height: 'auto' }}>
+          <header className='bg-[#0B61AA] font-bold font-poppins text-white p-4'>
+            <div className="flex items-center justify-between">
+              <span>{pageName}</span>
             </div>
-            <div className='m'>
-              <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '1309px', height: '250px' }}>
-                <div className='p-4 flex justify-between items-center mb-0.5 w-full'>
-                  <div className='flex items-center'>
-                    <label className="block mb-2">Soal Pilihan Ganda</label>
+          </header>
+  
+          <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6 " >
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className='mb-4'>
+                <label htmlFor="soal">No.      </label>
+                <input
+                  type="number"
+                  value={number}
+                  onChange={(e) => setNumber(e.target.value)}
+                  required
+                />
+              </div>
+              <div className='m'>
+                <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '1978px', height: '250px' }}>
+                  <div className='p-4 flex justify-between items-center mb-0.5 w-full'>
+                  <div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+                      <label className="block text-sm sm:text-sm md:text-base font-medium">
+                        Soal Pilihan Ganda
+                      </label>
+                    </div>
                   </div>
+                  <ReactQuill 
+                    value={question} 
+                    onChange={setQuestion} 
+                    modules={{
+                      toolbar: [
+                        [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['bold', 'italic', 'underline'],
+                        ['clean']
+                      ],
+                    }}
+                    formats={[
+                      'header',
+                      'font',
+                      'list',
+                      'bullet',
+                      'bold',
+                      'italic',
+                      'underline',
+                      'image',
+                    ]}
+                    className='bg-white shadow-md rounded-md border border-gray-500'
+                    style={{ maxWidth: '1978px', height: '150px', overflow: 'hidden' }}
+                    placeholder='Buat Soal di sini...'
+                    required 
+                  />
                 </div>
+              </div>
+
+              <div className="mb-4">
+                {typeof questionPhoto === 'string' && questionPhoto ? (
+                  <div className="mb-2">
+                    <img 
+                      src={questionPhoto} 
+                      alt="Question" 
+                      className="max-w-md h-auto"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setQuestionPhoto(null)}
+                      className="mt-2 bg-red-500 text-white px-2 py-1 rounded"
+                    >
+                      Hapus Gambar
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    onChange={(event) => setQuestionPhoto(event.target.files[0])}
+                    className="border p-2 w-full"
+                    accept="image/*"
+                  />
+                )}
+              </div>
+    
+              <div>
+                <h2 className="block text-sm sm:text-sm md:text-base font-medium mb-2">Jawaban</h2>
+                {options.map((option, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6"
+                  >
+                    {/* Opsi Jawaban */}
+                    <div className="w-full mb-4 sm:mb-0">
+                      {renderOptionContent(option, index)}
+                    </div>
+
+                    {/* Bobot */}
+                    <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center justify-between space-x-2 sm:space-x-4 border border-black rounded-[10px] p-2">
+                      <label className="font-medium text-sm">Bobot</label>
+                      <div className="flex items-center w-full sm:w-auto">
+                        <input
+                          type="number"
+                          name="points"
+                          min="1"
+                          max="5"
+                          value={option.points || ''}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value, 10);
+
+                            // Validasi angka antara 1-5
+                            if (value >= 1 && value <= 5) {
+                              handleOptionChange(index, value, 'points');
+                            } else if (e.target.value === '') {
+                              // Reset jika input kosong
+                              handleOptionChange(index, '', 'points');
+                            }
+                          }}
+                          className="border p-1 w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm sm:text-sm md:text-base font-medium mb-2">Pembahasan</label>
                 <ReactQuill 
-                  value={question} 
-                  onChange={setQuestion} 
+                  value={discussion} 
+                  onChange={setDiscussion} 
                   modules={{
                     toolbar: [
                       [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
                       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                       ['bold', 'italic', 'underline'],
                       ['clean']
-                    ],
+                    ]
                   }}
                   formats={[
                     'header',
@@ -544,125 +695,31 @@ const MembuatSoal = () => {
                     'bold',
                     'italic',
                     'underline',
-                    'image',
                   ]}
-                  className='bg-white shadow-md rounded-md border border-gray-500'
-                  style={{ maxWidth: '1220px', height: '150px', overflow: 'hidden' }}
-                  placeholder='Buat Soal di sini...'
-                  required 
-                />
+                  placeholder='Tulis kunci jawaban di sini...' />
               </div>
-            </div>
-
-            <div className="mb-4">
-              {typeof questionPhoto === 'string' && questionPhoto ? (
-                <div className="mb-2">
-                  <img 
-                    src={questionPhoto} 
-                    alt="Question" 
-                    className="max-w-md h-auto"
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setQuestionPhoto(null)}
-                    className="mt-2 bg-red-500 text-white px-2 py-1 rounded"
-                  >
-                    Hapus Gambar
-                  </button>
-                </div>
-              ) : (
-                <input
-                  type="file"
-                  onChange={(event) => setQuestionPhoto(event.target.files[0])}
-                  className="border p-2 w-full"
-                  accept="image/*"
-                />
-              )}
-            </div>
-  
-            <div>
-              <h2 className="text-lg font-semi-bold mb-2">Jawaban</h2>
-              {options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2 mb-2">
-                    <div className="w-full">
-                      {renderOptionContent(option, index)}
-                    </div>
-                    <div className="flex items-center justify-between px-2 space-x-50 border border-black rounded-[10px]">
-                    <label className="font-medium-bold mr-4">Bobot</label>
-                      <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={option.points}
-                          onChange={(e) => handleOptionChange(index, e.target.value, 'points')}
-                          className="border p-2 w-[100px]"
-                          required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteJawaban(index, option.id)}
-                        className="ml-4"
-                      >
-                        <AiOutlineCloseSquare className="w-6 h-6" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <button type="button" onClick={addOption} className="bg-[#7bb3b4] hover:bg-[#8CC7C8] text-black font-bold py-2 px-4 rounded-[15px] border border-black">
-                + Tambah
-              </button>
-            </div>
-  
-            <div className="mb-4">
-              <label className="block mb-2">Pembahasan</label>
-              <ReactQuill 
-                value={discussion} 
-                onChange={setDiscussion} 
-                modules={{
-                  toolbar: [
-                    [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['bold', 'italic', 'underline'],
-                    ['clean']
-                  ]
-                }}
-                formats={[
-                  'header',
-                  'font',
-                  'list',
-                  'bullet',
-                  'bold',
-                  'italic',
-                  'underline',
-                ]}
-                placeholder='Tulis kunci jawaban di sini...' />
-            </div>
-          </form>
-          <div className='mt-4 flex justify-end space-x-4 -mr-2'>
-            <div className="flex justify-end space-x-2">
+            </form>
+            <div className="mt-4 flex flex-wrap justify-end items-center gap-2 sm:gap-4">
               <button
                 onClick={handleDelete}
-                className="bg-[#E58A7B] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
+                className="bg-[#E58A7B] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
               >
                 Hapus
               </button>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={handleSubmit} 
-                  className="bg-[#E8F4FF] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
-                >
-                  Simpan
-                </button>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={handleBack}
-                  className="bg-[#A6D0F7] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
-                >
-                  Kembali
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="bg-[#E8F4FF] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
+              >
+                Simpan
+              </button>
+              <button
+                onClick={handleBack}
+                className="bg-[#A6D0F7] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
+              >
+                Kembali
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -670,4 +727,4 @@ const MembuatSoal = () => {
   ); 
 };
 
-export default MembuatSoal;
+export default MembuatSoalCPNS;

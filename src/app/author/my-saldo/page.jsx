@@ -7,6 +7,7 @@ import { IoPersonCircle } from "react-icons/io5";
 import { IoWalletOutline } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
+import { jwtDecode } from "jwt-decode";
 
 import dotenv from 'dotenv';
 
@@ -36,10 +37,11 @@ export default function Home() {
     const [transactions, setTransactions] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState(null);
 
     const banks = ['BCA', 'BNI', 'MANDIRI', 'Bank Lainnya'];
 
-      const LoadingAnimation = () => (
+    const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
       <div className="relative">
         {/* Roket */}
@@ -56,14 +58,15 @@ export default function Home() {
     </div>
   );
 
-    useEffect(() => {
-        if (showHistory) {
-          const fetchTransactionHistory = async () => {
-            try {
-              const token = localStorage.getItem('token');
-              if (!token) {
-                throw new Error('No authentication token found');
-              }
+  useEffect(() => {
+      if (showHistory) {
+        const fetchTransactionHistory = async () => {
+          try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+              throw new Error('No authentication token found');
+            }
               
               const response = await fetch(`https://${URL}/api/withdrawals/history`, {
                 method: 'GET',
@@ -79,6 +82,7 @@ export default function Home() {
     
               const data = await response.json();
               setTransactions(data); 
+              setLoading(false);
             } catch (error) {
               console.error('Error fetching transaction history:', error);
             }
@@ -89,8 +93,37 @@ export default function Home() {
       }, [showHistory]);
 
     useEffect(() => {
+        const getUserIdFromToken = () => {
+          try {
+            setLoading(true);
+            if (typeof window !== "undefined") {
+              const token = localStorage.getItem("token");
+              if (!token) {
+                throw new Error("Token tidak ditemukan");
+              }
+    
+              const decodedToken = jwtDecode(token);
+              if (!decodedToken.id) {
+                throw new Error("User ID tidak ditemukan dalam token");
+              }
+    
+              setUserId(decodedToken.id);
+            }
+          } catch (error) {
+            console.error("Error decoding token:", error);
+            setError(error.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        getUserIdFromToken();
+      }, []);
+
+    useEffect(() => {
         const fetchAuthorData = async () => {
           try {
+            setLoading(true);
             const token = localStorage.getItem('token');
     
             if (!token) {
@@ -103,6 +136,7 @@ export default function Home() {
               }
             });    
             setAuthorData(response.data.data);
+            setLoading(false);
           } catch (err) {
             console.error('Error fetching author data:', err);
             setError(err.message);      }
@@ -307,6 +341,10 @@ export default function Home() {
     }
   };
 
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   return (
     <>
       <header className="flex flex-wrap justify-between lg:justify-end items-center bg-[#0B61AA] p-4 z-40">
@@ -321,6 +359,7 @@ export default function Home() {
           <span className="text-xl text-white font-poppins font-bold mr-3 lg:mr-5">
             Hai, {userData?.name}
           </span>
+          {/* Profile Picture */}
           <div className="relative inline-block">
               {userData?.userPhoto ? (
                 <img
@@ -337,7 +376,32 @@ export default function Home() {
                   onMouseLeave={() => setDropdownOpen(false)}
                 />
               )}
-          </div>
+
+              {/* Dropdown */}
+              {isDropdownOpen && (
+                <div
+                  className="absolute right-2 mt-0 w-37 bg-white rounded-lg shadow-lg z-10 p-1
+                  before:content-[''] before:absolute before:-top-4 before:right-8 before:border-8
+                  before:border-transparent before:border-b-white"
+                  onMouseEnter={() => setDropdownOpen(true)}
+                  onMouseLeave={() => setDropdownOpen(false)}
+                >
+                  <Link legacyBehavior href={`/author/edit-profile/${userId}`}>
+                    <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
+                      Ubah Profil
+                    </a>
+                  </Link>
+                  <Link legacyBehavior href="/auth/login">
+                    <a
+                      onClick={handleLogout}
+                      className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md"
+                    >
+                      Logout
+                    </a>
+                  </Link>
+                </div>
+              )}
+            </div>
         </div>
       </header>
 
@@ -536,13 +600,13 @@ export default function Home() {
                     </tr>
                 </thead>
                 <tbody>
-                    {transactions.map((transaction) => (
-                    <tr key={transaction.id}>
-                        <td className="py-3 px-4">{transaction.reference}</td>
-                        <td className="py-3 px-4">{new Date(transaction.createdAt).toLocaleDateString()}</td>
-                        <td className="py-3 px-4">{transaction.amount.toLocaleString()}</td>
+                  {transactions.map((transaction, index) => (
+                    <tr key={`${transaction.id}-${index}`}>
+                      <td className="py-3 px-4">{transaction.reference}</td>
+                      <td className="py-3 px-4">{new Date(transaction.createdAt).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">{transaction.amount.toLocaleString()}</td>
                     </tr>
-                    ))}
+                  ))}
                 </tbody>
                 </table>
                 </div>

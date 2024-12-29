@@ -61,7 +61,6 @@ export default function AnalisisSoal() {
     if (filterStatus === "draft") {
       setSelectedTestId((prevSelected) => {
         const newSelected = prevSelected === id ? null : id;
-        console.log("Selected Test ID:", newSelected);
         return newSelected;
       });
     }
@@ -85,7 +84,6 @@ export default function AnalisisSoal() {
           setUserId(decodedToken.id);
         }
       } catch (error) {
-        console.error("Error decoding token:", error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -129,7 +127,6 @@ export default function AnalisisSoal() {
           throw new Error("Data pengguna tidak ditemukan");
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
         setErrorUser("Gagal mengambil data pengguna");
         if (error.message === "Failed to fetch user data") {
           if (typeof window !== "undefined") {
@@ -223,63 +220,48 @@ export default function AnalisisSoal() {
 
   const handleDeleteSelected = async (testId) => {
     const token = localStorage.getItem("token");
-    console.log("Token:", token); // Debug token
-    try {
-      const response = await fetch(`https://${URL}/author/tests/${testId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const confirmDelete = await Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Anda tidak akan dapat mengembalikan ini!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error response from server:", errorText);
-        Swal.fire("Gagal!", "Gagal menghapus test.", "error");
-        return;
+    if (confirmDelete.isConfirmed) {
+      try {
+        const response = await fetch(`https://${URL}/author/tests/${testId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          Swal.fire("Gagal!", "Gagal menghapus test.", "error");
+          return;
+        }
+
+        const result = await response.json();
+        Swal.fire(
+          "Sukses!",
+          result.message || "Test berhasil dihapus",
+          "success"
+        );
+        fetchAuthorTests();
+      } catch (error) {
+        Swal.fire("Error!", "Terjadi kesalahan saat menghapus test", "error");
       }
-
-      const result = await response.json();
-      console.log("Delete result:", result);
-      Swal.fire(
-        "Sukses!",
-        result.message || "Test berhasil dihapus",
-        "success"
-      );
-      fetchAuthorTests();
-    } catch (error) {
-      console.error("Error in handleDeleteSelected:", error);
-      Swal.fire("Error!", "Terjadi kesalahan saat menghapus test", "error");
     }
   };
 
   const handlePublishSelected = async (testId) => {
-    try {
-      const response = await fetch(`https://${URL}/author/tests/${testId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Swal.fire(
-          "Sukses!",
-          result.message || "Test berhasil dipublish",
-          "success"
-        );
-        fetchAuthorTests();
-      } else {
-        Swal.fire("Gagal!", result.message || "Gagal mempublish test", "error");
-      }
-    } catch (error) {
-      console.error("Error in handlePublishSelected:", error);
-      Swal.fire("Error!", "Terjadi kesalahan saat mempublish test", "error");
-    }
+    router.push(`/author/buattes/publik/syarat?testId=${testId}`);
   };
 
   const [populercurrentIndex, populersetCurrentIndex] = useState(0);
@@ -327,9 +309,7 @@ export default function AnalisisSoal() {
       localStorage.clear();
 
       window.location.href = "/auth/login";
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
+    } catch (error) {}
   };
 
   const uniqueKategori = [
@@ -386,7 +366,7 @@ export default function AnalisisSoal() {
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
-                  <Link legacyBehavior href={`/author/edit-profile`}>
+                  <Link legacyBehavior href={`/author/edit-profile/${userId}`}>
                     <a className="block px-4 py-1 text-deepBlue text-sm text-gray-700 hover:bg-deepBlue hover:text-white rounded-md border-abumuda">
                       Ubah Profil
                     </a>

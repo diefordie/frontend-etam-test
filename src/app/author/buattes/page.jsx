@@ -107,7 +107,7 @@ const handleSubmit = async (e) => {
                     icon: 'success',
                     confirmButtonText: 'Lanjutkan',
                 });
-                router.push(`/author/buatSoal?testId=${testId}?category=${kategoriTes}`);
+                router.push(`/author/buatSoal?testId=${testId}&category=${kategoriTes}&multiplechoiceId=${result.multiplechoiceId}`);
             } else {
                 console.error('Test ID tidak ditemukan dalam respons:', result);
             }
