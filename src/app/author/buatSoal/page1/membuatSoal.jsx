@@ -241,7 +241,7 @@ const MembuatSoal = () => {
 
     try {
       if (optionId) {
-        const response = await fetch(`https://${URL}/api/multiplechoice/option/${optionId}`, {
+        const response = await fetch(`https://${URL}localhost:2000/api/multiplechoice/option/${optionId}`, {
             method: 'DELETE',
         });
         
@@ -360,7 +360,7 @@ const MembuatSoal = () => {
           localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
         }
       } else {
-        response = await fetch('https://${URL}/api/multiplechoice/add-questions', {
+        response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

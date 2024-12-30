@@ -26,8 +26,6 @@ function PublikasiContent() {
 
   const testId = searchParams.get('testId');
 
-
-
   useEffect(() => {
     const fetchTestDetails = async () => {
       try {
@@ -52,45 +50,44 @@ function PublikasiContent() {
     const priceAsInteger = parseInt(hargaTes.replace(/[^\d]/g, ''), 10);
 
     const payload = {
+        title: title,
         price: priceAsInteger,
-        similarity: prediksiKemiripan,
+        similarity: parseFloat(prediksiKemiripan),
         worktime: totalMinutes
     };
 
     // Validasi input
-    if (!payload.price || isNaN(payload.similarity) || !payload.worktime) {
-        alert("Semua field harus diisi dengan benar untuk publikasi.");
+    if (!payload.title || payload.price === null || payload.price === undefined || isNaN(payload.similarity) || isNaN(payload.worktime)) {
+        alert("Semua field harus diisi untuk publikasi.");
         return;
     }
 
     try {
-        const response = await fetch(`https/test/tests/${testId}/publish`, {
+        const response = await fetch(`https://${URL}/test/tests/${testId}/publish`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-             // Tambahkan token autentikasi jika diperlukan
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Gagal menyimpan tes.');
+        if (response.ok) {
+            console.log('Tes berhasil disimpan!');
+            setShowSuccessPopup(true); 
+            setShowErrorPopup(false);
+            
+            setTimeout(() => {
+                router.push('/author/dashboard');
+            }, 2000); 
+        } else {
+            console.error('Gagal menyimpan tes.', await response.text());
+            setShowErrorPopup(true);
+            setShowSuccessPopup(false);
         }
-
-        const updatedTest = await response.json();
-        console.log('Tes berhasil dipublikasi!', updatedTest);
-        setShowSuccessPopup(true); 
-        setShowErrorPopup(false);
-        
-        setTimeout(() => {
-            router.push('/author/dashboard');
-        }, 2000); 
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error:', error);
         setShowErrorPopup(true);
         setShowSuccessPopup(false);
-        alert(error.message); // Menampilkan pesan error kepada pengguna
     }
 };
 
@@ -216,9 +213,9 @@ const handleHargaTes = (e) => {
                 onChange={(e) => setPrediksiKemiripan(e.target.value)}
               >
                 <option value="" disabled>Kemiripan Soal</option>
-                <option value="0.85">45%</option>
-                <option value="0.65">65%</option>
-                <option value="0.80">80%</option>
+                <option value="45">45%</option>
+                <option value="65">65%</option>
+                <option value="80">80%</option>
               </select>
             </div>
           </div>
