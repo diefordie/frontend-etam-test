@@ -31,7 +31,7 @@ function PublikasiContent() {
   useEffect(() => {
     const fetchTestDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:2000/test/test-detail/${testId}`);
+        const response = await fetch(`https://${URL}/test/test-detail/${testId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch test details');
         }
@@ -53,7 +53,7 @@ function PublikasiContent() {
 
     const payload = {
         price: priceAsInteger,
-        similarity: parseFloat(prediksiKemiripan),
+        similarity: prediksiKemiripan,
         worktime: totalMinutes
     };
 
@@ -64,7 +64,7 @@ function PublikasiContent() {
     }
 
     try {
-        const response = await fetch(`http://localhost:2000/test/tests/${testId}/publish`, {
+        const response = await fetch(`https/test/tests/${testId}/publish`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

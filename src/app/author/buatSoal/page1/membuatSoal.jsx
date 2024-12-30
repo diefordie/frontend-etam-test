@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { storage } from "../../../firebase/config";
@@ -11,7 +11,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { BsImage } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
 import Swal from 'sweetalert2'; 
-const ReactQuill = dynamic(() => import('react-quill'), {
+const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false 
 });
 import dotenv from 'dotenv';
@@ -22,7 +22,6 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 const MembuatSoal = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const [testId, setTestId] = useState('');
   const [category, setCategory] = useState('');
   const [multiplechoiceId, setMultiplechoiceId] = useState('');
@@ -34,7 +33,6 @@ const MembuatSoal = () => {
   const [discussion, setDiscussion] = useState('');
   const [options, setOptions] = useState([{ optionDescription: '', isCorrect: false }]);
   const [pages, setPages] = useState([{ questions: [] }]);
-  const [kategori, setKategori] = useState("");
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(''); 
   const [isValid, setIsValid] = useState(true);
@@ -45,28 +43,20 @@ const MembuatSoal = () => {
     const multiplechoiceIdFromUrl = searchParams.get("multiplechoiceId");
     const pageNameFromUrl = searchParams.get("pageName");
     const numberFromUrl = searchParams.get("nomor");
-
-    console.log("Fetched testId:", testIdFromUrl); 
-    console.log("Fetched category:", categoryFromUrl);
-    console.log("Fetched multiplechoiceId:", multiplechoiceIdFromUrl); 
-    console.log("Raw pageName from URL:", pageNameFromUrl);
+    
 
     if (pageNameFromUrl) {
       const decodedPageName = decodeURIComponent(pageNameFromUrl);
-      console.log("Decoded pageName:", decodedPageName);
       setPageName(decodedPageName);
     }
     if (testIdFromUrl) {
       setTestId(testIdFromUrl);
     }
-    if (categoryFromUrl) {
-      setCategory(categoryFromUrl);
-    }
     if (multiplechoiceIdFromUrl) {
       setMultiplechoiceId(multiplechoiceIdFromUrl); 
     }
     if (numberFromUrl) setNumber(numberFromUrl);
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     if (!multiplechoiceId) return;
@@ -78,7 +68,6 @@ const MembuatSoal = () => {
           throw new Error(`Error: ${response.status} - ${errorMessage}`);
         }
         const data = await response.json();
-        console.log('Response dari API:', data);
         // setPageName(data.pageName);
         setWeight(data.weight);
         setNumber(data.number);
@@ -87,7 +76,6 @@ const MembuatSoal = () => {
         setDiscussion(data.discussion);
         if (data.questionPhoto && data.questionPhoto !== "") {
           setQuestionPhoto(data.questionPhoto);
-          console.log("Loaded question photo URL:", data.questionPhoto);
         } else {
           setQuestionPhoto(null);
         }
@@ -100,7 +88,6 @@ const MembuatSoal = () => {
             isCorrect: opt.isCorrect || false,
             points: opt.points
           })));
-          console.log('Options sebelum mapping:', data.option);
         }
         
       } catch (error) {
@@ -111,38 +98,46 @@ const MembuatSoal = () => {
   
     fetchData();
   }, [multiplechoiceId]);
-
+  
   const addOption = () => {
-    if (options.length < 5) {
+    setOptions((prevOptions) => {
+      if (prevOptions.length < 5) {
+        return [...prevOptions, { optionDescription: '', points: '' }];
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Maksimal 5 opsi hanya diperbolehkan',
+          text: 'Anda tidak dapat menambahkan lebih dari 5 opsi.',
+          confirmButtonText: 'OK',
+        });
+        return prevOptions;
+      }
+    });
+    if (options.length < 6) {
       setOptions([...options, { 
         optionDescription: '', 
         optionPhoto: null,
-        isCorrect: false,
-        points: ''
+        // points: ''
+        isCorrect: false 
       }]);
-    } else {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Maksimal 5 opsi hanya diperbolehkan',
-        text: 'Anda tidak dapat menambahkan lebih dari 5 opsi.',
-        confirmButtonText: 'OK',
-      });
     }
   };
 
-  const handleOptionChange = async (index, field, content) => {
+  const handleOptionChange = async (index, content, type) => {
     const newOptions = [...options];
     const currentOption = { ...newOptions[index] };
     
-    switch (field) {
-      case 'optionDescription':
+    switch (type) {
+      case 'text':
         currentOption.optionDescription = content;
+        currentOption.optionPhoto = null;
         break;
       case 'image':
         try {
           const imageRef = ref(storage, `options/${content.name + v4()}`);
           const snapshot = await uploadBytes(imageRef, content);
           const imageUrl = await getDownloadURL(snapshot.ref);
+          currentOption.optionDescription = '';
           currentOption.optionPhoto = imageUrl;
         } catch (error) {
           console.error('Error uploading image:', error);
@@ -157,30 +152,11 @@ const MembuatSoal = () => {
     setOptions(newOptions);
   };
 
-  useEffect(() => {
-    const baseOptions = [
-      { label: "Opsi 1", value: "", disabled: true }, 
-      { label: "Opsi 2", value: "", disabled: true }, 
-    ];
-
-    if (kategori === "TKP") {
-      setOptions([
-        ...baseOptions, 
-        { label: "Opsi 3", value: "" },
-        { label: "Opsi 4", value: "" },
-        { label: "Opsi 5", value: "" },
-      ]);
-    } else {
-      setOptions(baseOptions); 
-    }
-  }, [kategori]);
-
   const handleCorrectOptionChange = (index) => {
     const newOptions = options.map((option, i) => ({
       ...option,
       isCorrect: i === index, 
     }));
-    console.log('Options setelah perubahan isCorrect:', newOptions);
     setOptions(newOptions);
   };
 
@@ -205,65 +181,61 @@ const MembuatSoal = () => {
     if (confirm("Apakah Anda yakin ingin menghapus soal ini?")) {
       try {
         const localStorageKey = `pages-${testId}`;
-        
-        if (multiplechoiceId != null) {
+  
+        if (!multiplechoiceId || multiplechoiceId === "null") {
+          const response = await fetch(`https://${URL}/api/multiplechoice/previous-question/${testId}/${number}`, {
+            method: 'GET',
+          });
+  
+          if (!response.ok) {
+            throw new Error('Gagal mendapatkan soal sebelumnya.');
+          }
+        }
+  
+        if (multiplechoiceId && multiplechoiceId !== "null") {
           const response = await fetch(`https://${URL}/api/multiplechoice/question/${multiplechoiceId}`, {
             method: 'DELETE',
           });
-    
+  
           if (!response.ok) {
-            router.push(`/author/buatSoal?testId=${testId}`);
+            throw new Error('Gagal menghapus soal dari database');
           }
-          
         }
   
         const savedPages = localStorage.getItem(localStorageKey);
-        console.log('Data sebelum dihapus:', savedPages);
   
         if (savedPages) {
           let pages = JSON.parse(savedPages);
           let deletedNumber = null;
-          let deletedPageIndex = -1;
-          
-          pages.forEach((page, pageIndex) => {
+  
+          pages.forEach((page) => {
             const questionIndex = page.questions.indexOf(parseInt(number));
             if (questionIndex !== -1) {
               deletedNumber = parseInt(number);
-              deletedPageIndex = pageIndex;
               page.questions.splice(questionIndex, 1);
             }
           });
   
           if (deletedNumber !== null) {
-            const allNumbers = pages.reduce((acc, page) => [...acc, ...page.questions], []);
-
             pages = pages.map(page => ({
               ...page,
-              questions: page.questions.map(num => 
-                num > deletedNumber ? num - 1 : num
-              ).sort((a, b) => a - b)
-            }));
+              questions: page.questions.map(num => num > deletedNumber ? num - 1 : num).sort((a, b) => a - b),
+            })).filter(page => page.questions.length > 0);
   
-            console.log('Data setelah reorder:', pages); 
-            pages = pages.filter(page => page.questions.length > 0);
-            localStorage.setItem(localStorageKey, JSON.stringify(pages));   
-            console.log('Data final yang disimpan:', pages); 
+            localStorage.setItem(localStorageKey, JSON.stringify(pages));
           }
         }
-        router.push(`/author/buatSoal?testId=${testId}`);
+        const encodedPageName = encodeURIComponent(pageName);
+  
+        router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
       } catch (error) {
         console.error('Error saat menghapus soal:', error);
         alert('Terjadi kesalahan saat menghapus soal. Silakan coba lagi.');
       }
     }
-  };
+  };  
 
   const handleDeleteJawaban = async (index, optionId) => {
-    if (index < 2) {
-      console.log("Opsi 1 dan 2 tidak dapat dihapus.");
-      return; 
-    }
-
     const updatedOptions = options.filter((_, i) => i !== index);
     setOptions(updatedOptions);
 
@@ -274,65 +246,54 @@ const MembuatSoal = () => {
         });
         
         if (!response.ok) {
-          console.error('Failed to delete option:', response.statusText);
+            console.error('Failed to delete option:', response.statusText);
         } else {
-          console.log('Opsi berhasil dihapus dari server');
         } 
       }
     } catch (error) {
-      console.error('Error deleting option:', error);
+        console.error('Error deleting option:', error);
     }
   };
 
   const handleBack = () => {
-    if (testId && category) {
-      router.push(`/author/buatSoal?testId=${testId}&category=${category}`);
+    if (testId) {
+      const encodedPageName = encodeURIComponent(pageName);
+      router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
     } else {
       console.error('Test ID tidak ditemukan dalam respons:', result);
     }
- };
+  };
 
-const validateForm = () => {
-  const validationErrors = [];
-
-  // Validasi soal
-  if (!question || question.trim() === '') {
-    validationErrors.push("Soal wajib diisi");
-  }
-
-  // Validasi bobot
-  if (!weight || parseFloat(weight) <= 0) {
-    validationErrors.push("Bobot harus diisi dengan nilai lebih dari 0");
-  }
-
-  // Validasi opsi jawaban
-  if (options.length < 2) {
-    validationErrors.push("Minimal harus ada 2 opsi jawaban");
-  } else {
-    const filledOptions = options.filter(option => {
-      const hasDescription = option.optionDescription && option.optionDescription.trim() !== '';
-      const hasPhoto = option.optionPhoto != null;
-      return hasDescription || hasPhoto;
-    });
-
-    if (filledOptions.length < 2) {
-      validationErrors.push("Setidaknya dua opsi jawaban harus diisi dengan deskripsi atau foto");
+  const validateForm = () => {
+    const validationErrors = [];
+    if (!question.trim()) {
+      validationErrors.push("Soal wajib diisi");
     }
-  }
-
-  // Validasi jawaban benar
-  const correctOptionsCount = options.filter(option => option.isCorrect).length;
-  if (correctOptionsCount === 0) {
-    validationErrors.push("Pilih salah satu jawaban yang benar");
-  } else if (correctOptionsCount > 1) {
-    validationErrors.push("Hanya boleh memilih satu jawaban yang benar");
-  }
-
-  return {
-    isValid: validationErrors.length === 0,
-    errors: validationErrors
+    if (!weight || weight <= 0) {
+      validationErrors.push("Bobot harus diisi dengan nilai lebih dari 0");
+    }
+    if (options.length < 2) {
+      validationErrors.push("Minimal harus ada 2 opsi jawaban");
+    } else {
+      const emptyOptions = options.filter((option, index) => 
+        !option.optionDescription.trim() && !option.optionPhoto
+      );
+      
+      if (emptyOptions.length > 0) {
+        validationErrors.push("Semua opsi jawaban harus diisi");
+      }
+    }
+    const correctOptionsCount = options.filter(option => option.isCorrect).length;
+    if (correctOptionsCount === 0) {
+      validationErrors.push("Pilih salah satu jawaban yang benar");
+    } else if (correctOptionsCount > 1) {
+      validationErrors.push("Hanya boleh memilih satu jawaban yang benar");
+    }
+    return {
+      isValid: validationErrors.length === 0,
+      errors: validationErrors
+    };
   };
-};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -374,15 +335,6 @@ const validateForm = () => {
         discussion: discussion,
         options: formattedOptions
       };
-
-      if (!isValid) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Semua opsi harus diisi dan satu opsi harus ditandai sebagai benar.',
-        });
-        return;
-      }
   
       let response;
       let result;
@@ -398,7 +350,6 @@ const validateForm = () => {
   
         if (response.ok) {
           result = await response.json();
-          console.log('Update successful:', result);
 
           const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
           const updatedPages = existingPages.map(page => 
@@ -409,7 +360,7 @@ const validateForm = () => {
           localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
         }
       } else {
-        response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
+        response = await fetch('https://${URL}/api/multiplechoice/add-questions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -422,9 +373,7 @@ const validateForm = () => {
   
         if (response.ok) {
           result = await response.json();
-          console.log('Response dari API:', result);
           const newMultiplechoiceId = result.data[0].id;
-          console.log('MultiplechoiceId:', newMultiplechoiceId);
 
           localStorage.setItem('pageName', pageName);
           const existingPages = JSON.parse(localStorage.getItem(`pages_${testId}`)) || [];
@@ -439,7 +388,7 @@ const validateForm = () => {
   
       if (response.ok) {
         const encodedPageName = encodeURIComponent(pageName);
-        router.push(`/author/buatSoal?testId=${testId}&pageName=${encodedPageName}`);
+        router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
       } else {
         console.error('Failed to process request:', response.statusText);
       }
@@ -450,7 +399,7 @@ const validateForm = () => {
         confirmButtonColor: '#0B61AA',
       }).then(() => {
         const encodedPageName = encodeURIComponent(pageName);
-        router.push(`/author/buatSoal?testId=${testId}&pageName=${encodedPageName}`);
+        router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
       });
     } catch (error) {
       console.error('Error:', error);
@@ -486,11 +435,11 @@ const validateForm = () => {
     return (
       <div className="relative w-full">
         <textarea
-        value={option.optionDescription}
-        onChange={(e) => handleOptionChange(index, 'optionDescription', e.target.value)}
-        className="w-full p-2 border rounded min-h-[100px]"
-        placeholder="Tulis opsi jawaban atau masukkan gambar..."
-      />
+          value={option.optionDescription}
+          onChange={(e) => handleOptionChange(index, e.target.value, 'text')}
+          className="w-full p-2 border rounded min-h-[100px]"
+          placeholder="Tulis opsi jawaban atau masukkan gambar..."
+        />
         <button
           type="button"
           onClick={() => document.getElementById(`optionInput-${index}`).click()}
@@ -509,51 +458,64 @@ const validateForm = () => {
     );
   };
 
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['bold', 'italic', 'underline'],
+      ['clean']
+    ]
+  };
+  
+  const formats = [
+    'header',
+    'list',
+    'bold',
+    'italic',
+    'underline',
+  ];
+
+
+
   return (
-    <div className="container mx-auto p-0" style={{ maxWidth: '1978px' }}>
-      <header className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins w-full"
-        style={{ height: 'auto' }}>
+    <div className="container mx-auto p-0" style={{ maxWidth: '1440px' }}>
+      <header className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins" style={{ maxWidth: '1440px', height: '108px', marginLeft: '0'}}>
         <div className="flex items-center max-w-[1978px] w-full px-2 sm:px-4 mx-auto">
-          <Link href="/author/buatSoal" className="flex items-center space-x-2 sm:space-x-4">
-            <IoMdArrowRoundBack className="text-white text-2xl sm:text-3xl lg:text-4xl" />
-            <img src="/images/etamtest.png" alt="Etamtest" className="h-[40px] sm:h-[50px]" />
-          </Link>
-        </div>
+            <button type="button" onClick={handleBack} className="flex items-center space-x-2 sm:space-x-4">
+                    <IoMdArrowRoundBack className="text-white text-2xl sm:text-3xl lg:text-4xl" />
+                    <img src="/images/etamtest.png" alt="Etamtest" className="h-[40px] sm:h-[50px]" />
+                  </button>
+                </div>
       </header>
   
-      <div className="w-full p-2">
-        <nav className="bg-[#FFFFFF] text-black p-4">
-          <ul className="grid grid-cols-2 gap-2 sm:flex sm:justify-around sm:gap-10">
-            <li>
-              <button
-                className={`w-[100px] sm:w-[140px] md:w-[180px] px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-xl font-bold font-poppins text-xs sm:text-sm md:text-base ${
-                  activeTab === 'MembuatSoal' ? 'bg-[#78AED6]' : ''
-                }`}
-                onClick={() => setActiveTab('MembuatSoal')}
+      <nav className="bg-[#FFFF] text-black p-4 sm:p-6">
+        <ul className="flex space-x-6 sm:space-x-20">
+          <li>
+            <button
+              className={`w-[120px] sm:w-[220px] h-[48px] rounded-[20px] shadow-md font-bold font-poppins ${activeTab === 'buatTes' ? 'bg-[#78AED6]' : ''}`}
+              onClick={() => setActiveTab('buatTes')}
               >
-                Buat Soal
-              </button>
-            </li> 
-            <li>
-              <button
-                className={`w-[100px] sm:w-[140px] md:w-[180px] px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-xl font-bold font-poppins text-xs sm:text-sm md:text-base ${
-                  activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''
-                }`}
+              Buat Soal
+            </button>
+          </li> 
+          <li>
+            <button
+              className={`w-[140px] sm:w-[180px] px-4 sm:px-8 py-2 sm:py-4 rounded-full shadow-xl font-bold font-poppins ${activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''}`}
               >
-                Publikasi
-              </button>
-            </li>
-          </ul>
-        </nav>
+              Publikasi
+            </button>
+          </li>
+        </ul>
+      </nav>
   
-        <div className="container mx-auto lg:p-1 p-4 w-full" style={{ maxWidth: '1978px' }}>
-          <header className='bg-[#0B61AA] font-bold font-poppins text-white p-4'>
-            <div className="flex items-center justify-between">
-              <span>{pageName}</span>
-            </div>
-          </header>
+      <div className="container mx-auto lg: p-2 p-4 w-full" style={{ maxWidth: '1309px' }}>
+        <header className='bg-[#0B61AA] font-bold font-poppins text-white p-4'>
+          <div className="flex items-center justify-between">
+            <span>{pageName}</span>
+          </div>
+        </header>
   
-        <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6">
+        <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6 " >
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className='mb-4'>
               <label htmlFor="soal">No.      </label>
@@ -561,86 +523,43 @@ const validateForm = () => {
                 type="number"
                 value={number}
                 onChange={(e) => setNumber(e.target.value)}
+                readOnly
                 required
               />
             </div>
             <div className='m'>
-              <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '100%', height: 'auto' }}>
-                <div className="p-4 flex flex-wrap sm:flex-nowrap justify-between items-center mb-2">
-                  <div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
-                    <label className="block text-sm sm:text-sm md:text-base font-medium">
-                      Soal Pilihan Ganda
-                    </label>
+              <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '1309px', height: '250px' }}>
+                <div className='p-4 flex justify-between items-center mb-0.5 w-full'>
+                  <div className='flex items-center'>
+                    <label className="block mb-2">Soal Pilihan Ganda</label>
                   </div>
-                    <div className="flex items-center w-full sm:w-auto">
-                      <label className="font-medium-bold mr-2 text-sm sm:text-sm md:text-base">
-                        Bobot
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="5"
-                        step="0.1"
-                        id="weight"
-                        value={weight}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (/^\d*\.?\d{0,1}$/.test(value)) {
-                            setWeight(value);  
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === '.') {
-                            if (!weight || isNaN(weight)) {
-                              e.preventDefault();
-                            }
-                          }
-                          if (
-                            e.key !== "Backspace" &&
-                            e.key !== "Tab" &&
-                            e.key !== "ArrowLeft" &&
-                            e.key !== "ArrowRight" &&
-                            (e.key < "0" || e.key > "9") &&  
-                            e.key !== "."  
-                          ) {
-                            e.preventDefault();
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const value = parseFloat(e.target.value);
-                          if (!isNaN(value)) {
-                            setWeight(value.toFixed(1)); 
-                          } else {
-                            setWeight("");  
-                          }
-                        }}
-                        className="border p-1 text-xs sm:p-1 sm:text-sm md:text-base w-full sm:w-auto rounded-md"
-                        required
-                      />
-                    </div>
+                  <div className='flex items-center'>
+                    <label className="font-medium-bold mr-2">Bobot</label>
+                    <input
+                      type="number"
+                      step="0"
+                      min="1"
+                      id="weight"
+                      value={weight}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          setWeight(value);
+                        }
+                      }}
+                      className="border p-2 w-full"
+                      required
+                    />
+                  </div>
                 </div>
+                
                 <ReactQuill 
                   value={question} 
                   onChange={setQuestion} 
-                  modules={{
-                    toolbar: [
-                      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      ['bold', 'italic', 'underline'],
-                      ['clean']
-                    ],
-                  }}
-                  formats={[
-                    'header',
-                    'font',
-                    'list',
-                    'bullet',
-                    'bold',
-                    'italic',
-                    'underline',
-                  ]}
+                  modules={modules}
+                  formats={formats}
                   className='bg-white shadow-md rounded-md border border-gray-500'
-                  style={{ maxWidth: '1978px', height: '150px', overflow: 'hidden' }}
+                  style={{ maxWidth: '1220px', height: '150px' }}
                   placeholder='Buat Soal di sini...'
                   required 
                 />
@@ -674,16 +593,16 @@ const validateForm = () => {
             </div>
   
             <div>
-              <h2 className="block text-sm sm:text-sm md:text-base font-medium mb-2">Jawaban</h2>
+              <h2 className="text-lg font-semi-bold mb-2">Jawaban</h2>
               {options.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2 mb-2">
-                  <div className="w-full mb-4 sm:mb-0">
+                  <div className="w-full">
                     {renderOptionContent(option, index)}
                   </div>
                   <div className="flex items-center space-x-4">
                     <button
                       type="button"
-                      className="flex items-center justify-between text-black font-bold px-1 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base rounded-[10px] border border-black hover:bg-gray-200 hover:text-blue-500 space-x-2"
+                      className="flex items-center justify-between text-black font-bold px-4 rounded-[10px] border border-black space-x-2"
                     >
                       <input
                         type="radio"
@@ -696,75 +615,63 @@ const validateForm = () => {
                       />
                       <span>Benar</span>
                     </button>
-
-                    {index >= 2 && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteJawaban(index, option.id)}
-                        className="ml-4"
-                      >
-                        <AiOutlineCloseSquare className="w-6 h-6" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteJawaban(index, option.id)}
+                      className="ml-4"
+                    >
+                      <img
+                        src="/images/Hapus.svg" 
+                        alt="Delete"
+                        className="w-15 h-15 "
+                      />
+                    </button>
                   </div>
                 </div>
               ))}
-
-              <button 
-                type="button" 
-                onClick={addOption} 
-                className="bg-[#7bb3b4] hover:bg-[#8CC7C8] border border-black px-1 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base font-poppins rounded-[10px] text-black font-bold"
-              >
+              <button type="button" onClick={addOption} className="bg-[#7bb3b4] hover:bg-[#8CC7C8] text-black font-bold py-2 px-4 rounded-[15px] border border-black">
                 + Tambah
               </button>
             </div>
   
             <div className="mb-4">
-              <label className="block text-sm sm:text-sm md:text-base font-medium mb-2">Pembahasan</label>
+              <label className="block mb-2">Pembahasan</label>
               <ReactQuill 
                 value={discussion} 
                 onChange={setDiscussion} 
-                modules={{
-                  toolbar: [
-                    [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['bold', 'italic', 'underline'],
-                    ['clean']
-                  ]
-                }}
-                formats={[
-                  'header',
-                  'font',
-                  'list',
-                  'bullet',
-                  'bold',
-                  'italic',
-                  'underline',
-                ]}
-                placeholder='Tulis kunci jawaban di sini...' />
+                modules={modules}
+                formats={formats}
+                placeholder='Tulis kunci jawaban di sini...'
+              />
             </div>
           </form>
-            <div className="mt-4 flex flex-wrap justify-end items-center gap-2 sm:gap-4">
+          <div className='mt-4 flex justify-end space-x-4 -mr-2'>
+            <div className="flex justify-end space-x-2">
               <button
                 onClick={handleDelete}
-                className="bg-[#E58A7B] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
+                className="bg-[#E58A7B] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
               >
                 Hapus
               </button>
+              </div>
+              <div className="flex justify-end space-x-2">
               <button
                 onClick={handleSubmit} 
-                className="bg-[#E8F4FF] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
+                className="bg-[#E8F4FF] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
               >
                 Simpan
               </button>
+            </div>
+            <div className="flex justify-end space-x-2">
               <button
                 onClick={handleBack}
-                className="bg-[#A6D0F7] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
+                className="bg-[#A6D0F7] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
               >
                 Kembali
               </button>
             </div>
           </div>
+
         </div>
       </div>
     </div>

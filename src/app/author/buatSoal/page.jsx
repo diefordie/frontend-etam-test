@@ -26,6 +26,14 @@ const KotakNomorInner = () => {
   const [activeTab, setActiveTab] = useState('KotakNomor');
   const [usedPageNames, setUsedPageNames] = useState(new Set());
   const [pagesWithContent, setPagesWithContent] = useState(new Set());
+  const [options, setOptions] = useState(
+      Array(5).fill({ 
+        optionDescription: '', 
+        optionPhoto: null, 
+        points: '', 
+        isCorrect: false 
+      })
+    );  
 
   const [pageNameOptions] = useState([
     'Tes Wawasan Kebangsaan',
@@ -56,7 +64,6 @@ const KotakNomorInner = () => {
     const pageNameFromUrl = searchParams.get("pageName");
     const numberFromUrl = searchParams.get("nomor");
   
-    console.log("Fetched category:", categoryFromUrl);
 
     if (testIdFromUrl) {
       setTestId(testIdFromUrl);
@@ -131,7 +138,7 @@ const KotakNomorInner = () => {
         for (const number of numbersToUpdate) {
           try {
             const questionId = await fetchMultipleChoiceId(testId, number);
-            console.log("questionId add question:", questionId);
+
             if (questionId) {
               await updateQuestionNumberInDB(testId, number, number + 1);
             }
@@ -185,15 +192,14 @@ const KotakNomorInner = () => {
         alert(`Silakan isi nomor soal ${nextNumber - 1} terlebih dahulu.`);
         return;
       }
-  
-      console.log("Current category:", category); 
+
   
       setPages(prevPages => {
         if (category === 'CPNS') {
           const usedPageNames = new Set(prevPages.map(page => page.pageName));
           const availablePageNames = pageNameOptions.filter(name => !usedPageNames.has(name));
         
-        console.log("Available page names:", availablePageNames); 
+
         
         if (availablePageNames.length === 0) {
           alert('Semua jenis tes sudah digunakan!');
@@ -207,7 +213,7 @@ const KotakNomorInner = () => {
           isCPNSPage: true
         };
   
-        console.log("New page created:", newPage); 
+
   
         const updatedPages = [...prevPages, newPage];
         localStorage.setItem(`pages-${testId}`, JSON.stringify(updatedPages));
@@ -335,10 +341,8 @@ const KotakNomorInner = () => {
         console.error("No questions found for the specified page number.");
         return;
       }
-      console.log("currentPage:", currentPage);
-      console.log("currentPage.questions:", currentPage?.questions);
+
       const questionUpdates = currentPage.questions.map((questionNumber) => {
-        console.log("Updating questionNumber:", questionNumber);
         return fetch(`https://${URL}/api/multiplechoice/update-question`, {
           method: 'PUT',
           headers: {
@@ -544,17 +548,19 @@ const KotakNomorInner = () => {
     }
     
     const pageName = pages[pageIndex]?.pageName || '';
-    console.log("Current pageName:", pageName);
-    console.log("Page Index:", pageIndex);
-    console.log("Is TKP?:", pageName === 'Tes Karakteristik Pribadi');
-  
+
     const baseUrl = pageName === 'Tes Karakteristik Pribadi' 
       ? '/author/buatSoal/page2'
       : '/author/buatSoal/page1';
   
-    console.log("Selected baseUrl:", baseUrl);
-  
     let multiplechoiceId = await fetchMultipleChoiceId(testId, questionNumber);
+
+    const formattedOptions = options.map(option => ({
+      optionDescription: option.optionDescription,
+      optionPhoto: option.optionPhoto,
+      points: parseFloat(option.points),
+      isCorrect: null,
+    }));
   
     if (multiplechoiceId === "null" || !multiplechoiceId) {
       // Jika multiplechoiceId tidak ditemukan, buat yang baru
@@ -563,7 +569,7 @@ const KotakNomorInner = () => {
         number: questionNumber,
         question: '',  // Isi dengan nilai default atau kosong
         weight: 1,     // Isi dengan nilai default
-        options: []    // Isi dengan array kosong atau opsi default
+        options: formattedOptions,
       };
   
       try {
@@ -584,7 +590,7 @@ const KotakNomorInner = () => {
   
         const result = await response.json();
         multiplechoiceId = result.data[0].id;  // Mengambil ID dari respons
-        console.log("New multiplechoiceId created:", multiplechoiceId);
+
       } catch (error) {
         console.error("Error creating new question:", error);
         // Handle error (misalnya, tampilkan pesan error ke pengguna)
@@ -608,9 +614,6 @@ const KotakNomorInner = () => {
   };
 
   const renderPageNameInput = (pageIndex, page) => {
-    console.log("Category:", category);
-    console.log("Page:", page);
-    console.log("Is CPNS check:", category === 'CPNS' || page.isCPNSPage);
 
     const hasContent = pagesWithContent.has(pageIndex);
 
