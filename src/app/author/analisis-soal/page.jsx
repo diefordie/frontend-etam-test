@@ -14,6 +14,7 @@ import { RiDraftFill } from "react-icons/ri";
 import { MdPublish } from "react-icons/md";
 import Swal from "sweetalert2";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -39,6 +40,8 @@ export default function AnalisisSoal() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("publish");
   const [selectedTestId, setSelectedTestId] = useState(null);
+
+  const router = useRouter();
 
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
