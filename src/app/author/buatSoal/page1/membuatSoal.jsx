@@ -31,7 +31,10 @@ const MembuatSoal = () => {
   const [questionPhoto, setQuestionPhoto] = useState(null);
   const [weight, setWeight] = useState();
   const [discussion, setDiscussion] = useState('');
-  const [options, setOptions] = useState([{ optionDescription: '', isCorrect: false }]);
+  const [options, setOptions] = React.useState([
+    { optionDescription: '', optionPhoto: null, isCorrect: false },
+    { optionDescription: '', optionPhoto: null, isCorrect: false },
+  ]);
   const [pages, setPages] = useState([{ questions: [] }]);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(''); 
@@ -50,6 +53,9 @@ const MembuatSoal = () => {
     }
     if (testIdFromUrl) {
       setTestId(testIdFromUrl);
+    }
+    if (categoryFromUrl) {
+      setCategory(categoryFromUrl);
     }
     if (multiplechoiceIdFromUrl) {
       setMultiplechoiceId(multiplechoiceIdFromUrl); 
@@ -101,25 +107,34 @@ const MembuatSoal = () => {
   const addOption = () => {
     setOptions((prevOptions) => {
       if (prevOptions.length < 5) {
-        return [...prevOptions, { optionDescription: '', points: '' }];
+        return [...prevOptions, { 
+          optionDescription: '', 
+          optionPhoto: null, 
+          isCorrect: false  
+        }];
       } else {
         Swal.fire({
           icon: 'warning',
-          title: 'Maksimal 5 opsi hanya diperbolehkan',
+          title: 'Maksimal hanya 5 opsi diperbolehkan',
           text: 'Anda tidak dapat menambahkan lebih dari 5 opsi.',
           confirmButtonText: 'OK',
         });
         return prevOptions;
       }
     });
-    if (options.length < 6) {
-      setOptions([...options, { 
-        optionDescription: '', 
-        optionPhoto: null,
-        // points: ''
-        isCorrect: false 
-      }]);
+  };
+
+  const removeOption = (index) => {
+    if (index < 2) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Opsi ini tidak dapat dihapus',
+        text: 'Minimal 2 opsi harus ada.',
+        confirmButtonText: 'OK',
+      });
+      return;
     }
+    setOptions((prevOptions) => prevOptions.filter((_, i) => i !== index));
   };
 
   const handleOptionChange = async (index, content, type) => {
@@ -158,6 +173,13 @@ const MembuatSoal = () => {
     }));
     setOptions(newOptions);
   };
+
+  const handleWeightChange = (e) => {
+    const value = e.target.value;
+    if (/^\d*\.?\d*$/.test(value)) {
+      setWeight(value); 
+    }
+  }
 
   const loadPagesFromLocalStorage = () => {
     if (testId && typeof window !== 'undefined') {
@@ -457,92 +479,233 @@ const MembuatSoal = () => {
   };
 
   return (
-    <div className="container mx-auto p-0" style={{ maxWidth: '1440px' }}>
-      <header className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins" style={{ maxWidth: '1440px', height: '108px', marginLeft: '0'}}>
-        <div className="container mx-auto flex justify-start items-center" style={{ marginLeft: '-76px' }}>
-          <Link href="/author/buatSoal">
+    <div className="container mx-auto p-0" style={{ maxWidth: '1978px' }}>
+      <header 
+        className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins w-full"
+        style={{ height: 'auto' }}
+      >
+        <div className="flex items-center max-w-[1978px] w-full px-2 sm:px-4 mx-auto">
+          <Link href="/author/buatSoal" className="flex items-center space-x-2 sm:space-x-4">
             <IoMdArrowRoundBack className="text-white text-2xl sm:text-3xl lg:text-4xl" />
-          </Link>
-          <Link href="/">
-            <img src="/images/etamtest.png" alt="Etamtest" className="h-[50px]" style={{ maxWidth: '179px' }} />
+            <img src="/images/etamtest.png" alt="Etamtest" className="h-[40px] sm:h-[50px]" />
           </Link>
         </div>
       </header>
   
-      <nav className="bg-[#FFFF] text-black p-4 sm:p-6">
-        <ul className="flex space-x-6 sm:space-x-20">
-          <li>
-            <button
-              className={`w-[120px] sm:w-[220px] h-[48px] rounded-[20px] shadow-md font-bold font-poppins ${activeTab === 'buatTes' ? 'bg-[#78AED6]' : ''}`}
-              onClick={() => setActiveTab('buatTes')}
+      <div className="w-full p-2">
+        <nav className="bg-[#FFFFFF] text-black p-4">
+          <ul className="grid grid-cols-2 gap-2 sm:flex sm:justify-around sm:gap-10">
+            <li>
+              <button
+                className={`w-[100px] sm:w-[140px] md:w-[180px] px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-xl font-bold font-poppins text-xs sm:text-sm md:text-base ${
+                  activeTab === 'MembuatSoal' ? 'bg-[#78AED6]' : ''
+                }`}
+                onClick={() => setActiveTab('MembuatSoal')}
               >
-              Buat Soal
-            </button>
-          </li> 
-          <li>
-            <button
-              className={`w-[140px] sm:w-[180px] px-4 sm:px-8 py-2 sm:py-4 rounded-full shadow-xl font-bold font-poppins ${activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''}`}
+                Buat Soal
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-[100px] sm:w-[140px] md:w-[180px] px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-xl font-bold font-poppins text-xs sm:text-sm md:text-base ${
+                  activeTab === 'publikasi' ? 'bg-[#78AED6]' : ''
+                }`}
               >
-              Publikasi
-            </button>
-          </li>
-        </ul>
-      </nav>
+                Publikasi
+              </button>
+            </li>
+          </ul>
+        </nav>
   
-      <div className="container mx-auto lg: p-2 p-4 w-full" style={{ maxWidth: '1309px' }}>
-        <header className='bg-[#0B61AA] font-bold font-poppins text-white p-4'>
-          <div className="flex items-center justify-between">
-            <span>{pageName}</span>
-          </div>
-        </header>
-  
-        <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6 " >
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className='mb-4'>
-              <label htmlFor="soal">No.      </label>
-              <input
-                type="number"
-                value={number}
-                onChange={(e) => setNumber(e.target.value)}
-                readOnly
-                required
-              />
+        <div className="container mx-auto lg: p-2 p-4 w-full" style={{ maxWidth: '1309px' }}>
+          <header className='bg-[#0B61AA] font-bold font-poppins text-white p-4'>
+            <div className="flex items-center justify-between">
+              <span>{pageName}</span>
             </div>
-            <div className='m'>
-              <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '1309px', height: '250px' }}>
-                <div className='p-4 flex justify-between items-center mb-0.5 w-full'>
-                  <div className='flex items-center'>
-                    <label className="block mb-2">Soal Pilihan Ganda</label>
+          </header>
+    
+          <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6 " >
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="mb-4">
+                <label htmlFor="soal">No. </label>
+                <p className="inline-block text-black">
+                  {number}
+                </p>
+              </div>
+              <div className='m'>
+                <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '100%', height: 'auto' }}>
+                  <div className="p-4 flex flex-wrap sm:flex-nowrap justify-between items-center mb-2">
+                    <div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+                      <label className="block text-sm sm:text-sm md:text-base font-medium">
+                        Soal Pilihan Ganda
+                      </label>
+                    </div>
+                      <div className="flex items-center w-full sm:w-auto">
+                        <label className="font-medium-bold mr-2 text-sm sm:text-sm md:text-base">
+                          Bobot
+                        </label>
+                        <input
+                          type="text" 
+                          min="0"
+                          step="0.1"  
+                          id="weight"
+                          value={weight}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*\.?\d{0,1}$/.test(value)) {
+                              setWeight(value);  
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === '.') {
+                              if (!weight || isNaN(weight)) {
+                                e.preventDefault(); 
+                              }
+                            }
+
+                            if (
+                              e.key !== "Backspace" &&
+                              e.key !== "Tab" &&
+                              e.key !== "ArrowLeft" &&
+                              e.key !== "ArrowRight" &&
+                              (e.key < "0" || e.key > "9") &&  
+                              e.key !== "."  
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = parseFloat(e.target.value);
+                            if (!isNaN(value)) {
+                              setWeight(value.toFixed(1));  
+                            } else {
+                              setWeight("");  
+                            }
+                          }}
+                          className="border p-1 text-xs sm:p-1 sm:text-sm md:text-base w-full sm:w-auto rounded-md"
+                          required
+                        />
+                      </div>
                   </div>
-                  <div className='flex items-center'>
-                    <label className="font-medium-bold mr-2">Bobot</label>
-                    <input
-                      type="number"
-                      step="0"
-                      min="1"
-                      id="weight"
-                      value={weight}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^\d*$/.test(value)) {
-                          setWeight(value);
-                        }
-                      }}
-                      className="border p-2 w-full"
-                      required
-                    />
-                  </div>
+                  <ReactQuill 
+                    value={question} 
+                    onChange={setQuestion} 
+                    modules={{
+                      toolbar: [
+                        [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['bold', 'italic', 'underline'],
+                        ['image'],
+                        ['clean']
+                      ],
+                    }}
+                    formats={[
+                      'header',
+                      'font',
+                      'list',
+                      'bullet',
+                      'bold',
+                      'italic',
+                      'underline',
+                      'image',
+                    ]}
+                    className='bg-white shadow-md rounded-md border border-gray-500'
+                    style={{ maxWidth: '1978px', height: '150px', overflow: 'hidden' }}
+                    placeholder='Buat Soal di sini...'
+                    required 
+                  />
                 </div>
+              </div>
+
+              <div className="mb-4">
+                {typeof questionPhoto === 'string' && questionPhoto ? (
+                  <div className="mb-2">
+                    <img 
+                      src={questionPhoto} 
+                      alt="Question" 
+                      className="max-w-md h-auto"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setQuestionPhoto(null)}
+                      className="mt-2 bg-red-500 text-white px-2 py-1 rounded"
+                    >
+                      Hapus Gambar
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    onChange={(event) => setQuestionPhoto(event.target.files[0])}
+                    className="border p-2 w-full"
+                    accept="image/*"
+                  />
+                )}
+             </div>
+
+             <div>
+                <h2 className="block text-sm sm:text-sm md:text-base font-medium mb-2">Jawaban</h2>
+                {options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2 mb-2">
+                    <div className="w-full mb-4 sm:mb-0">
+                      {renderOptionContent(option, index)}
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      <button
+                        type="button"
+                        className="flex items-center justify-between text-black font-bold px-1 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base rounded-[10px] border border-black hover:bg-gray-200 hover:text-blue-500 space-x-2"
+                      >
+                        <input
+                          type="radio"
+                          id={`jawaban-${index}`}
+                          name="jawabanBenar"
+                          value={index}
+                          checked={option.isCorrect}
+                          onChange={() => handleCorrectOptionChange(index)}
+                          className={`w-4 h-4 ${
+                            !isValid && !options.some((opt) => opt.isCorrect) ? 'border border-red-700' : ''
+                          }`}
+                        />
+                        <span>Benar</span>
+                      </button>
+
+                      {index >= 2 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteJawaban(index, option.id)}
+                          className="ml-4"
+                        >
+                          <AiOutlineCloseSquare className="w-6 h-6" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {options.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={addOption}
+                    className="bg-[#7bb3b4] hover:bg-[#8CC7C8] border border-black px-1 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base font-poppins rounded-[10px] text-black font-bold"
+                  >
+                    + Tambah
+                  </button>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm sm:text-sm md:text-base font-medium mb-2">Pembahasan</label>
                 <ReactQuill 
-                  value={question} 
-                  onChange={setQuestion} 
+                  value={discussion} 
+                  onChange={setDiscussion} 
                   modules={{
                     toolbar: [
                       [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
                       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                       ['bold', 'italic', 'underline'],
                       ['clean']
-                    ],
+                    ]
                   }}
                   formats={[
                     'header',
@@ -553,135 +716,38 @@ const MembuatSoal = () => {
                     'italic',
                     'underline',
                   ]}
-                  className='bg-white shadow-md rounded-md border border-gray-500'
-                  style={{ maxWidth: '1220px', height: '150px', overflow: 'hidden' }}
-                  placeholder='Buat Soal di sini...'
-                  required 
-                />
+                  placeholder='Tulis kunci jawaban di sini...' />
               </div>
-            </div>
-
-            <div className="mb-4">
-            {typeof questionPhoto === 'string' && questionPhoto ? (
-              <div className="mb-2">
-                <img 
-                  src={questionPhoto} 
-                  alt="Question" 
-                  className="max-w-md h-auto"
-                />
-                <button 
-                  type="button"
-                  onClick={() => setQuestionPhoto(null)}
-                  className="mt-2 bg-red-500 text-white px-2 py-1 rounded"
+            </form>
+            <div className="mt-4 flex flex-wrap justify-end items-center gap-2 sm:gap-4">
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={handleDelete}
+                  className="bg-[#E58A7B] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
                 >
-                  Hapus Gambar
+                  Hapus
                 </button>
-              </div>
-            ) : (
-              <input
-                type="file"
-                onChange={(event) => setQuestionPhoto(event.target.files[0])}
-                className="border p-2 w-full"
-                accept="image/*"
-              />
-            )}
-            </div>
-  
-            <div>
-              <h2 className="text-lg font-semi-bold mb-2">Jawaban</h2>
-              {options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
-                  <div className="w-full">
-                    {renderOptionContent(option, index)}
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <button
-                      type="button"
-                      className="flex items-center justify-between text-black font-bold px-4 rounded-[10px] border border-black space-x-2"
-                    >
-                      <input
-                        type="radio"
-                        id={`jawaban-${index}`}
-                        name="jawabanBenar"
-                        value={index}
-                        checked={option.isCorrect}
-                        onChange={() => handleCorrectOptionChange(index)}
-                        className={`w-4 h-4 ${!isValid && !options.some(opt => opt.isCorrect) ? 'border border-red-700' : ''}`}
-                      />
-                      <span>Benar</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteJawaban(index, option.id)}
-                      className="ml-4"
-                    >
-                      <img
-                        src="/img/Hapus.png" 
-                        alt="Delete"
-                        className="w-15 h-15 "
-                      />
-                    </button>
-                  </div>
                 </div>
-              ))}
-              <button type="button" onClick={addOption} className="bg-[#7bb3b4] hover:bg-[#8CC7C8] text-black font-bold py-2 px-4 rounded-[15px] border border-black">
-                + Tambah
-              </button>
-            </div>
-  
-            <div className="mb-4">
-              <label className="block mb-2">Pembahasan</label>
-              <ReactQuill 
-                value={discussion} 
-                onChange={setDiscussion} 
-                modules={{
-                  toolbar: [
-                    [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['bold', 'italic', 'underline'],
-                    ['clean']
-                  ]
-                }}
-                formats={[
-                  'header',
-                  'font',
-                  'list',
-                  'bullet',
-                  'bold',
-                  'italic',
-                  'underline',
-                ]}
-                placeholder='Tulis kunci jawaban di sini...' />
-            </div>
-          </form>
-          <div className='mt-4 flex justify-end space-x-4 -mr-2'>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={handleDelete}
-                className="bg-[#E58A7B] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
-              >
-                Hapus
-              </button>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="bg-[#E8F4FF] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
+                  >
+                    Simpan
+                  </button>
               </div>
               <div className="flex justify-end space-x-2">
-              <button
-                onClick={handleSubmit} 
-                className="bg-[#E8F4FF] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
-              >
-                Simpan
-              </button>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={handleBack}
-                className="bg-[#A6D0F7] border border-black px-4 py-2 hover:text-white font-poppins rounded-[15px]"
-              >
-                Kembali
-              </button>
+                <button
+                  onClick={handleBack}
+                  className="bg-[#A6D0F7] border border-black px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm md:text-base hover:text-white font-poppins rounded-[10px]"
+                >
+                  Kembali
+                </button>
+              </div>
             </div>
           </div>
-
-        </div>
+        </div>  
       </div>
     </div>
   ); 

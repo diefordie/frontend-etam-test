@@ -108,6 +108,17 @@ const MembuatSoal = () => {
     fetchData();
   }, [multiplechoiceId]);
 
+  const addOption = () => {
+    if (options.length < 6) {
+      setOptions([...options, { 
+        optionDescription: '', 
+        optionPhoto: null,
+        points: ''
+        // isCorrect: false 
+      }]);
+    }
+  };
+
   const handleOptionChange = async (index, content, type) => {
     const newOptions = [...options];
     const currentOption = { ...newOptions[index] };
@@ -270,9 +281,9 @@ const MembuatSoal = () => {
     if (!question.trim()) {
       validationErrors.push("Soal wajib diisi");
     }
-    if (!discussion.trim()) {
-      validationErrors.push("Pembahasan wajib diisi");
-    }
+    // if (!discussion.trim()) {
+    //   validationErrors.push("Pembahasan wajib diisi");
+    // }
     if (options.length < 2) {
       validationErrors.push("Minimal harus ada 2 opsi jawaban");
     } else if (options.length > 5) {
@@ -471,16 +482,13 @@ const MembuatSoal = () => {
     
           <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6 " >
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className='mb-4'>
-                <label htmlFor="soal">No.      </label>
-                <input
-                  type="number"
-                  value={number}
-                  onChange={(e) => setNumber(e.target.value)}
-                  readOnly
-                  required
-                />
+              <div className="mb-4">
+                <label htmlFor="soal">No. </label>
+                <p className="inline-block text-black">
+                  {number}
+                </p>
               </div>
+
               <div className='m'>
                 <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '1978px', height: '250px' }}>
                   <div className='p-4 flex justify-between items-center mb-0.5 w-full'>
@@ -552,9 +560,12 @@ const MembuatSoal = () => {
                     key={index}
                     className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6"
                   >
+                    {/* Opsi Jawaban */}
                     <div className="w-full mb-4 sm:mb-0">
                       {renderOptionContent(option, index)}
                     </div>
+
+                    {/* Bobot */}
                     <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center justify-between space-x-2 sm:space-x-4 border border-black rounded-[10px] p-2">
                       <label className="font-medium text-sm">Bobot</label>
                       <div className="flex items-center w-full sm:w-auto">
@@ -564,11 +575,18 @@ const MembuatSoal = () => {
                           min="1"
                           max="5"
                           value={option.points || ''}
+                          onInput={(e) => {
+                            // Hapus karakter non-numerik langsung saat mengetik
+                            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                          }}
                           onChange={(e) => {
                             const value = parseInt(e.target.value, 10);
+
+                            // Validasi angka antara 1-5
                             if (value >= 1 && value <= 5) {
                               handleOptionChange(index, value, 'points');
                             } else if (e.target.value === '') {
+                              // Reset jika input kosong
                               handleOptionChange(index, '', 'points');
                             }
                           }}
