@@ -8,6 +8,7 @@ import { IoPersonCircle } from "react-icons/io5";
 import { useParams } from 'next/navigation';
 import { SlBookOpen } from "react-icons/sl";
 import { FiClipboard } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
 import dotenv from 'dotenv';
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -25,6 +26,8 @@ export default function RiwayatTransaksiHeader() {
   const { testId } = useParams();
   const [userId, setUserId] = useState(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  const router = useRouter();
 
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
@@ -76,6 +79,9 @@ export default function RiwayatTransaksiHeader() {
     if (token) {
       fetchUserData();
       fetchTransactions();
+    }
+    else {
+      router.push('/auth/login');
     }
   }, [token]);
 

@@ -71,7 +71,7 @@ const TopScore = () => {
           }
           
           if (!token) {
-            setErrorUser('Token tidak ditemukan');
+            router.push('/auth/login');
             setLoadingUser(false);
             return;
           }

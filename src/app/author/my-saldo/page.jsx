@@ -8,6 +8,7 @@ import { IoWalletOutline } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 import dotenv from 'dotenv';
 
@@ -38,9 +39,46 @@ export default function Home() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState(null);
+    const router = useRouter();
 
     const banks = ['BCA', 'BNI', 'MANDIRI', 'Bank Lainnya'];
 
+    useEffect(() => {
+      const checkRoleFromToken = () => {
+        try {
+          // Ambil token dari localStorage
+          const token = localStorage.getItem("token");
+  
+          // Jika token tidak ditemukan, arahkan ke halaman login
+          if (!token) {
+            router.push("/auth/login");
+            return;
+          }
+  
+          // Decode token untuk mendapatkan data pengguna
+          const decodedToken = jwtDecode(token);
+  
+          // Pastikan token terdecode dengan benar dan memiliki field role
+          if (!decodedToken.role) {
+            throw new Error("Role tidak ditemukan dalam token");
+          }
+  
+          // Jika role bukan "author", arahkan ke halaman login
+          if (decodedToken.role !== "AUTHOR") {
+            router.push("/auth/login");
+          }
+  
+        } catch (error) {
+          console.error("Error decoding token:", error);
+          // Jika ada error, arahkan ke halaman login
+          router.push("/auth/login");
+        }
+      };
+  
+      // Jalankan fungsi untuk memeriksa role pengguna
+      checkRoleFromToken();
+    }, [router]);
+    
     const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
       <div className="relative">

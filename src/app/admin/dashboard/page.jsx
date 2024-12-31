@@ -18,6 +18,19 @@ const DashboardAuthor = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
+  useEffect(() => {
+    // Fungsi untuk memeriksa status login
+    const checkLoginStatus = () => {
+      const isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn');
+      if (isAdminLoggedIn !== 'true') {
+        router.push('/auth/login'); // Arahkan ke halaman login admin
+      }
+    };
+
+    checkLoginStatus();
+  }, [router]);
+
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
       <div className="relative">

@@ -8,12 +8,15 @@ import { AiOutlineMore } from 'react-icons/ai';
 import axios from 'axios'
 import dotenv from 'dotenv';
 import { Suspense } from 'react';
+import {jwtDecode} from 'jwt-decode';
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
 const KotakNomorInner = () => {
   const router = useRouter();
+  const [userId, setUserId] = useState(null);
+  const [token, setToken] = useState("");
   const searchParams = useSearchParams();
   const [testId, setTestId] = useState('');
   const [category, setCategory] = useState('');
@@ -40,6 +43,42 @@ const KotakNomorInner = () => {
     'Tes Karakteristik Pribadi',
     'Tes Intelegensi Umum'
   ]);
+
+  useEffect(() => {
+    const checkRoleFromToken = () => {
+      try {
+        // Ambil token dari localStorage
+        const token = localStorage.getItem("token");
+
+        // Jika token tidak ditemukan, arahkan ke halaman login
+        if (!token) {
+          router.push("/auth/login");
+          return;
+        }
+
+        // Decode token untuk mendapatkan data pengguna
+        const decodedToken = jwtDecode(token);
+
+        // Pastikan token terdecode dengan benar dan memiliki field role
+        if (!decodedToken.role) {
+          throw new Error("Role tidak ditemukan dalam token");
+        }
+
+        // Jika role bukan "author", arahkan ke halaman login
+        if (decodedToken.role !== "AUTHOR") {
+          router.push("/auth/login");
+        }
+
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        // Jika ada error, arahkan ke halaman login
+        router.push("/auth/login");
+      }
+    };
+
+    // Jalankan fungsi untuk memeriksa role pengguna
+    checkRoleFromToken();
+  }, [router]);
 
   useEffect(() => {
     const savedPages = localStorage.getItem(`pages-${testId}`);
@@ -724,7 +763,7 @@ const KotakNomorInner = () => {
       <header className="bg-[#0B61AA] text-white p-4 sm:p-6 font-poppins w-full"
         style={{ height: 'auto' }}>
         <div className="flex items-center max-w-[1978px] w-full px-2 sm:px-4 mx-auto">
-          <Link href="/" className="flex items-center space-x-2 sm:space-x-4">
+          <Link href="/author/buattes" className="flex items-center space-x-2 sm:space-x-4">
             <IoMdArrowRoundBack className="text-white text-2xl sm:text-3xl lg:text-4xl" />
             <img src="/images/etamtest.png" alt="Etamtest" className="h-[40px] sm:h-[50px]" />
           </Link>

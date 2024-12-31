@@ -13,11 +13,13 @@ import { IoMenu } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import dotenv from "dotenv";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function UserDashboard() {
+  const router = useRouter();
   const [popularTests, setPopularTests] = useState([]);
   const [freeTests, setFreeTests] = useState([]);
   const [berbayarTests, setBerbayarTests] = useState([]);
@@ -31,6 +33,8 @@ export default function UserDashboard() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [errorUser, setErrorUser] = useState(null);
   const [userId, setUserId] = useState(null);
+
+
 
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
@@ -56,6 +60,7 @@ export default function UserDashboard() {
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('token');
           if (!token) {
+            router.push('/auth/login');
             throw new Error('Token tidak ditemukan');
           }
 

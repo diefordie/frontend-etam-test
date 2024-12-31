@@ -51,6 +51,7 @@ export default function EditProfile({ params }) {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
+        router.push('/auth/login')
         console.error('Token tidak tersedia');
         return;
       }

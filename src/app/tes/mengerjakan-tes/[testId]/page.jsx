@@ -10,9 +10,18 @@ import { CgArrowRightR } from "react-icons/cg";
 import { CgArrowLeftR } from "react-icons/cg";
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
+import sanitizeHtml from 'sanitize-html';
 dotenv.config();
 
 const URL = process.env.NEXT_PUBLIC_API_URL;
+
+
+const sanitizeContent = (html) => {
+  return sanitizeHtml(html, {
+    allowedTags: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li'],
+    allowedAttributes: {}
+  });
+};
 
 const MengerjakanTes = () => {
     const [pageName, setPageName] = useState('');
@@ -539,61 +548,59 @@ useEffect(() => {
         }
     };
 
-    const handleOption = async (optionId, optionLabel, question) => {
-        setSelectedOption(optionLabel);
-        const previousAnswer = answers[question.id];
-        let currentResultId = resultId || localStorage.getItem('resultId');  // Ambil resultId dari localStorage jika tidak tersedia
-
-        if (!answeredQuestions.includes(currentOption)){
-            setAnsweredQuestions([...answeredQuestions, currentOption]);
-        }
-
-        const updatedMarkedReview = [...markedReview];
-        updatedMarkedReview[currentOption - 1] = true; // Tandai jawaban untuk soal saat ini
-        setMarkedReview(updatedMarkedReview);
-
-        const updatedAnsweredSoals = [...answeredSoals, question.questionNumber];
-        setAnsweredSoals(updatedAnsweredSoals);
-        localStorage.setItem(`answeredSoals_${testId}`, JSON.stringify(updatedAnsweredSoals));
-        
-        if (previousAnswer) {
-            if (previousAnswer.optionId !== optionId || previousAnswer.optionLabel !== optionLabel) {
-                if (currentResultId) {
-                    try {
-                        await updateDraftAnswer(currentResultId, previousAnswer.optionId, optionId, optionLabel);
-                        const updatedAnswers = {
-                            ...answers,
-                            [question.id]: { optionId, optionLabel },
-                        };
-                        setAnswers(updatedAnswers);
+const handleOption = async (optionId, optionLabel, question, index) => {
+    // Gunakan index sebagai label jika optionLabel kosong (untuk opsi gambar)
+    const effectiveLabel = optionLabel || `Option ${index + 1}`;
     
-                        // Simpan jawaban ke localStorage
-                        localStorage.setItem('answers', JSON.stringify(updatedAnswers));
+    setSelectedOption(effectiveLabel);
+    const previousAnswer = answers[question.id];
+    let currentResultId = resultId || localStorage.getItem('resultId');
+
+    if (!answeredQuestions.includes(currentOption)){
+        setAnsweredQuestions([...answeredQuestions, currentOption]);
+    }
+
+    const updatedMarkedReview = [...markedReview];
+    updatedMarkedReview[currentOption - 1] = true;
+    setMarkedReview(updatedMarkedReview);
+
+    const updatedAnsweredSoals = [...answeredSoals, question.questionNumber];
+    setAnsweredSoals(updatedAnsweredSoals);
+    localStorage.setItem(`answeredSoals_${testId}`, JSON.stringify(updatedAnsweredSoals));
     
-                    } catch (error) {
-                        console.error('Gagal memperbarui draft:', error);
-                    }
+    if (previousAnswer) {
+        if (previousAnswer.optionId !== optionId || previousAnswer.optionLabel !== effectiveLabel) {
+            if (currentResultId) {
+                try {
+                    await updateDraftAnswer(currentResultId, previousAnswer.optionId, optionId, effectiveLabel);
+                    const updatedAnswers = {
+                        ...answers,
+                        [question.id]: { optionId, optionLabel: effectiveLabel },
+                    };
+                    setAnswers(updatedAnswers);
+                    localStorage.setItem('answers', JSON.stringify(updatedAnswers));
+                } catch (error) {
+                    console.error('Gagal memperbarui draft:', error);
                 }
             }
-        } else {
-            try {
-                const newResultId = await saveDraftAnswer(testId, optionId, optionLabel);
-                setResultId(newResultId);
-                localStorage.setItem('resultId', newResultId);
-    
-                const updatedAnswers = {
-                    ...answers,
-                    [question.id]: { optionId, optionLabel },
-                };
-                setAnswers(updatedAnswers);
-    
-                // Simpan jawaban baru ke localStorage
-                localStorage.setItem('answers', JSON.stringify(updatedAnswers));
-            } catch (error) {
-                console.error('Gagal menyimpan draft:', error);
-            }
         }
-    };
+    } else {
+        try {
+            const newResultId = await saveDraftAnswer(testId, optionId, effectiveLabel);
+            setResultId(newResultId);
+            localStorage.setItem('resultId', newResultId);
+
+            const updatedAnswers = {
+                ...answers,
+                [question.id]: { optionId, optionLabel: effectiveLabel },
+            };
+            setAnswers(updatedAnswers);
+            localStorage.setItem('answers', JSON.stringify(updatedAnswers));
+        } catch (error) {
+            console.error('Gagal menyimpan draft:', error);
+        }
+    }
+};
     
     const handlenextquestion = () => {
         if (currentOption < questions.length) {
@@ -833,13 +840,18 @@ useEffect(() => {
                     {currentQuestion && (
                         <>
                             <div className="mb-6 sm:mb-4 bg-white p-4 sm:p-2 rounded-[15px] shadow">
-                                <p className="text-lg font-poppins mb-6 sm:mb-4">{currentQuestion.questionText}</p>
+                                <div 
+                                    className="text-lg font-poppins mb-6 sm:mb-4"
+                                    dangerouslySetInnerHTML={{ __html: sanitizeContent(currentQuestion.questionText) }}
+                                />
                                 {currentQuestion.questionPhoto && (
+                                    <div className="image-container">
                                     <img 
-                                        src={currentQuestion.questionPhoto} 
-                                        alt={`Question ${currentQuestion.questionNumber}`}
-                                        className="h-64 w-64 aspect-square rounded-lg object-cover mx-auto my-3"
+                                      src={currentQuestion.questionPhoto} 
+                                      alt={`Question ${currentQuestion.questionNumber}`}
+                                      className="question-image rounded-lg mb-3"
                                     />
+                                  </div>
                                 )}
                             </div>
                             {currentQuestion.options.map((option) => (
@@ -854,11 +866,13 @@ useEffect(() => {
                                         className="mr-2"
                                     />
                                     {option.optionPhoto ? (
+                                        <div className="option-image-container">
                                         <img 
-                                            src={option.optionPhoto} 
-                                            alt={`Option ${option.id}`}
-                                            className="h-32 w-32 aspect-square rounded-lg object-cover ml-3 mb-2"
+                                          src={option.optionPhoto} 
+                                          alt={`Option ${option.id}`}
+                                          className="option-image"
                                         />
+                                      </div>
                                     ) : (
                                         <label htmlFor={option.id} className="text-xs sm:text-sm md:text-base">{option.label}</label>
                                     )}

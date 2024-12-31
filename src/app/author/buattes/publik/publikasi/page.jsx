@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import dotenv from 'dotenv';
 import { Suspense } from 'react';
-
+import {jwtDecode} from 'jwt-decode';
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -13,7 +13,8 @@ const URL = process.env.NEXT_PUBLIC_API_URL;
 
 function PublikasiContent() {
   const [namaTes, setNamaTes] = useState('');
-
+  const [userId, setUserId] = useState(null);
+  const [token, setToken] = useState("");
   const [durasiTes, setDurasiTes] = useState('')
   const [hargaTes, setHargaTes] = useState('');
   const [prediksiKemiripan, setPrediksiKemiripan] = useState('');
@@ -23,8 +24,45 @@ function PublikasiContent() {
   const [editableTitle, setEditableTitle] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
+  
 
   const testId = searchParams.get('testId');
+
+  useEffect(() => {
+    const checkRoleFromToken = () => {
+      try {
+        // Ambil token dari localStorage
+        const token = localStorage.getItem("token");
+
+        // Jika token tidak ditemukan, arahkan ke halaman login
+        if (!token) {
+          router.push("/auth/login");
+          return;
+        }
+
+        // Decode token untuk mendapatkan data pengguna
+        const decodedToken = jwtDecode(token);
+
+        // Pastikan token terdecode dengan benar dan memiliki field role
+        if (!decodedToken.role) {
+          throw new Error("Role tidak ditemukan dalam token");
+        }
+
+        // Jika role bukan "author", arahkan ke halaman login
+        if (decodedToken.role !== "AUTHOR") {
+          router.push("/auth/login");
+        }
+
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        // Jika ada error, arahkan ke halaman login
+        router.push("/auth/login");
+      }
+    };
+
+    // Jalankan fungsi untuk memeriksa role pengguna
+    checkRoleFromToken();
+  }, [router]);
 
   useEffect(() => {
     const fetchTestDetails = async () => {
@@ -50,15 +88,14 @@ function PublikasiContent() {
     const priceAsInteger = parseInt(hargaTes.replace(/[^\d]/g, ''), 10);
 
     const payload = {
-        title: title,
         price: priceAsInteger,
-        similarity: parseFloat(prediksiKemiripan),
+        similarity: prediksiKemiripan,
         worktime: totalMinutes
     };
 
     // Validasi input
-    if (!payload.title || payload.price === null || payload.price === undefined || isNaN(payload.similarity) || isNaN(payload.worktime)) {
-        alert("Semua field harus diisi untuk publikasi.");
+    if (isNaN(payload.price) || payload.price < 0 || isNaN(payload.similarity) || !payload.worktime) {
+        alert("Semua field harus diisi dengan benar untuk publikasi.");
         return;
     }
 
@@ -66,28 +103,30 @@ function PublikasiContent() {
         const response = await fetch(`https://${URL}/test/tests/${testId}/publish`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+             // Tambahkan token autentikasi jika diperlukan
             },
             body: JSON.stringify(payload)
         });
 
-        if (response.ok) {
-            console.log('Tes berhasil disimpan!');
-            setShowSuccessPopup(true); 
-            setShowErrorPopup(false);
-            
-            setTimeout(() => {
-                router.push('/author/dashboard');
-            }, 2000); 
-        } else {
-            console.error('Gagal menyimpan tes.', await response.text());
-            setShowErrorPopup(true);
-            setShowSuccessPopup(false);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Gagal menyimpan tes.');
         }
+
+        const updatedTest = await response.json();
+        console.log('Tes berhasil dipublikasi!', updatedTest);
+        setShowSuccessPopup(true); 
+        setShowErrorPopup(false);
+        
+        setTimeout(() => {
+            router.push('/author/dashboard');
+        }, 2000); 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error:', error.message);
         setShowErrorPopup(true);
         setShowSuccessPopup(false);
+        alert(error.message); // Menampilkan pesan error kepada pengguna
     }
 };
 
@@ -213,9 +252,9 @@ const handleHargaTes = (e) => {
                 onChange={(e) => setPrediksiKemiripan(e.target.value)}
               >
                 <option value="" disabled>Kemiripan Soal</option>
-                <option value="45">45%</option>
-                <option value="65">65%</option>
-                <option value="80">80%</option>
+                <option value="0.85">45%</option>
+                <option value="0.65">65%</option>
+                <option value="0.80">80%</option>
               </select>
             </div>
           </div>

@@ -18,6 +18,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
+
+
 const MembuatSoal = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,6 +45,43 @@ const MembuatSoal = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('buattes');
   const [isValid, setIsValid] = useState(true);
+
+  const encodedPageName = encodeURIComponent(pageName);
+
+  useEffect(() => {
+      const checkRoleFromToken = () => {
+        try {
+          // Ambil token dari localStorage
+          const token = localStorage.getItem("token");
+  
+          // Jika token tidak ditemukan, arahkan ke halaman login
+          if (!token) {
+            router.push("/auth/login");
+            return;
+          }
+  
+          // Decode token untuk mendapatkan data pengguna
+          const decodedToken = jwtDecode(token);
+  
+          // Pastikan token terdecode dengan benar dan memiliki field role
+          if (!decodedToken.role) {
+            throw new Error("Role tidak ditemukan dalam token");
+          }
+  
+          // Jika role bukan "author", arahkan ke halaman login
+          if (decodedToken.role !== "AUTHOR") {
+            router.push("/auth/login");
+          }
+  
+        } catch (error) {
+          console.error("Error decoding token:", error);
+
+        }
+      };
+  
+      // Jalankan fungsi untuk memeriksa role pengguna
+      checkRoleFromToken();
+    }, [router]);
 
   useEffect(() => {
     const testIdFromUrl = searchParams.get("testId");
@@ -108,6 +147,17 @@ const MembuatSoal = () => {
     fetchData();
   }, [multiplechoiceId]);
 
+  const addOption = () => {
+    if (options.length < 6) {
+      setOptions([...options, { 
+        optionDescription: '', 
+        optionPhoto: null,
+        points: ''
+        // isCorrect: false 
+      }]);
+    }
+  };
+
   const handleOptionChange = async (index, content, type) => {
     const newOptions = [...options];
     const currentOption = { ...newOptions[index] };
@@ -135,6 +185,43 @@ const MembuatSoal = () => {
     }
     newOptions[index] = currentOption;
     setOptions(newOptions);
+  };
+
+  const handleUploadImage = async (index) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const imageRef = ref(storage, `options/${file.name + v4()}`);
+          const snapshot = await uploadBytes(imageRef, file);
+          const imageUrl = await getDownloadURL(snapshot.ref);
+          
+          setOptions(prevOptions => {
+            const newOptions = [...prevOptions];
+            newOptions[index] = {
+              ...newOptions[index],
+              optionPhoto: imageUrl,
+              optionDescription: `Option ${index + 1}`
+            };
+            return newOptions;
+          });
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: 'Failed to upload image. Please try again.',
+            confirmButtonColor: '#0B61AA',
+          });
+        }
+      }
+    };
+    
+    input.click();
   };
 
   const renderOptionContent = (option, index) => {
@@ -249,7 +336,6 @@ const MembuatSoal = () => {
           }
         }
         
-        const encodedPageName = encodeURIComponent(pageName);
         router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
       } catch (error) {
         console.error('Error saat menghapus soal:', error);
@@ -259,8 +345,8 @@ const MembuatSoal = () => {
   };  
   
   const handleBack = () => {
+    
     if (testId) {
-      const encodedPageName = encodeURIComponent(pageName);
       router.push(`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`);
     } else {
       console.error('Test ID tidak ditemukan dalam respons:', result);
@@ -272,9 +358,9 @@ const MembuatSoal = () => {
     if (!question.trim()) {
       validationErrors.push("Soal wajib diisi");
     }
-    if (!discussion.trim()) {
-      validationErrors.push("Pembahasan wajib diisi");
-    }
+    // if (!discussion.trim()) {
+    //   validationErrors.push("Pembahasan wajib diisi");
+    // }
     if (options.length < 2) {
       validationErrors.push("Minimal harus ada 2 opsi jawaban");
     } else if (options.length > 5) {
@@ -373,7 +459,7 @@ const MembuatSoal = () => {
           localStorage.setItem(`pages_${testId}`, JSON.stringify(updatedPages));
         }
       } else {
-        response = await fetch('https://${URL}/api/multiplechoice/add-questions', {
+        response = await fetch(`https://${URL}/api/multiplechoice/add-questions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -425,8 +511,6 @@ const MembuatSoal = () => {
     }
   };
 
-
-
   return (
     <div className="container mx-auto p-0" style={{ maxWidth: '1978px' }}>
       <header 
@@ -434,10 +518,10 @@ const MembuatSoal = () => {
         style={{ height: 'auto' }}
       >
         <div className="flex items-center max-w-[1978px] w-full px-2 sm:px-4 mx-auto">
-          <button type="button" onClick={handleBack} className="flex items-center space-x-2 sm:space-x-4">
+          <Link href={`/author/buatSoal?testId=${testId}&category=${category}&pageName=${encodedPageName}`} className="flex items-center space-x-2 sm:space-x-4">
             <IoMdArrowRoundBack className="text-white text-2xl sm:text-3xl lg:text-4xl" />
             <img src="/images/etamtest.png" alt="Etamtest" className="h-[40px] sm:h-[50px]" />
-          </button>
+          </Link>
         </div>
       </header>
   
@@ -475,16 +559,13 @@ const MembuatSoal = () => {
     
           <div className="bg-[#FFFFFF] border border-black p-4 rounded-lg shadow-md w-full mb-6 " >
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className='mb-4'>
-                <label htmlFor="soal">No.      </label>
-                <input
-                  type="number"
-                  value={number}
-                  onChange={(e) => setNumber(e.target.value)}
-                  readOnly
-                  required
-                />
+              <div className="mb-4">
+                <label htmlFor="soal">No. </label>
+                <p className="inline-block text-black">
+                  {number}
+                </p>
               </div>
+
               <div className='m'>
                 <div className='border border-black bg-[#D9D9D9] p-2 rounded mb-4' style={{ maxWidth: '1978px', height: '250px' }}>
                   <div className='p-4 flex justify-between items-center mb-0.5 w-full'>
@@ -552,36 +633,73 @@ const MembuatSoal = () => {
               <div>
                 <h2 className="block text-sm sm:text-sm md:text-base font-medium mb-2">Jawaban</h2>
                 {options.map((option, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6"
-                  >
-                    <div className="w-full mb-4 sm:mb-0">
-                      {renderOptionContent(option, index)}
-                    </div>
-                    <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center justify-between space-x-2 sm:space-x-4 border border-black rounded-[10px] p-2">
-                      <label className="font-medium text-sm">Bobot</label>
-                      <div className="flex items-center w-full sm:w-auto">
-                        <input
-                          type="number"
-                          name="points"
-                          min="1"
-                          max="5"
-                          value={option.points || ''}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value, 10);
-                            if (value >= 1 && value <= 5) {
-                              handleOptionChange(index, value, 'points');
-                            } else if (e.target.value === '') {
-                              handleOptionChange(index, '', 'points');
-                            }
-                          }}
-                          className="border p-1 w-full"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+  <div
+    key={index}
+    className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6"
+  >
+    {/* Opsi Jawaban */}
+    <div className="w-full mb-4 sm:mb-0">
+      {option.optionPhoto ? (
+        <div className="option-image-container relative">
+          <img 
+            src={option.optionPhoto} 
+            alt={`Option ${index + 1}`} 
+            className="option-image"
+          />
+          <button
+            type="button"
+            onClick={() => handleOptionChange(index, '', 'text')}
+            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded"
+          >
+            <AiOutlineCloseSquare className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <div className="relative w-full">
+          <textarea
+            value={option.optionDescription}
+            onChange={(e) => handleOptionChange(index, e.target.value, 'text')}
+            className="w-full p-2 border rounded min-h-[100px]"
+            placeholder="Tulis opsi jawaban atau masukkan gambar..."
+          />
+          <button
+            type="button"
+            onClick={() => handleUploadImage(index)}
+            className="absolute bottom-2 right-2 bg-gray-100 p-2 rounded"
+          >
+            <BsImage className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+    </div>
+
+    {/* Bobot */}
+    <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center justify-between space-x-2 sm:space-x-4 border border-black rounded-[10px] p-2">
+      <label className="font-medium text-sm">Bobot</label>
+      <div className="flex items-center w-full sm:w-auto">
+        <input
+          type="number"
+          name="points"
+          min="1"
+          max="5"
+          value={option.points || ''}
+          onInput={(e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+          }}
+          onChange={(e) => {
+            const value = parseInt(e.target.value, 10);
+            if (value >= 1 && value <= 5) {
+              handleOptionChange(index, value, 'points');
+            } else if (e.target.value === '') {
+              handleOptionChange(index, '', 'points');
+            }
+          }}
+          className="border p-1 w-full"
+        />
+      </div>
+    </div>
+  </div>
+))}
               </div>
     
               <div className="mb-4">

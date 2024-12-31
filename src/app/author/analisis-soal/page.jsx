@@ -59,6 +59,42 @@ export default function AnalisisSoal() {
       </div>
     </div>
   );
+  
+  useEffect(() => {
+    const checkRoleFromToken = () => {
+      try {
+        // Ambil token dari localStorage
+        const token = localStorage.getItem("token");
+
+        // Jika token tidak ditemukan, arahkan ke halaman login
+        if (!token) {
+          router.push("/auth/login");
+          return;
+        }
+
+        // Decode token untuk mendapatkan data pengguna
+        const decodedToken = jwtDecode(token);
+
+        // Pastikan token terdecode dengan benar dan memiliki field role
+        if (!decodedToken.role) {
+          throw new Error("Role tidak ditemukan dalam token");
+        }
+
+        // Jika role bukan "author", arahkan ke halaman login
+        if (decodedToken.role !== "AUTHOR") {
+          router.push("/auth/login");
+        }
+
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        // Jika ada error, arahkan ke halaman login
+        router.push("/auth/login");
+      }
+    };
+
+    // Jalankan fungsi untuk memeriksa role pengguna
+    checkRoleFromToken();
+  }, [router]);
 
   const handleTestSelect = (id) => {
     if (filterStatus === "draft") {
@@ -69,32 +105,7 @@ export default function AnalisisSoal() {
     }
   };
 
-  useEffect(() => {
-    const getUserIdFromToken = () => {
-      try {
-        setLoading(true);
-        if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            throw new Error("Token tidak ditemukan");
-          }
 
-          const decodedToken = jwtDecode(token);
-          if (!decodedToken.id) {
-            throw new Error("User ID tidak ditemukan dalam token");
-          }
-
-          setUserId(decodedToken.id);
-        }
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getUserIdFromToken();
-  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {

@@ -11,6 +11,7 @@ import { IoIosLock } from "react-icons/io";
 import { SlBookOpen } from "react-icons/sl";
 import dotenv from 'dotenv';
 import { TbFileSad } from "react-icons/tb";
+import { useRouter } from 'next/navigation';
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -27,6 +28,7 @@ export default function Favorite() {
   const [likedItems, setLikedItems] = useState({});
   const [userId, setUserId] = useState(null);
   
+  const router = useRouter();
   const LoadingAnimation = () => (
     <div className="flex items-center justify-center h-screen bg-white duration-300">
       <div className="relative">
@@ -52,6 +54,7 @@ export default function Favorite() {
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('token');
           if (!token) {
+            router.push('/auth/login');
             throw new Error('Token tidak ditemukan');
           }
 

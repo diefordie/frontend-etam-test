@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link'; // Import Link from next/link
 import dotenv from 'dotenv';
+import { jwtDecode } from "jwt-decode";
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -10,7 +11,45 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState('publikasi'); // Set initial active tab to 'publikasi'
   const [isChecked, setIsChecked] = useState(false);
   const [testId, setTestId] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [token, setToken] = useState("");
   const router = useRouter(); 
+
+  useEffect(() => {
+    const checkRoleFromToken = () => {
+      try {
+        // Ambil token dari localStorage
+        const token = localStorage.getItem("token");
+
+        // Jika token tidak ditemukan, arahkan ke halaman login
+        if (!token) {
+          router.push("/auth/login");
+          return;
+        }
+
+        // Decode token untuk mendapatkan data pengguna
+        const decodedToken = jwtDecode(token);
+
+        // Pastikan token terdecode dengan benar dan memiliki field role
+        if (!decodedToken.role) {
+          throw new Error("Role tidak ditemukan dalam token");
+        }
+
+        // Jika role bukan "author", arahkan ke halaman login
+        if (decodedToken.role !== "AUTHOR") {
+          router.push("/auth/login");
+        }
+
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        // Jika ada error, arahkan ke halaman login
+        router.push("/auth/login");
+      }
+    };
+
+    // Jalankan fungsi untuk memeriksa role pengguna
+    checkRoleFromToken();
+  }, [router]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

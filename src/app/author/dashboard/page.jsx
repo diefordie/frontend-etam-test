@@ -53,33 +53,40 @@ export default function DashboardAuthor() {
   );
 
   useEffect(() => {
-    const getUserIdFromToken = () => {
+    const checkRoleFromToken = () => {
       try {
-        setLoading(true);
-        // Pastikan kode ini hanya dijalankan di sisi klien
-        if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            throw new Error("Token tidak ditemukan");
-          }
+        // Ambil token dari localStorage
+        const token = localStorage.getItem("token");
 
-          const decodedToken = jwtDecode(token);
-          if (!decodedToken.id) {
-            throw new Error("User ID tidak ditemukan dalam token");
-          }
-
-          setUserId(decodedToken.id);
+        // Jika token tidak ditemukan, arahkan ke halaman login
+        if (!token) {
+          router.push("/auth/login");
+          return;
         }
+
+        // Decode token untuk mendapatkan data pengguna
+        const decodedToken = jwtDecode(token);
+
+        // Pastikan token terdecode dengan benar dan memiliki field role
+        if (!decodedToken.role) {
+          throw new Error("Role tidak ditemukan dalam token");
+        }
+
+        // Jika role bukan "author", arahkan ke halaman login
+        if (decodedToken.role !== "AUTHOR") {
+          router.push("/auth/login");
+        }
+
       } catch (error) {
-        setError(error.message);
-        // Redirect ke halaman login jika token tidak valid
-      } finally {
-        setLoading(false);
+        console.error("Error decoding token:", error);
+        // Jika ada error, arahkan ke halaman login
+        router.push("/auth/login");
       }
     };
 
-    getUserIdFromToken();
-  }, []);
+    // Jalankan fungsi untuk memeriksa role pengguna
+    checkRoleFromToken();
+  }, [router]);
 
   useEffect(() => {
     const fetchUserData = async () => {

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import dotenv from 'dotenv';
 import Swal from 'sweetalert2';
+import {jwtDecode} from 'jwt-decode';
+
 
 dotenv.config();
 const URL = process.env.NEXT_PUBLIC_API_URL;
@@ -15,14 +17,50 @@ const BuatTes = () => {
   const [kategoriTes, setKategoriTes] = useState('');
   const [namaTes, setNamaTes] = useState(''); 
   const [deskripsi, setDeskripsi] = useState('');
-
+  const [userId, setUserId] = useState(null);
   const [showKategoriDropdown, setShowKategoriDropdown] = useState(false);
 
   const [activeTab, setActiveTab] = useState('buatTes');
-
+  const [token, setToken] = useState("");
   const kategoriDropdownRef = useRef(null);
   const [authorId, setAuthorId] = useState(null);
 
+  useEffect(() => {
+    const checkRoleFromToken = () => {
+      try {
+        // Ambil token dari localStorage
+        const token = localStorage.getItem("token");
+
+        // Jika token tidak ditemukan, arahkan ke halaman login
+        if (!token) {
+          router.push("/auth/login");
+          return;
+        }
+
+        // Decode token untuk mendapatkan data pengguna
+        const decodedToken = jwtDecode(token);
+
+        // Pastikan token terdecode dengan benar dan memiliki field role
+        if (!decodedToken.role) {
+          throw new Error("Role tidak ditemukan dalam token");
+        }
+
+        // Jika role bukan "author", arahkan ke halaman login
+        if (decodedToken.role !== "AUTHOR") {
+          router.push("/auth/login");
+        }
+
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        // Jika ada error, arahkan ke halaman login
+        router.push("/auth/login");
+      }
+    };
+
+    // Jalankan fungsi untuk memeriksa role pengguna
+    checkRoleFromToken();
+  }, [router]);
+  
   useEffect(() => {
     const fetchAuthorId = async () => {
       try {
