@@ -115,7 +115,6 @@ function PublikasiContent() {
         }
 
         const updatedTest = await response.json();
-        console.log('Tes berhasil dipublikasi!', updatedTest);
         setShowSuccessPopup(true); 
         setShowErrorPopup(false);
         

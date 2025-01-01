@@ -128,7 +128,6 @@ function TestPayment() {
           throw new Error(`Error: ${response.status} - ${errorMessage}`)
         }
         const data = await response.json();
-        console.log('Data fetched:', data);
         setTestCategory(data.category);
         setTestTitle(data.title);
         setTestSimilarity(data.similarity);
@@ -165,19 +164,16 @@ function TestPayment() {
           // Menampilkan Midtrans Snap
           window.snap.pay(data.token, {
             onSuccess: function (result) {
-              console.log('Payment success:', result);
               setLoading(false);
             },
             onPending: function (result) {
-              console.log('Payment pending:', result);
               setLoading(false);
             },
             onError: function (result) {
-              console.log('Payment error:', result);
+
               setLoading(false);
             },
             onClose: function () {
-              console.log('Payment dialog closed');
               setLoading(false);
             },
           });

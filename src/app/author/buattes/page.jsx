@@ -135,7 +135,6 @@ const handleSubmit = async (e) => {
         });
 
         if (response.ok) {
-            console.log('Tes berhasil disimpan!');
             const result = await response.json();
             const testId = result.id;
             if (testId) {

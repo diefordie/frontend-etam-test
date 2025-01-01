@@ -231,7 +231,7 @@ export default function EditProfile({ params }) {
   
 
   const handleEdit = () => {
-    console.log("Edit clicked");
+    
   };
 
   const handleFileChange = (e) => {

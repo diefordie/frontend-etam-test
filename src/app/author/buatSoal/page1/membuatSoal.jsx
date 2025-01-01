@@ -307,8 +307,6 @@ const MembuatSoal = () => {
         
         if (!response.ok) {
             console.error('Failed to delete option:', response.statusText);
-        } else {
-          console.log('Opsi berhasil dihapus dari server');
         } 
       }
     } catch (error) {

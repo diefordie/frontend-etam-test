@@ -451,13 +451,13 @@ export default function HasilTes() {
       <header className="relative flex w-full bg-deepBlue text-white p-3 items-center z-50">
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center p-2 lg:ml-9">
-            <Link href="/">
+            
               <img 
                 src="/images/etamtest.png" 
                 alt="EtamTest" 
                 className="lg:h-14 h-8 mr-3 object-contain" 
               />
-            </Link> 
+            
           </div>
 
           <div className="relative flex  items-center">

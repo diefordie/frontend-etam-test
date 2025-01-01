@@ -385,7 +385,6 @@ const handleStartTryOut = async () => {
     const sessionId = localStorage.getItem('sessionId');
     
     if (sessionId) {
-      console.log('Session ID ditemukan:', sessionId);
   
       // Hapus data terkait sessionId dari localStorage
       localStorage.removeItem('resultId');
@@ -395,11 +394,7 @@ const handleStartTryOut = async () => {
       localStorage.removeItem(`sessionId`);
       localStorage.removeItem(`currentOption`);
   
-      console.log('Data session dan pengerjaan tes telah dihapus dari localStorage');
-    } else {
-      console.log('Session ID tidak ditemukan');
-    }
-  
+    } 
     // Redirect ke halaman dashboard
     router.push('/user/dashboard');
   };
@@ -418,13 +413,13 @@ const handleStartTryOut = async () => {
                       <IoMdArrowRoundBack className='lg:hidden text-white text-2xl ' />
                     </Link> 
         
-                    <Link href="/">
+                    
                         <img 
                         src="/images/etamtest.png" 
                         alt="EtamTest" 
                         className="lg:h-14 h-8 ml-5 md:ml-8 object-contain" 
                         />
-                    </Link> 
+                    
             
                 </div>
 

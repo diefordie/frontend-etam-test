@@ -552,13 +552,13 @@ export default function Psikotes() {
               <IoMdArrowRoundBack className="lg:hidden text-white text-2xl" />
             </Link>
 
-            <Link href="/">
+            
               <img
                 src="/images/etamtest.png"
                 alt="EtamTest"
                 className="lg:h-14 h-8 mr-3 object-contain"
               />
-            </Link> 
+            
         </div>
 
         <div className="relative flex inline-block items-center ">

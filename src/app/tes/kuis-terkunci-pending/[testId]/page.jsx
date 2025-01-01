@@ -95,13 +95,9 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
     const pageNameFromUrl = params.get("pageName");
     const numberFromUrl = params.get("nomor");
 
-    console.log("Fetched testId:", testIdFromUrl); 
-    console.log("Fetched multiplechoiceId:", multiplechoiceIdFromUrl); 
-    console.log("Raw pageName from URL:", pageNameFromUrl);
-
     if (pageNameFromUrl) {
       const decodedPageName = decodeURIComponent(pageNameFromUrl);
-      console.log("Decoded pageName:", decodedPageName);
+
       setPageName(decodedPageName);
     }
     if (testIdFromUrl) {
@@ -117,9 +113,7 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
   const handleApiResponse = async (response, questionData) => {
     if (response.ok) {
       const result = await response.json();
-      console.log('Response dari API:', result);
       const newMultiplechoiceId = result.data[0].id;
-      console.log('MultiplechoiceId:', newMultiplechoiceId);
 
       // Update localStorage
       localStorage.setItem('pageName', pageName); // Store pageName
@@ -305,9 +299,6 @@ const SoalNavigation = ({ currentSoal, setCurrentSoal, answeredSoals }) => {
 
         if (currentQuestionId && answers[currentQuestionId]) {
             setSelectedOption(answers[currentQuestionId].optionLabel);
-            console.log(
-                `Jawaban ditemukan untuk pertanyaan ${currentQuestionId}: ${answers[currentQuestionId].optionLabel}`
-            );
         } else {
             setSelectedOption(null);
         }
@@ -408,7 +399,6 @@ const startWorkTime = () => {
     // Update existing draft answers
     const updateDraftAnswer = async (resultId, oldOptionId, newOptionId, newAnswer) => {
         try {
-            console.log('Updating draft answer:', { resultId, oldOptionId, newOptionId, newAnswer });
 
             const response = await fetch(`httsp://${URL}/answer/tests/${testId}/update`, {
                 method: 'PATCH',
@@ -431,7 +421,7 @@ const startWorkTime = () => {
             }
 
             const responseData = await response.json();
-            console.log('Draft updated successfully:', responseData);
+
             return responseData.resultId;
         } catch (error) {
             console.error('Error in updateDraftAnswer:', error.message);
@@ -471,7 +461,6 @@ const startWorkTime = () => {
     
             // Parsing response jika sukses
             const data = await response.json();
-            console.log('Jawaban final berhasil disimpan:', data);
     
             // SweetAlert untuk sukses
             Swal.fire({
@@ -527,7 +516,6 @@ const startWorkTime = () => {
                         // Simpan jawaban ke localStorage
                         localStorage.setItem('answers', JSON.stringify(updatedAnswers));
     
-                        console.log('Jawaban berhasil diperbarui');
                     } catch (error) {
                         console.error('Gagal memperbarui draft:', error);
                     }
@@ -547,8 +535,6 @@ const startWorkTime = () => {
     
                 // Simpan jawaban baru ke localStorage
                 localStorage.setItem('answers', JSON.stringify(updatedAnswers));
-    
-                console.log('Jawaban disimpan sebagai draft baru dengan resultId:', newResultId);
             } catch (error) {
                 console.error('Gagal menyimpan draft:', error);
             }
@@ -586,13 +572,11 @@ const startWorkTime = () => {
         setMarkedReview((prevState) => {
             const updatedState = [...prevState];
             updatedState[currentOption - 1] = !updatedState[currentOption - 1];
-            console.log('Updated markedReview:', updatedState);
             return updatedState;
         });
     };
     
     useEffect(() => {
-        console.log('Updated doubtQuestions:', doubtQuestions);
     }, [doubtQuestions]);
     
     
@@ -672,24 +656,13 @@ const startWorkTime = () => {
         if (storedAnswers) {
             const parsedAnswers = JSON.parse(storedAnswers);
             setAnswers(parsedAnswers);  // Isi state answers dengan jawaban dari localStorage
-            console.log('Loaded answers from localStorage:', parsedAnswers);
         }
     }, []);
     
 
     const currentQuestion = questions.length > 0 ? questions[currentOption - 1] : null;
-
-    console.log("Render Check:");
-    console.log('MarkedReview State:', markedReview);
-    console.log('Current Option:', currentOption);
-    console.log("answeredOptions:", answeredOptions);
-
     // UseEffect untuk melacak perubahan state
     useEffect(() => {
-        console.log("State Updated:");
-        console.log('MarkedReview State:', markedReview);
-        console.log('Current Option:', currentOption);
-        console.log("answeredOptions:", answeredOptions);
     }, [markedReview, answeredOptions, currentOption]);
 
 
