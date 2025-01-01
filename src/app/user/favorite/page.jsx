@@ -351,18 +351,18 @@ const toggleLike = async (id) => {
               </ul>
             </nav>
             {/* Profile */}
-            <div className="relative inline-block  hidden ">
+            <div className="relative inline-block   ">
               {userData?.userPhoto ? (
                 <img
                   src={userData.userPhoto}
                   alt="User Profile"
-                  className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover hidden lg:block"
+                  className="h-14 w-14 rounded-full cursor-pointer mr-5 object-cover hidden lg:block tablet:block"
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 />
               ) : (
                 <IoPersonCircle
-                  className="h-14 w-14 rounded-full cursor-pointer text-white mr-5 hidden lg:block"
+                  className="h-14 w-14 rounded-full cursor-pointer text-white mr-5 hidden lg:block tablet:block"
                   onMouseEnter={() => setDropdownOpen(true)}
                   onMouseLeave={() => setDropdownOpen(false)}
                 />
@@ -497,11 +497,11 @@ const toggleLike = async (id) => {
 
                     <div className="flex justify-between space-x-2 leading-relaxed mt-1">
                       <div className="flex text-left space-x-1 lg:space-x-4">
-                        {test.author.authorPhoto ? (
+                        {test.author.foto ? (
                           <img
-                            src={test.author.authorPhoto}
+                            src={test.author.foto}
                             alt={test.category}
-                            className="h-3 w-3 lg:h-6 lg:w-6 object-contain object-cover rounded-full"                          />
+                            className="h-3 w-3 lg:h-6 lg:w-6 object-cover rounded-full"                          />
                         ) : (
                           <IoPersonCircle className="h-3 lg:h-6 text-white" />
                         )}

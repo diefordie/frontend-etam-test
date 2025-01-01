@@ -77,6 +77,10 @@ export default function DashboardAuthor() {
           router.push("/auth/login");
         }
 
+        if (decodedToken.id) {
+          setUserId(decodedToken.id);
+        }
+
       } catch (error) {
         console.error("Error decoding token:", error);
         // Jika ada error, arahkan ke halaman login

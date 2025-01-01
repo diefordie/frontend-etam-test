@@ -71,7 +71,11 @@ export default function RiwayatTransaksiHeader() {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
-    setToken(storedToken);
+    if (storedToken) {
+      setToken(storedToken);
+    } else {
+      router.push('/auth/login');
+    }
   }, []);
 
   // Ambil data pengguna berdasarkan token
@@ -79,9 +83,6 @@ export default function RiwayatTransaksiHeader() {
     if (token) {
       fetchUserData();
       fetchTransactions();
-    }
-    else {
-      router.push('/auth/login');
     }
   }, [token]);
 

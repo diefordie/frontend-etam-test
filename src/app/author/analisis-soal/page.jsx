@@ -80,6 +80,9 @@ export default function AnalisisSoal() {
           throw new Error("Role tidak ditemukan dalam token");
         }
 
+        
+        setUserId(decodedToken.id);
+
         // Jika role bukan "author", arahkan ke halaman login
         if (decodedToken.role !== "AUTHOR") {
           router.push("/auth/login");
