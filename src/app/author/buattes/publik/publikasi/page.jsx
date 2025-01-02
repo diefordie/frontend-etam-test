@@ -164,8 +164,8 @@ const handleHargaTes = (e) => {
   return (
     <div>
       {/* Bar Atas */}
-      <header className="bg-[#0B61AA] text-white p-6 font-poppins" style={{ maxWidth: '1440px', height: '108px' }}>
-  <div className="container mx-auto flex justify-start items-center max-w-7xl px-4">
+      <header className="bg-[#0B61AA] text-white p-6 font-poppins w-auto" >
+  <div className="flex  items-center max-w-7xl px-4">
     <Link href="/author/buatSoal">
       <IoMdArrowRoundBack className="text-white text-3xl sm:text-3xl lg:text-4xl ml-2" />
     </Link>
@@ -248,7 +248,7 @@ const handleHargaTes = (e) => {
               <select
                 className="w-full sm:w-full border border-gray-300 p-2 rounded-full bg-white text-gray-500"
                 value={prediksiKemiripan}
-                onChange={(e) => setPrediksiKemiripan(e.target.value)}
+                onChange={(e) => setPrediksiKemiripan(e.target.value) }
               >
                 <option value="" disabled>Kemiripan Soal</option>
                 <option value="45">45%</option>
