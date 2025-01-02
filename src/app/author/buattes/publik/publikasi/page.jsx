@@ -251,9 +251,9 @@ const handleHargaTes = (e) => {
                 onChange={(e) => setPrediksiKemiripan(e.target.value)}
               >
                 <option value="" disabled>Kemiripan Soal</option>
-                <option value="0.85">45%</option>
-                <option value="0.65">65%</option>
-                <option value="0.80">80%</option>
+                <option value="45">45%</option>
+                <option value="65">65%</option>
+                <option value="80">80%</option>
               </select>
             </div>
           </div>
