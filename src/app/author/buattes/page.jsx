@@ -173,7 +173,7 @@ const handleSubmit = async (e) => {
     <>
     {/* Header dengan Warna Biru Kustom */}
     <header className="bg-[#0B61AA] text-white p-6 font-poppins w-auto" style={{height: '108px' }}>
-  <div className="container mx-auto flex justify-start items-center max-w-7xl px-4">
+  <div className=" flex items-center max-w-7xl px-4">
     <Link href="/author/dashboard">
       <IoMdArrowRoundBack className="text-white text-3xl sm:text-3xl lg:text-4xl ml-2" />
     </Link>
@@ -213,9 +213,9 @@ const handleSubmit = async (e) => {
       <div className="flex justify-center items-start mx-0 sm:mx-12">
         {activeTab === 'buatTes' && (
           <div className="bg-[#78AED6] p-8 rounded-md mx-auto w-full h-[750px] mt-[20px]">
-            <div className="flex justify-start pr-9">
+            <div className="flex justify-start ">
               {/* Bagian Kiri, Teks Rata Kanan */}
-              <div className="text-left pr-8 ">
+              <div className="text-left pr-4 mobile:hidden tablet:block ">
                 <h3 className="font-poppins text-black sm:text-lg mb-7 mt-7 sm:mt-8 sm:pt-6 ">Jenis</h3>
                 <h3 className="font-poppins text-black sm:text-lg mb-4 mt-7 sm:mt-.6 sm:pt-12">Kategori</h3>
                 <h3 className="font-poppins text-black sm:text-lg mb-4 mt-16 sm:mt-2 sm:pt-12">Nama</h3>

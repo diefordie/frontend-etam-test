@@ -40,7 +40,7 @@ const MembuatSoal = () => {
   ]);
   const [pages, setPages] = useState([{ questions: [] }]);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('buattes'); 
+  const [activeTab, setActiveTab] = useState('MembuatSoal'); 
   const [isValid, setIsValid] = useState(true);
 
   const encodedPageName = encodeURIComponent(pageName);
